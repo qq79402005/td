@@ -1,5 +1,105 @@
-[gd_scene format=1]
+[gd_scene load_steps=3 format=1]
+
+[ext_resource path="res://select/select_root.gd" type="Script" id=1]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=2]
 
 [node name="root" type="Node"]
+
+script/script = ExtResource( 1 )
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+
+editor/display_folded = true
+focus/ignore_mouse = false
+focus/stop_mouse = false
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 325.0
+margin/top = 298.0
+margin/right = 738.0
+margin/bottom = 475.0
+alignment = 0
+
+[node name="MenuButton" type="MenuButton" parent="VBoxContainer"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 413.0
+margin/bottom = 43.0
+custom_fonts/font = ExtResource( 2 )
+toggle_mode = false
+click_on_press = true
+enabled_focus_mode = 0
+shortcut = null
+text = "Role1"
+flat = true
+items = [  ]
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="MenuButton 2" type="MenuButton" parent="VBoxContainer"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 0.0
+margin/top = 47.0
+margin/right = 413.0
+margin/bottom = 90.0
+custom_fonts/font = ExtResource( 2 )
+toggle_mode = false
+click_on_press = true
+enabled_focus_mode = 0
+shortcut = null
+text = "New"
+flat = true
+items = [  ]
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="back" type="Button" parent="."]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 55.0
+margin/top = 498.0
+margin/right = 211.0
+margin/bottom = 561.0
+custom_fonts/font = ExtResource( 2 )
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Back"
+flat = false
+
+[node name="enter" type="Button" parent="."]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 821.0
+margin/top = 498.0
+margin/right = 977.0
+margin/bottom = 561.0
+custom_fonts/font = ExtResource( 2 )
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Enter"
+flat = false
+
+[connection signal="pressed" from="back" to="." method="_on_back_pressed"]
+
+[connection signal="pressed" from="enter" to="." method="_on_enter_pressed"]
 
 
