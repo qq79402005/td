@@ -1,11 +1,15 @@
 extends Spatial
 
-var speed = 3
+export(float) var speed = 3
 var current_animation = "idle"
 var old_animation = ""
 
+var target_pos = Vector3()
+
 func _ready():
 	set_process(true)
+	
+	target_pos = self.get_translation()
 	
 func _process(delta):
 	#update the animation
@@ -26,16 +30,28 @@ func _process(delta):
 		dir.z += 1
 	
 	if(dir.length_squared()>0):
-		current_animation ="run"
 		dir = dir.normalized()
-		var curPos = self.get_translation() + dir * speed * delta;
-		self.set_translation(curPos)
+		set_target_pos(self.get_translation() + dir * speed * delta)
+
+	move_to_target_pos(delta)
+		
+func move_to_target_pos(delta):
+	var cur_pos = self.get_translation()
+	var dir = target_pos - cur_pos
+	var len = dir.length()
+	if len>0 :
+		var move_len = min(delta*speed, len)
+		dir = dir.normalized()
+		self.set_translation(cur_pos + move_len * dir)
 		
 		# mirror
+		current_animation ="run"
 		if(dir.x > 0):
 			get_node("cha_man").mirror(false)
 		elif(dir.x < 0):
-			get_node("cha_man").mirror(true)
-	else :
+			get_node("cha_man").mirror(true)	
+	else:
 		current_animation = "idle"
-		
+
+func set_target_pos(target):
+	target_pos = target
