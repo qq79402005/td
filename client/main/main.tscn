@@ -1,9 +1,11 @@
-[gd_scene load_steps=6 format=1]
+[gd_scene load_steps=8 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=2]
-[ext_resource path="res://main/terrain_tile.gd" type="Script" id=3]
-[ext_resource path="res://main/item_icons.png" type="Texture" id=4]
+[ext_resource path="res://main/terrain_tile.gd" type="Script" id=2]
+[ext_resource path="res://main/item_icons.png" type="Texture" id=3]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=4]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=5]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=6]
 
 [sub_resource type="FixedMaterial" id=1]
 
@@ -33,7 +35,7 @@ params/shader_param = 0.5
 params/glow = 0
 params/point_size = 1.0
 uv_xform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-textures/diffuse = ExtResource( 4 )
+textures/diffuse = ExtResource( 3 )
 textures/diffuse_tc = 0
 textures/detail_tc = 0
 textures/specular_tc = 0
@@ -47,39 +49,7 @@ textures/shade_param_tc = 0
 
 script/script = ExtResource( 1 )
 
-[node name="back" type="Button" parent="."]
-
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 50.0
-margin/top = 495.0
-margin/right = 199.0
-margin/bottom = 557.0
-custom_fonts/font = ExtResource( 2 )
-toggle_mode = false
-enabled_focus_mode = 2
-shortcut = null
-text = "Back"
-flat = false
-
 [node name="terrain" type="Node" parent="."]
-
-[node name="Camera" type="Camera" parent="terrain"]
-
-_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 1, 0, 0, 0, 0.866025, -0.5, 0, 0.5, 0.866025, 3.79552, -1.2189, 7.77901 )
-projection = 0
-fov = 60.0
-near = 0.1
-far = 100.0
-keep_aspect = 1
-current = false
-visible_layers = 1048575
-environment = null
-h_offset = 0.0
-v_offset = 0.0
 
 [node name="terrain_tile" type="MeshInstance" parent="terrain"]
 
@@ -100,7 +70,7 @@ geometry/use_baked_light = false
 geometry/baked_light_tex_id = 0
 mesh/mesh = null
 mesh/skeleton = NodePath("..")
-script/script = ExtResource( 3 )
+script/script = ExtResource( 2 )
 material = SubResource( 1 )
 tile_size = 16
 
@@ -128,6 +98,51 @@ shadow/max_distance = 0.0
 shadow/split_weight = 0.5
 shadow/zoffset_scale = 2.0
 
-[connection signal="pressed" from="back" to="." method="_on_back_pressed"]
+[node name="characters" type="Node" parent="."]
+
+[node name="actor0" type="Spatial" parent="characters"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+script/script = ExtResource( 4 )
+
+[node name="Camera" type="Camera" parent="characters/actor0"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, -1.09502, 5.06073, 5.42116 )
+projection = 0
+fov = 60.0
+near = 0.1
+far = 100.0
+keep_aspect = 1
+current = false
+visible_layers = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+
+[node name="cha_man" parent="characters/actor0" instance=ExtResource( 5 )]
+
+[node name="ui" type="Node2D" parent="."]
+
+editor/display_folded = true
+
+[node name="back" type="Button" parent="ui"]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 50.0
+margin/top = 495.0
+margin/right = 199.0
+margin/bottom = 557.0
+custom_fonts/font = ExtResource( 6 )
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+text = "Back"
+flat = false
+
+[connection signal="pressed" from="ui/back" to="." method="_on_back_pressed"]
 
 
