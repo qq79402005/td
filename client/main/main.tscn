@@ -2,7 +2,7 @@
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/terrain_tile.gd" type="Script" id=2]
-[ext_resource path="res://main/item_icons.png" type="Texture" id=3]
+[ext_resource path="res://main/terrain_tex_normal.tex" type="Texture" id=3]
 [ext_resource path="res://main/cha_move.gd" type="Script" id=4]
 [ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=5]
 [ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=6]
@@ -24,7 +24,7 @@ fixed_flags/use_color_array = false
 fixed_flags/use_point_size = false
 fixed_flags/discard_alpha = false
 fixed_flags/use_xy_normalmap = false
-params/diffuse = Color( 1, 1, 1, 1 )
+params/diffuse = Color( 0.705882, 0.705882, 0.705882, 1 )
 params/specular = Color( 0, 0, 0, 1 )
 params/emission = Color( 0, 0, 0, 1 )
 params/specular_exp = 40
@@ -35,13 +35,13 @@ params/shader_param = 0.5
 params/glow = 0
 params/point_size = 1.0
 uv_xform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-textures/diffuse = ExtResource( 3 )
 textures/diffuse_tc = 0
 textures/detail_tc = 0
 textures/specular_tc = 0
 textures/emission_tc = 0
 textures/specular_exp_tc = 0
 textures/glow_tc = 0
+textures/normal = ExtResource( 3 )
 textures/normal_tc = 0
 textures/shade_param_tc = 0
 
@@ -72,7 +72,8 @@ mesh/mesh = null
 mesh/skeleton = NodePath("..")
 script/script = ExtResource( 2 )
 material = SubResource( 1 )
-tile_size = 16
+tile_size = 64.0
+tex_warp_size = 16.0
 
 [node name="DirectionalLight" type="DirectionalLight" parent="terrain"]
 
@@ -108,7 +109,7 @@ script/script = ExtResource( 4 )
 [node name="Camera" type="Camera" parent="characters/actor0"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, -1.09502, 5.06073, 5.42116 )
+transform/local = Transform( 1, 0, 0, 0, 0.730872, 0.682514, 0, -0.682514, 0.730872, -0.037199, 5.06073, 4.0264 )
 projection = 0
 fov = 60.0
 near = 0.1
