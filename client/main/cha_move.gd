@@ -59,3 +59,7 @@ func move_to_target_pos(delta):
 
 func set_target_pos(target):
 	target_pos = target
+	
+func update_terrain_display():
+	
+	pass

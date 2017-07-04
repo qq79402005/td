@@ -1,7 +1,7 @@
 extends MeshInstance
 
 export(FixedMaterial) var material = null
-export(float) var tile_size = int(16)
+export(float) var tile_size = int(32)
 export(float) var tex_warp_size = 8
 
 var flowers = []
@@ -19,11 +19,12 @@ func _ready():
 	flowers.append(preload("res://actor/flowers/flower_8.tscn"))
 	flowers.append(preload("res://actor/flowers/flower_9.tscn"))
 	flowers.append(preload("res://actor/flowers/flower_10.tscn"))
+	flowers.append(preload("res://actor/marble_trees/marble_tree.tscn"))
 	
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
 	
-	#gen_terrain_tiles()
+	gen_terrain_tiles()
 	gen_little_items()
 	
 func gen_terrain_tiles():
@@ -69,7 +70,9 @@ func gen_little_items():
 		if(tile_items[tileIdx]==-1):
 			var flower_idx = randi() % flowers.size()
 			var item = flowers[flower_idx].instance()
-			item.set_translation(Vector3(w+0.5, 0, h+0.5))
+			var item_half_height = 0#item.get_region_rect().size.y / 2
+			print(item_half_height)
+			item.set_translation(Vector3(w+0.5, item_half_height, h+0.5))
 			self.add_child(item)
 			tile_items[tileIdx] = flower_idx
 			
