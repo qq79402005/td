@@ -23,4 +23,7 @@ func _fixed_process(delta):
 			get_parent().set_target_pos(result.position)
 			print("hit a point", result.position)
 			
+			var item = get_tree().get_root().get_node("root/terrain/terrain_tile").get_item(int(result.position.x), int(result.position.z))
+			print(item)
+			
 		is_touch = false
