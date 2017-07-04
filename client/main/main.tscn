@@ -1,32 +1,30 @@
-[gd_scene load_steps=11 format=1]
+[gd_scene load_steps=9 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/terrain_tile.gd" type="Script" id=2]
-[ext_resource path="res://main/terrain_tex_diffuse.tex" type="Texture" id=3]
-[ext_resource path="res://main/terrain_tex_normal.tex" type="Texture" id=4]
-[ext_resource path="res://main/cha_move.gd" type="Script" id=5]
-[ext_resource path="res://main/TouchPick.gd" type="Script" id=6]
-[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=7]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=8]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=3]
+[ext_resource path="res://main/TouchPick.gd" type="Script" id=4]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=5]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=6]
 
-[sub_resource type="FixedMaterial" id=1]
+[sub_resource type="FixedMaterial" id=3]
 
 flags/visible = true
 flags/double_sided = true
 flags/invert_faces = false
 flags/unshaded = false
 flags/on_top = false
-flags/lightmap_on_uv2 = true
-flags/colarray_is_srgb = true
+flags/lightmap_on_uv2 = false
+flags/colarray_is_srgb = false
 params/blend_mode = 0
 params/depth_draw = 1
-params/line_width = 1.079e-43
+params/line_width = 0.0
 fixed_flags/use_alpha = false
 fixed_flags/use_color_array = false
 fixed_flags/use_point_size = false
 fixed_flags/discard_alpha = false
 fixed_flags/use_xy_normalmap = false
-params/diffuse = Color( 0.705882, 0.705882, 0.705882, 1 )
+params/diffuse = Color( 1, 1, 1, 1 )
 params/specular = Color( 0, 0, 0, 1 )
 params/emission = Color( 0, 0, 0, 1 )
 params/specular_exp = 40
@@ -37,14 +35,12 @@ params/shader_param = 0.5
 params/glow = 0
 params/point_size = 1.0
 uv_xform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-textures/diffuse = ExtResource( 3 )
 textures/diffuse_tc = 0
 textures/detail_tc = 0
 textures/specular_tc = 0
 textures/emission_tc = 0
 textures/specular_exp_tc = 0
 textures/glow_tc = 0
-textures/normal = ExtResource( 4 )
 textures/normal_tc = 0
 textures/shade_param_tc = 0
 
@@ -64,8 +60,8 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 layers = 1
 geometry/visible = true
 geometry/material_override = null
-geometry/cast_shadow = 1
-geometry/receive_shadows = true
+geometry/cast_shadow = 0
+geometry/receive_shadows = false
 geometry/range_begin = 0.0
 geometry/range_end = 0.0
 geometry/extra_cull_margin = 0.0
@@ -78,7 +74,7 @@ geometry/baked_light_tex_id = 0
 mesh/mesh = null
 mesh/skeleton = NodePath("..")
 script/script = ExtResource( 2 )
-material = SubResource( 1 )
+material = SubResource( 3 )
 tile_size = 64.0
 tex_warp_size = 16.0
 
@@ -91,7 +87,7 @@ params/enabled = true
 params/editor_only = false
 params/bake_mode = 0
 params/energy = 1.0
-colors/diffuse = Color( 1, 1, 1, 1 )
+colors/diffuse = Color( 1, 0.960784, 0.921569, 1 )
 colors/specular = Color( 1, 1, 1, 1 )
 shadow/shadow = false
 shadow/darkening = 0.0
@@ -136,7 +132,7 @@ _update_shape_index = 0
 [node name="actor0" type="Spatial" parent="characters"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-script/script = ExtResource( 5 )
+script/script = ExtResource( 3 )
 speed = 2.5
 
 [node name="Camera" type="Camera" parent="characters/actor0"]
@@ -153,9 +149,9 @@ visible_layers = 1048575
 environment = null
 h_offset = 0.0
 v_offset = 0.0
-script/script = ExtResource( 6 )
+script/script = ExtResource( 4 )
 
-[node name="cha_man" parent="characters/actor0" instance=ExtResource( 7 )]
+[node name="cha_man" parent="characters/actor0" instance=ExtResource( 5 )]
 
 [node name="ui" type="Node2D" parent="."]
 
@@ -171,7 +167,7 @@ margin/left = 50.0
 margin/top = 495.0
 margin/right = 199.0
 margin/bottom = 557.0
-custom_fonts/font = ExtResource( 8 )
+custom_fonts/font = ExtResource( 6 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
