@@ -1,7 +1,7 @@
 extends MeshInstance
 
 export(FixedMaterial) var material = null
-export(float) var tile_size = int(32)
+export(float) var tile_size = int(16)
 export(float) var tex_warp_size = 8
 
 var flowers = []
