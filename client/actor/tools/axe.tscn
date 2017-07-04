@@ -5,22 +5,22 @@
 [node name="Sprite3D" type="Sprite3D"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0170645, 0.171015, -0.00170207 )
+transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.339813, -0.118872, 0 )
 layers = 1
 geometry/visible = true
 geometry/material_override = null
 geometry/cast_shadow = 1
-geometry/receive_shadows = true
+geometry/receive_shadows = false
 geometry/range_begin = 0.0
 geometry/range_end = 0.0
 geometry/extra_cull_margin = 0.0
 geometry/billboard = true
-geometry/billboard_y = true
+geometry/billboard_y = false
 geometry/depth_scale = false
 geometry/visible_in_all_rooms = false
 geometry/use_baked_light = false
 geometry/baked_light_tex_id = 0
-centered = true
+centered = false
 offset = Vector2( 0, 0 )
 flip_h = true
 flip_v = false
