@@ -31,6 +31,7 @@ func _process(delta):
 	
 	if(dir.length_squared()>0):
 		dir = dir.normalized()
+		dir = dir.rotated(Vector3(0,1,0), -self.get_rotation().y)
 		set_target_pos(self.get_translation() + dir * speed * delta)
 
 	move_to_target_pos(delta)
@@ -46,9 +47,12 @@ func move_to_target_pos(delta):
 		
 		# mirror
 		current_animation ="run"
-		if(dir.x > 0):
+		
+		var camera = get_node("Camera")
+		var screen_dir = camera.unproject_position(target_pos) - camera.unproject_position(cur_pos)
+		if(screen_dir.x > 0):
 			get_node("cha_man").mirror(false)
-		elif(dir.x < 0):
+		elif(screen_dir.x < 0):
 			get_node("cha_man").mirror(true)	
 	else:
 		current_animation = "idle"

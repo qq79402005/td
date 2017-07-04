@@ -1,7 +1,7 @@
 extends MeshInstance
 
 export(FixedMaterial) var material = null
-export(float) var tile_size = 16
+export(float) var tile_size = int(16)
 export(float) var tex_warp_size = 8
 
 var flowers = []
@@ -23,7 +23,7 @@ func _ready():
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
 	
-	gen_terrain_tiles()
+	#gen_terrain_tiles()
 	gen_little_items()
 	
 func gen_terrain_tiles():
@@ -59,7 +59,7 @@ func gen_terrain_tiles():
 	self.set_mesh(mesh)
 	
 func gen_little_items():
-	var itemNum = int(tile_size * tile_size / 8)
+	var itemNum = int(tile_size * tile_size / 12)
 	for i in range(itemNum):
 		var w = randi() % tile_size
 		var h = randi() % tile_size
