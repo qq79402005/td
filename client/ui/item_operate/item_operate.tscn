@@ -1,0 +1,91 @@
+[gd_scene load_steps=6 format=1]
+
+[ext_resource path="res://ui/item_operate/item_operate.gd" type="Script" id=1]
+[ext_resource path="res://ui/item_operate/excavate.png" type="Texture" id=2]
+[ext_resource path="res://ui/item_operate/info.png" type="Texture" id=3]
+[ext_resource path="res://ui/item_operate/chop.png" type="Texture" id=4]
+
+[sub_resource type="Theme" id=1]
+
+
+[node name="item_operate" type="Control"]
+
+editor/display_folded = true
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+theme/theme = SubResource( 1 )
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 122.0
+margin/bottom = 112.0
+script/script = ExtResource( 1 )
+
+[node name="button3" type="Button" parent="."]
+
+rect/scale = Vector2( 0.5, 0.5 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 81.0
+margin/top = 4.0
+margin/right = 153.0
+margin/bottom = 70.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+icon = ExtResource( 2 )
+flat = false
+
+[node name="elevator" type="Button" parent="."]
+
+rect/scale = Vector2( 0.5, 0.5 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 4.0
+margin/top = 73.0
+margin/right = 76.0
+margin/bottom = 139.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+icon = ExtResource( 3 )
+flat = false
+
+[node name="chop" type="Button" parent="."]
+
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 83.0
+margin/top = 73.0
+margin/right = 117.0
+margin/bottom = 106.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+flat = false
+
+[node name="info" type="Button" parent="."]
+
+rect/scale = Vector2( 0.5, 0.5 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 4.0
+margin/top = 3.0
+margin/right = 76.0
+margin/bottom = 69.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+icon = ExtResource( 4 )
+flat = false
+
+

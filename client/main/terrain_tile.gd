@@ -23,7 +23,7 @@ func _ready():
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
 	
-	#gen_terrain_tiles()
+	gen_terrain_tiles()
 	gen_little_items()
 	
 func gen_terrain_tiles():
@@ -59,9 +59,8 @@ func gen_terrain_tiles():
 	self.set_mesh(mesh)
 	
 func gen_little_items():
-	var tileNum = int(tile_size * tile_size / 8)
-	print(tileNum)
-	for i in range(tileNum):
+	var itemNum = int(tile_size * tile_size / 8)
+	for i in range(itemNum):
 		var w = randi() % tile_size
 		var h = randi() % tile_size
 		var tileIdx = h * tile_size + w
@@ -76,5 +75,8 @@ func gen_little_items():
 			
 func get_item(x, z):
 	var tileIdx = z * tile_size + x
-	return tile_items[tileIdx]
+	if(tileIdx < tile_items.size() and tileIdx >= 0):
+		return tile_items[tileIdx]
+	else :
+		return -1
 
