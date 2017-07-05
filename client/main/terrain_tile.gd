@@ -1,8 +1,8 @@
 extends MeshInstance
 
-export(FixedMaterial) var material = null
+export(ShaderMaterial) var material = null
 export(float) var tile_size = int(16)
-export(float) var tex_warp_size = 8
+export(float) var tex_warp_size = 4
 
 var flowers = []
 var tile_items = []
@@ -33,25 +33,27 @@ func gen_terrain_tiles():
 	surfTool.set_material(material)
 	surfTool.begin(VS.PRIMITIVE_TRIANGLES)
 	
-	# triangle 1
-	surfTool.add_uv(Vector2(0,0))
-	surfTool.add_vertex(Vector3(0,0,0))
+	for h in range(tile_size):
+		for w in range(tile_size):
+			# triangle 1
+			surfTool.add_uv(Vector2(w,h))
+			surfTool.add_vertex(Vector3(w,0,h))
 	
-	surfTool.add_uv(Vector2(tex_warp_size, tex_warp_size))
-	surfTool.add_vertex(Vector3(tile_size, 0, tile_size))
+			surfTool.add_uv(Vector2(w+1, h+1))
+			surfTool.add_vertex(Vector3(w+1, 0, h+1))
 	
-	surfTool.add_uv(Vector2(0,tex_warp_size))
-	surfTool.add_vertex(Vector3(0, 0, tile_size))
+			surfTool.add_uv(Vector2(w,h+1))
+			surfTool.add_vertex(Vector3(w, 0, h+1))
 	
-	# triangle2
-	surfTool.add_uv(Vector2(0,0))
-	surfTool.add_vertex(Vector3(0,0,0))
+			# triangle2
+			surfTool.add_uv(Vector2(w,h))
+			surfTool.add_vertex(Vector3(w,0,h))
 	
-	surfTool.add_uv(Vector2(tex_warp_size,  0))
-	surfTool.add_vertex(Vector3(tile_size,0, 0))
+			surfTool.add_uv(Vector2(w+1,  h))
+			surfTool.add_vertex(Vector3(w+1,0, h))
 	
-	surfTool.add_uv(Vector2(tex_warp_size,tex_warp_size))
-	surfTool.add_vertex(Vector3(tile_size, 0, tile_size))
+			surfTool.add_uv(Vector2(w+1,h+1))
+			surfTool.add_vertex(Vector3(w+1, 0, h+1))
 	
 	surfTool.generate_normals()
 	surfTool.index()

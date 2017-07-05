@@ -23,3 +23,18 @@ func add_terrain_tile(pos):
 	
 func get_main_character_pos():
 	return get_tree().get_root().get_node("root/characters/actor0").get_translation()
+		
+func generate_noise_map( width, height, scale):
+	var noise_map = []
+	
+	for y in range(height):
+		for x in range(width):
+			var sample_x = x / scale
+			var sample_y = y / scale
+			var perlin_value = perlin_noise(sample_x, sample_y)
+			noise_map.append(perlin_value)
+	
+	
+func perlin_noise(x, y):
+	return 1.0
+	
