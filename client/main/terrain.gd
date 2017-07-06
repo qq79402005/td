@@ -2,6 +2,8 @@ extends Node
 
 var tiles = []
 var tile_view_range = int(2)
+var height_color_ranges = [Vector2(-1.0, -5.3), Vector2(-4.7, -0.3), Vector2(0.3, 4.7), Vector2(5.3, 1.0)]
+var height_colors = [Vector4(1.0, 0.0, 0.0, 0.0), Vector4(0.0, 1.0, 0.0, 0.0),Vector4(0.0, 0.0, 1.0, 0.0),Vector4(0.0, 0.0, 0.0, 1.0)]
 
 export(int) var terrain_width = 8
 export(int) var terrain_height = 8
@@ -123,6 +125,11 @@ func gen_tile_mesh(tile, pos):
 	tile.set_mesh(mesh)
 	
 func get_color_by_height(height):
+	var idx = int(0)
+	while idx < height_color_ranges.size():
+		if(height>height_color_ranges[idx].y):
+			idx+=1
+	
 	if height>-1 and height<=-0.5:
 		return Color(1.0, 0.0, 0.0, 0.0)
 	elif height>-0.5 and height<=0:
