@@ -1,56 +1,6 @@
-[gd_scene load_steps=7 format=1]
+[gd_scene load_steps=2 format=1]
 
 [ext_resource path="res://main/terrain_tile.gd" type="Script" id=1]
-[ext_resource path="res://main/Ground_noise_deciduous.png" type="Texture" id=2]
-[ext_resource path="res://main/mini_cave_noise.tex" type="Texture" id=3]
-[ext_resource path="res://main/grass.png" type="Texture" id=4]
-
-[sub_resource type="MaterialShader" id=2]
-
-_code = {
-"fragment": "vec3 blend(vec3 color0, vec4 color1)
-{
-	return color0.rgb * (1.0-color1.a) + color1.rgb * color1.a;
-}
-
-uniform color    col;
-uniform texture  tex0;
-uniform texture  tex1;
-uniform texture  noise_tex;
-
-vec4 tex0_color = tex(tex0, UV);
-vec4 tex1_color = tex(tex1, UV);
-vec4 noise_color = tex(noise_tex, UV);
-
-vec3 finalColor = blend(tex0_color.rgb, tex1_color);
-
-DIFFUSE = col.rgb * tex0_color.rgb;
-//DIFFUSE = col.rgb * finalColor;
-//DIFFUSE =  blend(DIFFUSE, noise_color);",
-"fragment_ofs": 0,
-"light": "",
-"light_ofs": 0,
-"vertex": "",
-"vertex_ofs": 0
-}
-
-[sub_resource type="ShaderMaterial" id=1]
-
-flags/visible = true
-flags/double_sided = false
-flags/invert_faces = false
-flags/unshaded = false
-flags/on_top = false
-flags/lightmap_on_uv2 = false
-flags/colarray_is_srgb = false
-params/blend_mode = 0
-params/depth_draw = 1
-params/line_width = 0.0
-shader/shader = SubResource( 2 )
-shader_param/col = Color( 1, 1, 1, 1 )
-shader_param/tex0 = ExtResource( 3 )
-shader_param/tex1 = ExtResource( 4 )
-shader_param/noise_tex = ExtResource( 2 )
 
 [node name="terrain_tile" type="MeshInstance"]
 
@@ -72,8 +22,6 @@ geometry/baked_light_tex_id = 0
 mesh/mesh = null
 mesh/skeleton = NodePath("..")
 script/script = ExtResource( 1 )
-material = SubResource( 1 )
 tile_size = 16
-tex_warp_size = 4.0
 
 

@@ -1,15 +1,54 @@
-[gd_scene load_steps=14 format=1]
+[gd_scene load_steps=19 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/terrain.gd" type="Script" id=2]
-[ext_resource path="res://main/cha_move.gd" type="Script" id=3]
-[ext_resource path="res://main/TouchPick.gd" type="Script" id=4]
-[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=5]
-[ext_resource path="res://main/cha_package.gd" type="Script" id=6]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=7]
-[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=8]
-[ext_resource path="res://main/weather.gd" type="Script" id=9]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=10]
+[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=3]
+[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=4]
+[ext_resource path="res://main/mini_cave_noise.tex" type="Texture" id=5]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=6]
+[ext_resource path="res://main/TouchPick.gd" type="Script" id=7]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=8]
+[ext_resource path="res://main/cha_package.gd" type="Script" id=9]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=10]
+[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=11]
+[ext_resource path="res://main/weather.gd" type="Script" id=12]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=13]
+
+[sub_resource type="MaterialShader" id=4]
+
+_code = {
+"fragment": "uniform color    col;
+uniform texture  stone_tex;
+uniform texture  grass_tex;
+uniform texture  sand_tex;
+
+vec3 finalColor = tex(stone_tex, UV).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b;
+
+DIFFUSE = col.rgb * finalColor;",
+"fragment_ofs": 0,
+"light": "",
+"light_ofs": 0,
+"vertex": "",
+"vertex_ofs": 0
+}
+
+[sub_resource type="ShaderMaterial" id=5]
+
+flags/visible = true
+flags/double_sided = false
+flags/invert_faces = false
+flags/unshaded = false
+flags/on_top = false
+flags/lightmap_on_uv2 = true
+flags/colarray_is_srgb = false
+params/blend_mode = 0
+params/depth_draw = 1
+params/line_width = 9.09178e-039
+shader/shader = SubResource( 4 )
+shader_param/col = Color( 1, 1, 1, 1 )
+shader_param/stone_tex = ExtResource( 5 )
+shader_param/grass_tex = ExtResource( 3 )
+shader_param/sand_tex = ExtResource( 4 )
 
 [sub_resource type="PlaneShape" id=1]
 
@@ -70,6 +109,13 @@ script/script = ExtResource( 1 )
 script/script = ExtResource( 2 )
 terrain_width = 256
 terrain_height = 256
+noise_seed = 666
+noise_octaves = 4
+noise_period = 64
+noise_persistance = 0.5
+material = SubResource( 5 )
+tile_size = 16
+tex_warp_size = 4
 
 [node name="DirectionalLight" type="DirectionalLight" parent="terrain"]
 
@@ -126,7 +172,7 @@ _update_shape_index = 0
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
-script/script = ExtResource( 3 )
+script/script = ExtResource( 6 )
 speed = 2.5
 
 [node name="Camera" type="Camera" parent="characters/actor0"]
@@ -143,13 +189,13 @@ visible_layers = 1048575
 environment = null
 h_offset = 0.0
 v_offset = 0.0
-script/script = ExtResource( 4 )
+script/script = ExtResource( 7 )
 
-[node name="cha_man" parent="characters/actor0" instance=ExtResource( 5 )]
+[node name="cha_man" parent="characters/actor0" instance=ExtResource( 8 )]
 
 [node name="cha_package" type="Node" parent="characters/actor0"]
 
-script/script = ExtResource( 6 )
+script/script = ExtResource( 9 )
 
 [node name="ui" type="Node2D" parent="."]
 
@@ -166,20 +212,20 @@ margin/left = 0.78125
 margin/top = -431.0
 margin/right = 199.0
 margin/bottom = -493.0
-custom_fonts/font = ExtResource( 7 )
+custom_fonts/font = ExtResource( 10 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 text = "Back"
 flat = false
 
-[node name="item_operate" parent="ui" instance=ExtResource( 8 )]
+[node name="item_operate" parent="ui" instance=ExtResource( 11 )]
 
 visibility/visible = false
 
 [node name="weather" type="Node2D" parent="."]
 
-script/script = ExtResource( 9 )
+script/script = ExtResource( 12 )
 
 [node name="snow" type="TextureFrame" parent="weather"]
 
@@ -194,7 +240,7 @@ margin/left = 1.0
 margin/top = 3.0
 margin/right = -964.0
 margin/bottom = -532.0
-texture = ExtResource( 10 )
+texture = ExtResource( 13 )
 expand = true
 stretch_mode = 3
 
