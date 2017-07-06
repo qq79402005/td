@@ -1,28 +1,30 @@
-[gd_scene load_steps=19 format=1]
+[gd_scene load_steps=20 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/terrain.gd" type="Script" id=2]
 [ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=3]
 [ext_resource path="res://main/Ground_noise.tex" type="Texture" id=4]
 [ext_resource path="res://main/mini_cave_noise.tex" type="Texture" id=5]
-[ext_resource path="res://main/cha_move.gd" type="Script" id=6]
-[ext_resource path="res://main/TouchPick.gd" type="Script" id=7]
-[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=8]
-[ext_resource path="res://main/cha_package.gd" type="Script" id=9]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=10]
-[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=11]
-[ext_resource path="res://main/weather.gd" type="Script" id=12]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=13]
+[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=6]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=7]
+[ext_resource path="res://main/TouchPick.gd" type="Script" id=8]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=9]
+[ext_resource path="res://main/cha_package.gd" type="Script" id=10]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=11]
+[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=12]
+[ext_resource path="res://main/weather.gd" type="Script" id=13]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=14]
 
-[sub_resource type="MaterialShader" id=4]
+[sub_resource type="MaterialShader" id=1]
 
 _code = {
 "fragment": "uniform color    col;
 uniform texture  stone_tex;
 uniform texture  grass_tex;
 uniform texture  sand_tex;
+uniform texture  tex3;
 
-vec3 finalColor = tex(stone_tex, UV).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b;
+vec3 finalColor = tex(stone_tex, UV).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b + tex(tex3, UV).rgb * COLOR.a;
 
 DIFFUSE = col.rgb * finalColor;",
 "fragment_ofs": 0,
@@ -32,7 +34,7 @@ DIFFUSE = col.rgb * finalColor;",
 "vertex_ofs": 0
 }
 
-[sub_resource type="ShaderMaterial" id=5]
+[sub_resource type="ShaderMaterial" id=2]
 
 flags/visible = true
 flags/double_sided = false
@@ -44,17 +46,18 @@ flags/colarray_is_srgb = false
 params/blend_mode = 0
 params/depth_draw = 1
 params/line_width = 9.09178e-039
-shader/shader = SubResource( 4 )
+shader/shader = SubResource( 1 )
 shader_param/col = Color( 1, 1, 1, 1 )
 shader_param/stone_tex = ExtResource( 5 )
 shader_param/grass_tex = ExtResource( 3 )
 shader_param/sand_tex = ExtResource( 4 )
+shader_param/tex3 = ExtResource( 6 )
 
-[sub_resource type="PlaneShape" id=1]
+[sub_resource type="PlaneShape" id=3]
 
 plane = Plane( 0, 1, 0, 0 )
 
-[sub_resource type="CanvasItemShader" id=2]
+[sub_resource type="CanvasItemShader" id=4]
 
 _code = {
 "fragment": "// based on http://www.glslsandbox.com/e#39801.0 by Catzpaw(Thanks!)
@@ -95,9 +98,9 @@ COLOR = vec4(vec3(c) + texscreen(SCREEN_UV), 1.0);",
 "vertex_ofs": 0
 }
 
-[sub_resource type="CanvasItemMaterial" id=3]
+[sub_resource type="CanvasItemMaterial" id=5]
 
-shader/shader = SubResource( 2 )
+shader/shader = SubResource( 4 )
 shader/shading_mode = 0
 
 [node name="root" type="Node"]
@@ -113,7 +116,7 @@ noise_seed = 666
 noise_octaves = 4
 noise_period = 64
 noise_persistance = 0.5
-material = SubResource( 5 )
+material = SubResource( 2 )
 tile_size = 16
 tex_warp_size = 4
 
@@ -148,7 +151,7 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 input/ray_pickable = true
 input/capture_on_drag = false
 shape_count = 1
-shapes/0/shape = SubResource( 1 )
+shapes/0/shape = SubResource( 3 )
 shapes/0/transform = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
 shapes/0/trigger = false
 collision/layers = 1
@@ -162,7 +165,7 @@ constant_angular_velocity = Vector3( 0, 0, 0 )
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
-shape = SubResource( 1 )
+shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
@@ -172,7 +175,7 @@ _update_shape_index = 0
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
-script/script = ExtResource( 6 )
+script/script = ExtResource( 7 )
 speed = 2.5
 
 [node name="Camera" type="Camera" parent="characters/actor0"]
@@ -189,13 +192,13 @@ visible_layers = 1048575
 environment = null
 h_offset = 0.0
 v_offset = 0.0
-script/script = ExtResource( 7 )
+script/script = ExtResource( 8 )
 
-[node name="cha_man" parent="characters/actor0" instance=ExtResource( 8 )]
+[node name="cha_man" parent="characters/actor0" instance=ExtResource( 9 )]
 
 [node name="cha_package" type="Node" parent="characters/actor0"]
 
-script/script = ExtResource( 9 )
+script/script = ExtResource( 10 )
 
 [node name="ui" type="Node2D" parent="."]
 
@@ -212,24 +215,25 @@ margin/left = 0.78125
 margin/top = -431.0
 margin/right = 199.0
 margin/bottom = -493.0
-custom_fonts/font = ExtResource( 10 )
+custom_fonts/font = ExtResource( 11 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 text = "Back"
 flat = false
 
-[node name="item_operate" parent="ui" instance=ExtResource( 11 )]
+[node name="item_operate" parent="ui" instance=ExtResource( 12 )]
 
 visibility/visible = false
 
 [node name="weather" type="Node2D" parent="."]
 
-script/script = ExtResource( 12 )
+script/script = ExtResource( 13 )
 
 [node name="snow" type="TextureFrame" parent="weather"]
 
-material/material = SubResource( 3 )
+visibility/visible = false
+material/material = SubResource( 5 )
 anchor/right = 1
 anchor/bottom = 1
 focus/ignore_mouse = true
@@ -240,7 +244,7 @@ margin/left = 1.0
 margin/top = 3.0
 margin/right = -964.0
 margin/bottom = -532.0
-texture = ExtResource( 13 )
+texture = ExtResource( 14 )
 expand = true
 stretch_mode = 3
 

@@ -34,7 +34,6 @@ func gen_little_items():
 			var flower_idx = randi() % flowers.size()
 			var item = flowers[flower_idx].instance()
 			var item_half_height = 0#item.get_region_rect().size.y / 2
-			print(item_half_height)
 			item.set_translation(Vector3(w+0.5, item_half_height, h+0.5))
 			self.add_child(item)
 			tile_items[tileIdx] = flower_idx
