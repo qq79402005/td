@@ -30,30 +30,28 @@
 #ifndef EDITOR_FONT_IMPORT_PLUGIN_H
 #define EDITOR_FONT_IMPORT_PLUGIN_H
 
-#include "editor/editor_export.h"
+#include "editor/editor_import_export.h"
 #include "scene/resources/font.h"
-#if 0
+
 class EditorNode;
 class EditorFontImportDialog;
 
 class EditorFontImportPlugin : public EditorImportPlugin {
 
-	GDCLASS(EditorFontImportPlugin,EditorImportPlugin);
+	OBJ_TYPE(EditorFontImportPlugin, EditorImportPlugin);
 
 	EditorFontImportDialog *dialog;
-public:
 
-	Ref<BitmapFont> generate_font(const Ref<ResourceImportMetadata>& p_from,const String& p_existing=String()); //used by editor
+public:
+	Ref<BitmapFont> generate_font(const Ref<ResourceImportMetadata> &p_from, const String &p_existing = String()); //used by editor
 
 	virtual String get_name() const;
 	virtual String get_visible_name() const;
-	virtual void import_dialog(const String& p_from="");
-	virtual Error import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
-	virtual void import_from_drop(const Vector<String>& p_drop,const String& p_dest_path);
+	virtual void import_dialog(const String &p_from = "");
+	virtual Error import(const String &p_path, const Ref<ResourceImportMetadata> &p_from);
+	virtual void import_from_drop(const Vector<String> &p_drop, const String &p_dest_path);
 
-
-	EditorFontImportPlugin(EditorNode* p_editor);
+	EditorFontImportPlugin(EditorNode *p_editor);
 };
 
 #endif // EDITOR_FONT_IMPORT_PLUGIN_H
-#endif

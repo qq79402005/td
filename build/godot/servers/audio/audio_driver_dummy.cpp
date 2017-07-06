@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "audio_driver_dummy.h"
 
-#include "global_config.h"
+#include "globals.h"
 #include "os/os.h"
 
 Error AudioDriverDummy::init() {
@@ -41,7 +41,7 @@ Error AudioDriverDummy::init() {
 	samples_in = NULL;
 
 	mix_rate = 44100;
-	speaker_mode = SPEAKER_MODE_STEREO;
+	output_format = OUTPUT_STEREO;
 	channels = 2;
 
 	int latency = GLOBAL_DEF("audio/output_latency", 25);
@@ -90,18 +90,16 @@ int AudioDriverDummy::get_mix_rate() const {
 	return mix_rate;
 };
 
-AudioDriver::SpeakerMode AudioDriverDummy::get_speaker_mode() const {
+AudioDriverSW::OutputFormat AudioDriverDummy::get_output_format() const {
 
-	return speaker_mode;
+	return output_format;
 };
-
 void AudioDriverDummy::lock() {
 
 	if (!thread || !mutex)
 		return;
 	mutex->lock();
 };
-
 void AudioDriverDummy::unlock() {
 
 	if (!thread || !mutex)

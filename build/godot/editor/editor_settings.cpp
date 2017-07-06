@@ -3,7 +3,7 @@
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
-/*                    http:/www.godotengine.org                          */
+/*                    http://www.godotengine.org                         */
 /*************************************************************************/
 /* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
 /* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
@@ -28,23 +28,24 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_settings.h"
+#include "os/dir_access.h"
+#include "os/file_access.h"
+#include "os/os.h"
 
 #include "editor_node.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/compression.h"
 #include "io/config_file.h"
 #include "io/file_access_memory.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
 #include "io/translation_loader_po.h"
-#include "os/dir_access.h"
-#include "os/file_access.h"
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "scene/main/node.h"
-#include "scene/main/scene_tree.h"
+#include "scene/main/scene_main_loop.h"
 #include "scene/main/viewport.h"
-#include "translations.gen.h"
+#include "translations.h"
 #include "version.h"
 
 Ref<EditorSettings> EditorSettings::singleton = NULL;
@@ -65,7 +66,7 @@ bool EditorSettings::_set(const StringName &p_name, const Variant &p_value) {
 		for (int i = 0; i < arr.size(); i += 2) {
 
 			String name = arr[i];
-			Ref<InputEvent> shortcut = arr[i + 1];
+			InputEvent shortcut = arr[i + 1];
 
 			Ref<ShortCut> sc;
 			sc.instance();
@@ -109,8 +110,8 @@ bool EditorSettings::_get(const StringName &p_name, Variant &r_ret) const {
 					continue; //this came from settings but is not any longer used
 				}
 
-				Ref<InputEvent> original = sc->get_meta("original");
-				if (sc->is_shortcut(original) || (original.is_null() && sc->get_shortcut().is_null()))
+				InputEvent original = sc->get_meta("original");
+				if (sc->is_shortcut(original) || (original.type == InputEvent::NONE && sc->get_shortcut().type == InputEvent::NONE))
 					continue; //not changed from default, don't save
 			}
 
@@ -122,10 +123,8 @@ bool EditorSettings::_get(const StringName &p_name, Variant &r_ret) const {
 	}
 
 	const VariantContainer *v = props.getptr(p_name);
-	if (!v) {
-		print_line("EditorSettings::_get - Warning, not found: " + String(p_name));
+	if (!v)
 		return false;
-	}
 	r_ret = v->variant;
 	return true;
 }
@@ -258,7 +257,7 @@ void EditorSettings::create() {
 		}
 	};
 
-	ClassDB::register_class<EditorSettings>(); //otherwise it can't be unserialized
+	ObjectTypeDB::register_type<EditorSettings>(); //otherwise it can't be unserialized
 	String config_file_path;
 
 	if (config_path != "") {
@@ -292,12 +291,6 @@ void EditorSettings::create() {
 			dir->change_dir("..");
 		}
 
-		if (dir->change_dir("script_templates") != OK) {
-			dir->make_dir("script_templates");
-		} else {
-			dir->change_dir("..");
-		}
-
 		if (dir->change_dir("tmp") != OK) {
 			dir->make_dir("tmp");
 		} else {
@@ -314,7 +307,7 @@ void EditorSettings::create() {
 
 		dir->change_dir("config");
 
-		String pcp = GlobalConfig::get_singleton()->get_resource_path();
+		String pcp = Globals::get_singleton()->get_resource_path();
 		if (pcp.ends_with("/"))
 			pcp = config_path.substr(0, pcp.size() - 1);
 		pcp = pcp.get_file() + "-" + pcp.md5_text();
@@ -329,14 +322,20 @@ void EditorSettings::create() {
 
 		// path at least is validated, so validate config file
 
-		String config_file_name = "editor_settings-" + String(_MKSTR(VERSION_MAJOR)) + ".tres";
-		config_file_path = config_path + "/" + config_dir + "/" + config_file_name;
+		config_file_path = config_path + "/" + config_dir + "/editor_settings.tres";
 
 		String open_path = config_file_path;
 
-		if (!dir->file_exists(config_file_name)) {
+		if (!dir->file_exists("editor_settings.tres")) {
 
-			goto fail;
+			open_path = config_path + "/" + config_dir + "/editor_settings.xml";
+
+			if (!dir->file_exists("editor_settings.xml")) {
+
+				memdelete(dir);
+				WARN_PRINT("Config file does not exist, creating.");
+				goto fail;
+			}
 		}
 
 		memdelete(dir);
@@ -395,7 +394,7 @@ String EditorSettings::get_settings_path() const {
 
 void EditorSettings::setup_language() {
 
-	String lang = get("interface/editor_language");
+	String lang = get("global/editor_language");
 	if (lang == "en")
 		return; //none to do
 
@@ -413,12 +412,13 @@ void EditorSettings::setup_network() {
 	IP::get_singleton()->get_local_addresses(&local_ip);
 	String lip;
 	String hint;
-	String current = has("network/debug/remote_host") ? get("network/debug/remote_host") : "";
-	int port = has("network/debug/remote_port") ? (int)get("network/debug/remote_port") : 6007;
+	String current = get("network/debug_host");
 
 	for (List<IP_Address>::Element *E = local_ip.front(); E; E = E->next()) {
 
 		String ip = E->get();
+		if (ip == "127.0.0.1")
+			continue;
 
 		if (lip == "")
 			lip = ip;
@@ -429,11 +429,8 @@ void EditorSettings::setup_network() {
 		hint += ip;
 	}
 
-	set("network/debug/remote_host", lip);
-	add_property_hint(PropertyInfo(Variant::STRING, "network/debug/remote_host", PROPERTY_HINT_ENUM, hint));
-
-	set("network/debug/remote_port", port);
-	add_property_hint(PropertyInfo(Variant::INT, "network/debug/remote_port", PROPERTY_HINT_RANGE, "1,65535,1"));
+	set("network/debug_host", lip);
+	add_property_hint(PropertyInfo(Variant::STRING, "network/debug_host", PROPERTY_HINT_ENUM, hint));
 }
 
 void EditorSettings::save() {
@@ -496,198 +493,161 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 			best = "en";
 		}
 
-		set("interface/editor_language", best);
-		hints["interface/editor_language"] = PropertyInfo(Variant::STRING, "interface/editor_language", PROPERTY_HINT_ENUM, lang_hint, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+		set("global/editor_language", best);
+		hints["global/editor_language"] = PropertyInfo(Variant::STRING, "global/editor_language", PROPERTY_HINT_ENUM, lang_hint, PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	}
 
-	set("interface/hidpi_mode", 0);
-	hints["interface/hidpi_mode"] = PropertyInfo(Variant::INT, "interface/hidpi_mode", PROPERTY_HINT_ENUM, "Auto,VeryLoDPI,LoDPI,MidDPI,HiDPI", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/show_script_in_scene_tabs", false);
-	set("interface/font_size", 14);
-	hints["interface/font_size"] = PropertyInfo(Variant::INT, "interface/font_size", PROPERTY_HINT_RANGE, "10,40,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/source_font_size", 14);
-	hints["interface/source_font_size"] = PropertyInfo(Variant::INT, "interface/source_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/custom_font", "");
-	hints["interface/custom_font"] = PropertyInfo(Variant::STRING, "interface/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.font", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/dim_editor_on_dialog_popup", true);
-	set("interface/dim_amount", 0.6f);
-	hints["interface/dim_amount"] = PropertyInfo(Variant::REAL, "interface/dim_amount", PROPERTY_HINT_RANGE, "0,1,0.01", PROPERTY_USAGE_DEFAULT);
-	set("interface/dim_transition_time", 0.08f);
-	hints["interface/dim_transition_time"] = PropertyInfo(Variant::REAL, "interface/dim_transition_time", PROPERTY_HINT_RANGE, "0,1,0.001", PROPERTY_USAGE_DEFAULT);
+	set("global/hidpi_mode", 0);
+	hints["global/hidpi_mode"] = PropertyInfo(Variant::INT, "global/hidpi_mode", PROPERTY_HINT_ENUM, "Auto,LoDPI,HiDPI", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("global/show_script_in_scene_tabs", false);
+	set("global/font_size", 14);
+	hints["global/font_size"] = PropertyInfo(Variant::INT, "global/font_size", PROPERTY_HINT_RANGE, "10,40,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("global/source_font_size", 14);
+	hints["global/source_font_size"] = PropertyInfo(Variant::INT, "global/source_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("global/custom_font", "");
+	hints["global/custom_font"] = PropertyInfo(Variant::STRING, "global/custom_font", PROPERTY_HINT_GLOBAL_FILE, "*.fnt", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("global/custom_theme", "");
+	hints["global/custom_theme"] = PropertyInfo(Variant::STRING, "global/custom_theme", PROPERTY_HINT_GLOBAL_FILE, "*.res,*.tres,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
-	set("interface/separate_distraction_mode", false);
-
-	set("interface/save_each_scene_on_quit", true); // Regression
-	set("interface/quit_confirmation", true);
-
-	set("interface/theme/preset", 0);
-	hints["interface/theme/preset"] = PropertyInfo(Variant::INT, "interface/theme/preset", PROPERTY_HINT_ENUM, "Default,Grey,Godot 2,Arc,Custom", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/theme/base_color", Color::html("#273241"));
-	hints["interface/theme/highlight_color"] = PropertyInfo(Variant::COLOR, "interface/theme/highlight_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/theme/highlight_color", Color::html("#b79047"));
-	hints["interface/theme/base_color"] = PropertyInfo(Variant::COLOR, "interface/theme/base_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-	set("interface/theme/contrast", 0.2);
-	hints["interface/theme/contrast"] = PropertyInfo(Variant::REAL, "interface/theme/contrast", PROPERTY_HINT_RANGE, "0.01, 1, 0.01");
-	set("interface/theme/custom_theme", "");
-	hints["interface/theme/custom_theme"] = PropertyInfo(Variant::STRING, "interface/theme/custom_theme", PROPERTY_HINT_GLOBAL_FILE, "*.res,*.tres,*.theme", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-
-	set("interface/scene_tabs/show_extension", false);
-	set("interface/scene_tabs/show_thumbnail_on_hover", true);
-	set("interface/scene_tabs/resize_if_many_tabs", true);
-	set("interface/scene_tabs/minimum_width", 50);
-	hints["interface/scene_tabs/minimum_width"] = PropertyInfo(Variant::INT, "interface/scene_tabs/minimum_width", PROPERTY_HINT_RANGE, "50,500,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
-
-	set("filesystem/directories/autoscan_project_path", "");
-	hints["filesystem/directories/autoscan_project_path"] = PropertyInfo(Variant::STRING, "filesystem/directories/autoscan_project_path", PROPERTY_HINT_GLOBAL_DIR);
-	set("filesystem/directories/default_project_path", "");
-	hints["filesystem/directories/default_project_path"] = PropertyInfo(Variant::STRING, "filesystem/directories/default_project_path", PROPERTY_HINT_GLOBAL_DIR);
-	set("filesystem/directories/default_project_export_path", "");
+	set("global/autoscan_project_path", "");
+	hints["global/autoscan_project_path"] = PropertyInfo(Variant::STRING, "global/autoscan_project_path", PROPERTY_HINT_GLOBAL_DIR);
+	set("global/default_project_path", "");
+	hints["global/default_project_path"] = PropertyInfo(Variant::STRING, "global/default_project_path", PROPERTY_HINT_GLOBAL_DIR);
+	set("global/default_project_export_path", "");
 	hints["global/default_project_export_path"] = PropertyInfo(Variant::STRING, "global/default_project_export_path", PROPERTY_HINT_GLOBAL_DIR);
-	set("interface/show_script_in_scene_tabs", false);
+	set("global/show_script_in_scene_tabs", false);
 
-	set("text_editor/theme/color_theme", "Default");
-	hints["text_editor/theme/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, "Default");
-
-	set("text_editor/theme/line_spacing", 4);
+	set("text_editor/color_theme", "Default");
+	hints["text_editor/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/color_theme", PROPERTY_HINT_ENUM, "Default");
 
 	_load_default_text_editor_theme();
 
-	set("text_editor/highlighting/syntax_highlighting", true);
+	set("text_editor/syntax_highlighting", true);
 
-	set("text_editor/highlighting/highlight_all_occurrences", true);
-	set("text_editor/cursor/scroll_past_end_of_file", false);
+	set("text_editor/highlight_all_occurrences", true);
+	set("text_editor/scroll_past_end_of_file", false);
 
-	set("text_editor/indent/type", 0);
-	hints["text_editor/indent/type"] = PropertyInfo(Variant::INT, "text_editor/indent/type", PROPERTY_HINT_ENUM, "Tabs,Spaces");
-	set("text_editor/indent/size", 4);
-	hints["text_editor/indent/size"] = PropertyInfo(Variant::INT, "text_editor/indent/size", PROPERTY_HINT_RANGE, "1, 64, 1"); // size of 0 crashes.
-	set("text_editor/indent/convert_indent_on_save", false);
-	set("text_editor/indent/draw_tabs", true);
+	set("text_editor/tab_size", 4);
+	hints["text_editor/tab_size"] = PropertyInfo(Variant::INT, "text_editor/tab_size", PROPERTY_HINT_RANGE, "1, 64, 1"); // size of 0 crashes.
+	set("text_editor/draw_tabs", true);
 
-	set("text_editor/line_numbers/show_line_numbers", true);
-	set("text_editor/line_numbers/line_numbers_zero_padded", false);
-	set("text_editor/line_numbers/show_breakpoint_gutter", true);
-	set("text_editor/line_numbers/show_line_length_guideline", false);
-	set("text_editor/line_numbers/line_length_guideline_column", 80);
-	hints["text_editor/line_numbers/line_length_guideline_column"] = PropertyInfo(Variant::INT, "text_editor/line_numbers/line_length_guideline_column", PROPERTY_HINT_RANGE, "20, 160, 10");
+	set("text_editor/line_numbers_zero_padded", true);
 
-	set("text_editor/open_scripts/show_members_overview", true);
+	set("text_editor/show_line_numbers", true);
+	set("text_editor/show_breakpoint_gutter", true);
 
-	set("text_editor/files/trim_trailing_whitespace_on_save", false);
-	set("text_editor/completion/idle_parse_delay", 2);
-	set("text_editor/tools/create_signal_callbacks", true);
-	set("text_editor/files/autosave_interval_secs", 0);
+	set("text_editor/show_line_length_guideline", false);
+	set("text_editor/line_length_guideline_column", 80);
+	hints["text_editor/line_length_guideline_column"] = PropertyInfo(Variant::INT, "text_editor/line_length_guideline_column", PROPERTY_HINT_RANGE, "20, 160, 10");
 
-	set("text_editor/cursor/block_caret", false);
-	set("text_editor/cursor/caret_blink", false);
-	set("text_editor/cursor/caret_blink_speed", 0.65);
-	hints["text_editor/cursor/caret_blink_speed"] = PropertyInfo(Variant::REAL, "text_editor/cursor/caret_blink_speed", PROPERTY_HINT_RANGE, "0.1, 10, 0.1");
+	set("text_editor/trim_trailing_whitespace_on_save", false);
+	set("text_editor/idle_parse_delay", 2);
+	set("text_editor/create_signal_callbacks", true);
+	set("text_editor/autosave_interval_secs", 0);
 
-	set("text_editor/theme/font", "");
-	hints["text_editor/theme/font"] = PropertyInfo(Variant::STRING, "text_editor/theme/font", PROPERTY_HINT_GLOBAL_FILE, "*.font");
-	set("text_editor/completion/auto_brace_complete", false);
-	set("text_editor/files/restore_scripts_on_load", true);
-	set("text_editor/completion/complete_file_paths", true);
-	set("text_editor/files/maximum_recent_files", 20);
-	hints["text_editor/files/maximum_recent_files"] = PropertyInfo(Variant::INT, "text_editor/files/maximum_recent_files", PROPERTY_HINT_RANGE, "1, 200, 0");
+	set("text_editor/block_caret", false);
+	set("text_editor/caret_blink", false);
+	set("text_editor/caret_blink_speed", 0.65);
+	hints["text_editor/caret_blink_speed"] = PropertyInfo(Variant::REAL, "text_editor/caret_blink_speed", PROPERTY_HINT_RANGE, "0.1, 10, 0.1");
 
-	//set("docks/scene_tree/display_old_action_buttons",false);
-	set("docks/scene_tree/start_create_dialog_fully_expanded", false);
-	set("docks/scene_tree/draw_relationship_lines", false);
-	set("docks/scene_tree/relationship_line_color", Color::html("464646"));
+	set("text_editor/font", "");
+	hints["text_editor/font"] = PropertyInfo(Variant::STRING, "text_editor/font", PROPERTY_HINT_GLOBAL_FILE, "*.fnt");
+	set("text_editor/auto_brace_complete", false);
+	set("text_editor/restore_scripts_on_load", true);
 
-	set("editors/grid_map/pick_distance", 5000.0);
+	set("scenetree_editor/duplicate_node_name_num_separator", 0);
+	hints["scenetree_editor/duplicate_node_name_num_separator"] = PropertyInfo(Variant::INT, "scenetree_editor/duplicate_node_name_num_separator", PROPERTY_HINT_ENUM, "None,Space,Underscore,Dash");
+	//set("scenetree_editor/display_old_action_buttons",false);
+	set("scenetree_editor/start_create_dialog_fully_expanded", false);
+	set("scenetree_editor/draw_relationship_lines", false);
+	set("scenetree_editor/relationship_line_color", Color::html("464646"));
 
-	set("editors/3d/grid_color", Color(0, 1, 0, 0.2));
-	hints["editors/3d/grid_color"] = PropertyInfo(Variant::COLOR, "editors/3d/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	set("grid_map/pick_distance", 5000.0);
 
-	set("editors/3d/default_fov", 55.0);
-	set("editors/3d/default_z_near", 0.1);
-	set("editors/3d/default_z_far", 500.0);
+	set("3d_editor/grid_color", Color(0, 1, 0, 0.2));
+	hints["3d_editor/grid_color"] = PropertyInfo(Variant::COLOR, "3d_editor/grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
-	set("editors/3d/navigation_scheme", 0);
-	hints["editors/3d/navigation_scheme"] = PropertyInfo(Variant::INT, "editors/3d/navigation_scheme", PROPERTY_HINT_ENUM, "Godot,Maya,Modo");
-	set("editors/3d/zoom_style", 0);
-	hints["editors/3d/zoom_style"] = PropertyInfo(Variant::INT, "editors/3d/zoom_style", PROPERTY_HINT_ENUM, "Vertical, Horizontal");
-	set("editors/3d/orbit_modifier", 0);
-	hints["editors/3d/orbit_modifier"] = PropertyInfo(Variant::INT, "editors/3d/orbit_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
-	set("editors/3d/pan_modifier", 1);
-	hints["editors/3d/pan_modifier"] = PropertyInfo(Variant::INT, "editors/3d/pan_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
-	set("editors/3d/zoom_modifier", 4);
-	hints["editors/3d/zoom_modifier"] = PropertyInfo(Variant::INT, "editors/3d/zoom_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
-	set("editors/3d/emulate_numpad", false);
-	set("editors/3d/emulate_3_button_mouse", false);
-	set("editors/3d/warped_mouse_panning", true);
+	set("3d_editor/default_fov", 45.0);
+	set("3d_editor/default_z_near", 0.1);
+	set("3d_editor/default_z_far", 500.0);
 
-	set("editors/3d/freelook_base_speed", 1);
-	set("editors/3d/freelook_modifier_speed_factor", 5.0);
+	set("3d_editor/navigation_scheme", 0);
+	hints["3d_editor/navigation_scheme"] = PropertyInfo(Variant::INT, "3d_editor/navigation_scheme", PROPERTY_HINT_ENUM, "Godot,Maya,Modo");
+	set("3d_editor/zoom_style", 0);
+	hints["3d_editor/zoom_style"] = PropertyInfo(Variant::INT, "3d_editor/zoom_style", PROPERTY_HINT_ENUM, "Vertical, Horizontal");
+	set("3d_editor/orbit_modifier", 0);
+	hints["3d_editor/orbit_modifier"] = PropertyInfo(Variant::INT, "3d_editor/orbit_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
+	set("3d_editor/pan_modifier", 1);
+	hints["3d_editor/pan_modifier"] = PropertyInfo(Variant::INT, "3d_editor/pan_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
+	set("3d_editor/zoom_modifier", 4);
+	hints["3d_editor/zoom_modifier"] = PropertyInfo(Variant::INT, "3d_editor/zoom_modifier", PROPERTY_HINT_ENUM, "None,Shift,Alt,Meta,Ctrl");
+	set("3d_editor/emulate_numpad", false);
+	set("3d_editor/emulate_3_button_mouse", false);
+	set("3d_editor/warped_mouse_panning", true);
 
-	set("editors/2d/bone_width", 5);
-	set("editors/2d/bone_color1", Color(1.0, 1.0, 1.0, 0.9));
-	set("editors/2d/bone_color2", Color(0.75, 0.75, 0.75, 0.9));
-	set("editors/2d/bone_selected_color", Color(0.9, 0.45, 0.45, 0.9));
-	set("editors/2d/bone_ik_color", Color(0.9, 0.9, 0.45, 0.9));
-	set("editors/2d/keep_margins_when_changing_anchors", false);
-	set("editors/2d/warped_mouse_panning", true);
-	set("editors/2d/scroll_to_pan", false);
-	set("editors/2d/pan_speed", 20);
+	set("2d_editor/bone_width", 5);
+	set("2d_editor/bone_color1", Color(1.0, 1.0, 1.0, 0.9));
+	set("2d_editor/bone_color2", Color(0.75, 0.75, 0.75, 0.9));
+	set("2d_editor/bone_selected_color", Color(0.9, 0.45, 0.45, 0.9));
+	set("2d_editor/bone_ik_color", Color(0.9, 0.9, 0.45, 0.9));
 
-	set("editors/poly_editor/point_grab_radius", 8);
+	set("2d_editor/keep_margins_when_changing_anchors", false);
 
-	set("run/window_placement/rect", 1);
-	hints["run/window_placement/rect"] = PropertyInfo(Variant::INT, "run/window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
+	set("2d_editor/warped_mouse_panning", true);
+
+	set("game_window_placement/rect", 0);
+	hints["game_window_placement/rect"] = PropertyInfo(Variant::INT, "game_window_placement/rect", PROPERTY_HINT_ENUM, "Default,Centered,Custom Position,Force Maximized,Force Full Screen");
 	String screen_hints = TTR("Default (Same as Editor)");
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
 		screen_hints += ",Monitor " + itos(i + 1);
 	}
-	set("run/window_placement/rect_custom_position", Vector2());
-	set("run/window_placement/screen", 0);
-	hints["run/window_placement/screen"] = PropertyInfo(Variant::INT, "run/window_placement/screen", PROPERTY_HINT_ENUM, screen_hints);
+	set("game_window_placement/rect_custom_position", Vector2());
+	set("game_window_placement/screen", 0);
+	hints["game_window_placement/screen"] = PropertyInfo(Variant::INT, "game_window_placement/screen", PROPERTY_HINT_ENUM, screen_hints);
 
-	set("filesystem/on_save/compress_binary_resources", true);
-	set("filesystem/on_save/save_modified_external_resources", true);
-	//set("filesystem/on_save/save_paths_as_relative",false);
-	//set("filesystem/on_save/save_paths_without_extension",false);
+	set("on_save/compress_binary_resources", true);
+	set("on_save/save_modified_external_resources", true);
+	//set("on_save/save_paths_as_relative",false);
+	//set("on_save/save_paths_without_extension",false);
 
-	set("text_editor/tools/create_signal_callbacks", true);
+	set("text_editor/create_signal_callbacks", true);
 
-	set("filesystem/file_dialog/show_hidden_files", false);
-	set("filesystem/file_dialog/display_mode", 0);
-	hints["filesystem/file_dialog/display_mode"] = PropertyInfo(Variant::INT, "filesystem/file_dialog/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
-	set("filesystem/file_dialog/thumbnail_size", 64);
-	hints["filesystem/file_dialog/thumbnail_size"] = PropertyInfo(Variant::INT, "filesystem/file_dialog/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
+	set("file_dialog/show_hidden_files", false);
+	set("file_dialog/display_mode", 0);
+	hints["file_dialog/display_mode"] = PropertyInfo(Variant::INT, "file_dialog/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
+	set("file_dialog/thumbnail_size", 64);
+	hints["file_dialog/thumbnail_size"] = PropertyInfo(Variant::INT, "file_dialog/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
 
-	set("docks/filesystem/display_mode", 0);
-	hints["docks/filesystem/display_mode"] = PropertyInfo(Variant::INT, "docks/filesystem/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
-	set("docks/filesystem/thumbnail_size", 64);
-	hints["docks/filesystem/thumbnail_size"] = PropertyInfo(Variant::INT, "docks/filesystem/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
+	set("filesystem_dock/display_mode", 0);
+	hints["filesystem_dock/display_mode"] = PropertyInfo(Variant::INT, "filesystem_dock/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
+	set("filesystem_dock/thumbnail_size", 64);
+	hints["filesystem_dock/thumbnail_size"] = PropertyInfo(Variant::INT, "filesystem_dock/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
 
-	set("editors/animation/autorename_animation_tracks", true);
-	set("editors/animation/confirm_insert_track", true);
+	set("animation/autorename_animation_tracks", true);
+	set("animation/confirm_insert_track", true);
 
-	set("docks/property_editor/texture_preview_width", 48);
-	set("docks/property_editor/auto_refresh_interval", 0.3);
-	set("text_editor/help/doc_path", "");
+	set("property_editor/texture_preview_width", 48);
+	set("property_editor/auto_refresh_interval", 0.3);
+	set("help/doc_path", "");
 
-	set("filesystem/import/ask_save_before_reimport", false);
+	set("import/ask_save_before_reimport", false);
 
-	set("filesystem/import/pvrtc_texture_tool", "");
+	set("import/pvrtc_texture_tool", "");
 #ifdef WINDOWS_ENABLED
-	hints["filesystem/import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "*.exe");
+	hints["import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "*.exe");
 #else
 	hints["import/pvrtc_texture_tool"] = PropertyInfo(Variant::STRING, "import/pvrtc_texture_tool", PROPERTY_HINT_GLOBAL_FILE, "");
 #endif
-	// TODO: Rename to "filesystem/import/pvrtc_fast_conversion" to match other names?
-	set("filesystem/import/pvrtc_fast_conversion", false);
+	// TODO: Rename to "import/pvrtc_fast_conversion" to match other names?
+	set("PVRTC/fast_conversion", false);
 
-	set("run/auto_save/save_before_running", true);
-	set("run/output/always_clear_output_on_play", true);
-	set("run/output/always_open_output_on_play", true);
-	set("run/output/always_close_output_on_stop", false);
-	set("filesystem/resources/save_compressed_resources", true);
-	set("filesystem/resources/auto_reload_modified_images", true);
+	set("run/auto_save_before_running", true);
+	set("resources/save_compressed_resources", true);
+	set("resources/auto_reload_modified_images", true);
 
-	set("filesystem/import/automatic_reimport_on_sources_changed", true);
+	set("run/always_close_output_on_stop", false);
+
+	set("import/automatic_reimport_on_sources_changed", true);
 
 	if (p_extra_config.is_valid()) {
 
@@ -717,35 +677,36 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 }
 
 void EditorSettings::_load_default_text_editor_theme() {
-	set("text_editor/highlighting/background_color", Color::html("3b000000"));
-	set("text_editor/highlighting/completion_background_color", Color::html("2C2A32"));
-	set("text_editor/highlighting/completion_selected_color", Color::html("434244"));
-	set("text_editor/highlighting/completion_existing_color", Color::html("21dfdfdf"));
-	set("text_editor/highlighting/completion_scroll_color", Color::html("ffffff"));
-	set("text_editor/highlighting/completion_font_color", Color::html("aaaaaa"));
-	set("text_editor/highlighting/caret_color", Color::html("aaaaaa"));
-	set("text_editor/highlighting/caret_background_color", Color::html("000000"));
-	set("text_editor/highlighting/line_number_color", Color::html("66aaaaaa"));
-	set("text_editor/highlighting/text_color", Color::html("aaaaaa"));
-	set("text_editor/highlighting/text_selected_color", Color::html("000000"));
-	set("text_editor/highlighting/keyword_color", Color::html("ffffb3"));
-	set("text_editor/highlighting/base_type_color", Color::html("a4ffd4"));
-	set("text_editor/highlighting/engine_type_color", Color::html("83d3ff"));
-	set("text_editor/highlighting/function_color", Color::html("66a2ce"));
-	set("text_editor/highlighting/member_variable_color", Color::html("e64e59"));
-	set("text_editor/highlighting/comment_color", Color::html("676767"));
-	set("text_editor/highlighting/string_color", Color::html("ef6ebe"));
-	set("text_editor/highlighting/number_color", Color::html("EB9532"));
-	set("text_editor/highlighting/symbol_color", Color::html("badfff"));
-	set("text_editor/highlighting/selection_color", Color::html("6ca9c2"));
-	set("text_editor/highlighting/brace_mismatch_color", Color(1, 0.2, 0.2));
-	set("text_editor/highlighting/current_line_color", Color(0.3, 0.5, 0.8, 0.15));
-	set("text_editor/highlighting/line_length_guideline_color", Color(0.3, 0.5, 0.8, 0.1));
-	set("text_editor/highlighting/mark_color", Color(1.0, 0.4, 0.4, 0.4));
-	set("text_editor/highlighting/breakpoint_color", Color(0.8, 0.8, 0.4, 0.2));
-	set("text_editor/highlighting/word_highlighted_color", Color(0.8, 0.9, 0.9, 0.15));
-	set("text_editor/highlighting/search_result_color", Color(0.05, 0.25, 0.05, 1));
-	set("text_editor/highlighting/search_result_border_color", Color(0.1, 0.45, 0.1, 1));
+
+	set("text_editor/background_color", Color::html("3b000000"));
+	set("text_editor/completion_background_color", Color::html("2C2A32"));
+	set("text_editor/completion_selected_color", Color::html("434244"));
+	set("text_editor/completion_existing_color", Color::html("21dfdfdf"));
+	set("text_editor/completion_scroll_color", Color::html("ffffff"));
+	set("text_editor/completion_font_color", Color::html("aaaaaa"));
+	set("text_editor/caret_color", Color::html("aaaaaa"));
+	set("text_editor/caret_background_color", Color::html("000000"));
+	set("text_editor/line_number_color", Color::html("66aaaaaa"));
+	set("text_editor/text_color", Color::html("aaaaaa"));
+	set("text_editor/text_selected_color", Color::html("000000"));
+	set("text_editor/keyword_color", Color::html("ffffb3"));
+	set("text_editor/base_type_color", Color::html("a4ffd4"));
+	set("text_editor/engine_type_color", Color::html("83d3ff"));
+	set("text_editor/function_color", Color::html("66a2ce"));
+	set("text_editor/member_variable_color", Color::html("e64e59"));
+	set("text_editor/comment_color", Color::html("676767"));
+	set("text_editor/string_color", Color::html("ef6ebe"));
+	set("text_editor/number_color", Color::html("EB9532"));
+	set("text_editor/symbol_color", Color::html("badfff"));
+	set("text_editor/selection_color", Color::html("7b5dbe"));
+	set("text_editor/brace_mismatch_color", Color(1, 0.2, 0.2));
+	set("text_editor/current_line_color", Color(0.3, 0.5, 0.8, 0.15));
+	set("text_editor/line_length_guideline_color", Color(0.3, 0.5, 0.8, 0.1));
+	set("text_editor/mark_color", Color(1.0, 0.4, 0.4, 0.4));
+	set("text_editor/breakpoint_color", Color(0.8, 0.8, 0.4, 0.2));
+	set("text_editor/word_highlighted_color", Color(0.8, 0.9, 0.9, 0.15));
+	set("text_editor/search_result_color", Color(0.05, 0.25, 0.05, 1));
+	set("text_editor/search_result_border_color", Color(0.1, 0.45, 0.1, 1));
 }
 
 void EditorSettings::notify_changes() {
@@ -862,24 +823,24 @@ void EditorSettings::list_text_editor_themes() {
 		d->list_dir_begin();
 		String file = d->get_next();
 		while (file != String()) {
-			if (file.get_extension() == "tet" && file.get_basename().to_lower() != "default") {
-				themes += "," + file.get_basename();
+			if (file.extension() == "tet" && file.basename().to_lower() != "default") {
+				themes += "," + file.basename();
 			}
 			file = d->get_next();
 		}
 		d->list_dir_end();
 		memdelete(d);
 	}
-	add_property_hint(PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, themes));
+	add_property_hint(PropertyInfo(Variant::STRING, "text_editor/color_theme", PROPERTY_HINT_ENUM, themes));
 }
 
 void EditorSettings::load_text_editor_theme() {
-	if (get("text_editor/theme/color_theme") == "Default") {
+	if (get("text_editor/color_theme") == "Default") {
 		_load_default_text_editor_theme(); // sorry for "Settings changed" console spam
 		return;
 	}
 
-	String theme_path = get_settings_path() + "/text_editor_themes/" + get("text_editor/theme/color_theme") + ".tet";
+	String theme_path = get_settings_path() + "/text_editor_themes/" + get("text_editor/color_theme") + ".tet";
 
 	Ref<ConfigFile> cf = memnew(ConfigFile);
 	Error err = cf->load(theme_path);
@@ -896,11 +857,11 @@ void EditorSettings::load_text_editor_theme() {
 		String val = cf->get_value("color_theme", key);
 
 		// don't load if it's not already there!
-		if (has("text_editor/highlighting/" + key)) {
+		if (has("text_editor/" + key)) {
 
 			// make sure it is actually a color
 			if (val.is_valid_html_color() && key.find("color") >= 0) {
-				props["text_editor/highlighting/" + key].variant = Color::html(val); // change manually to prevent "Settings changed" console spam
+				props["text_editor/" + key].variant = Color::html(val); // change manually to prevent "Settings changed" console spam
 			}
 		}
 	}
@@ -929,7 +890,7 @@ bool EditorSettings::import_text_editor_theme(String p_file) {
 
 bool EditorSettings::save_text_editor_theme() {
 
-	String p_file = get("text_editor/theme/color_theme");
+	String p_file = get("text_editor/color_theme");
 
 	if (p_file.get_file().to_lower() == "default") {
 		return false;
@@ -953,7 +914,7 @@ bool EditorSettings::save_text_editor_theme_as(String p_file) {
 		String theme_name = p_file.substr(0, p_file.length() - 4).get_file();
 
 		if (p_file.get_base_dir() == get_settings_path() + "/text_editor_themes") {
-			set("text_editor/theme/color_theme", theme_name);
+			set("text_editor/color_theme", theme_name);
 			load_text_editor_theme();
 		}
 		return true;
@@ -961,57 +922,39 @@ bool EditorSettings::save_text_editor_theme_as(String p_file) {
 	return false;
 }
 
-Vector<String> EditorSettings::get_script_templates(const String &p_extension) {
-
-	Vector<String> templates;
-	DirAccess *d = DirAccess::open(settings_path + "/script_templates");
-	if (d) {
-		d->list_dir_begin();
-		String file = d->get_next();
-		while (file != String()) {
-			if (file.get_extension() == p_extension) {
-				templates.push_back(file.get_basename());
-			}
-			file = d->get_next();
-		}
-		d->list_dir_end();
-		memdelete(d);
-	}
-	return templates;
-}
-
 bool EditorSettings::_save_text_editor_theme(String p_file) {
 	String theme_section = "color_theme";
 	Ref<ConfigFile> cf = memnew(ConfigFile); // hex is better?
-	cf->set_value(theme_section, "background_color", ((Color)get("text_editor/highlighting/background_color")).to_html());
-	cf->set_value(theme_section, "completion_background_color", ((Color)get("text_editor/highlighting/completion_background_color")).to_html());
-	cf->set_value(theme_section, "completion_selected_color", ((Color)get("text_editor/highlighting/completion_selected_color")).to_html());
-	cf->set_value(theme_section, "completion_existing_color", ((Color)get("text_editor/highlighting/completion_existing_color")).to_html());
-	cf->set_value(theme_section, "completion_scroll_color", ((Color)get("text_editor/highlighting/completion_scroll_color")).to_html());
-	cf->set_value(theme_section, "completion_font_color", ((Color)get("text_editor/highlighting/completion_font_color")).to_html());
-	cf->set_value(theme_section, "caret_color", ((Color)get("text_editor/highlighting/caret_color")).to_html());
-	cf->set_value(theme_section, "caret_background_color", ((Color)get("text_editor/highlighting/caret_background_color")).to_html());
-	cf->set_value(theme_section, "line_number_color", ((Color)get("text_editor/highlighting/line_number_color")).to_html());
-	cf->set_value(theme_section, "text_color", ((Color)get("text_editor/highlighting/text_color")).to_html());
-	cf->set_value(theme_section, "text_selected_color", ((Color)get("text_editor/highlighting/text_selected_color")).to_html());
-	cf->set_value(theme_section, "keyword_color", ((Color)get("text_editor/highlighting/keyword_color")).to_html());
-	cf->set_value(theme_section, "base_type_color", ((Color)get("text_editor/highlighting/base_type_color")).to_html());
-	cf->set_value(theme_section, "engine_type_color", ((Color)get("text_editor/highlighting/engine_type_color")).to_html());
-	cf->set_value(theme_section, "function_color", ((Color)get("text_editor/highlighting/function_color")).to_html());
-	cf->set_value(theme_section, "member_variable_color", ((Color)get("text_editor/highlighting/member_variable_color")).to_html());
-	cf->set_value(theme_section, "comment_color", ((Color)get("text_editor/highlighting/comment_color")).to_html());
-	cf->set_value(theme_section, "string_color", ((Color)get("text_editor/highlighting/string_color")).to_html());
-	cf->set_value(theme_section, "number_color", ((Color)get("text_editor/highlighting/number_color")).to_html());
-	cf->set_value(theme_section, "symbol_color", ((Color)get("text_editor/highlighting/symbol_color")).to_html());
-	cf->set_value(theme_section, "selection_color", ((Color)get("text_editor/highlighting/selection_color")).to_html());
-	cf->set_value(theme_section, "brace_mismatch_color", ((Color)get("text_editor/highlighting/brace_mismatch_color")).to_html());
-	cf->set_value(theme_section, "current_line_color", ((Color)get("text_editor/highlighting/current_line_color")).to_html());
-	cf->set_value(theme_section, "line_length_guideline_color", ((Color)get("text_editor/highlighting/line_length_guideline_color")).to_html());
-	cf->set_value(theme_section, "mark_color", ((Color)get("text_editor/highlighting/mark_color")).to_html());
-	cf->set_value(theme_section, "breakpoint_color", ((Color)get("text_editor/highlighting/breakpoint_color")).to_html());
-	cf->set_value(theme_section, "word_highlighted_color", ((Color)get("text_editor/highlighting/word_highlighted_color")).to_html());
-	cf->set_value(theme_section, "search_result_color", ((Color)get("text_editor/highlighting/search_result_color")).to_html());
-	cf->set_value(theme_section, "search_result_border_color", ((Color)get("text_editor/highlighting/search_result_border_color")).to_html());
+
+	cf->set_value(theme_section, "background_color", ((Color)get("text_editor/background_color")).to_html());
+	cf->set_value(theme_section, "completion_background_color", ((Color)get("text_editor/completion_background_color")).to_html());
+	cf->set_value(theme_section, "completion_selected_color", ((Color)get("text_editor/completion_selected_color")).to_html());
+	cf->set_value(theme_section, "completion_existing_color", ((Color)get("text_editor/completion_existing_color")).to_html());
+	cf->set_value(theme_section, "completion_scroll_color", ((Color)get("text_editor/completion_scroll_color")).to_html());
+	cf->set_value(theme_section, "completion_font_color", ((Color)get("text_editor/completion_font_color")).to_html());
+	cf->set_value(theme_section, "caret_color", ((Color)get("text_editor/caret_color")).to_html());
+	cf->set_value(theme_section, "caret_background_color", ((Color)get("text_editor/caret_background_color")).to_html());
+	cf->set_value(theme_section, "line_number_color", ((Color)get("text_editor/line_number_color")).to_html());
+	cf->set_value(theme_section, "text_color", ((Color)get("text_editor/text_color")).to_html());
+	cf->set_value(theme_section, "text_selected_color", ((Color)get("text_editor/text_selected_color")).to_html());
+	cf->set_value(theme_section, "keyword_color", ((Color)get("text_editor/keyword_color")).to_html());
+	cf->set_value(theme_section, "base_type_color", ((Color)get("text_editor/base_type_color")).to_html());
+	cf->set_value(theme_section, "engine_type_color", ((Color)get("text_editor/engine_type_color")).to_html());
+	cf->set_value(theme_section, "function_color", ((Color)get("text_editor/function_color")).to_html());
+	cf->set_value(theme_section, "member_variable_color", ((Color)get("text_editor/member_variable_color")).to_html());
+	cf->set_value(theme_section, "comment_color", ((Color)get("text_editor/comment_color")).to_html());
+	cf->set_value(theme_section, "string_color", ((Color)get("text_editor/string_color")).to_html());
+	cf->set_value(theme_section, "number_color", ((Color)get("text_editor/number_color")).to_html());
+	cf->set_value(theme_section, "symbol_color", ((Color)get("text_editor/symbol_color")).to_html());
+	cf->set_value(theme_section, "selection_color", ((Color)get("text_editor/selection_color")).to_html());
+	cf->set_value(theme_section, "brace_mismatch_color", ((Color)get("text_editor/brace_mismatch_color")).to_html());
+	cf->set_value(theme_section, "current_line_color", ((Color)get("text_editor/current_line_color")).to_html());
+	cf->set_value(theme_section, "line_length_guideline_color", ((Color)get("text_editor/line_length_guideline_color")).to_html());
+	cf->set_value(theme_section, "mark_color", ((Color)get("text_editor/mark_color")).to_html());
+	cf->set_value(theme_section, "breakpoint_color", ((Color)get("text_editor/breakpoint_color")).to_html());
+	cf->set_value(theme_section, "word_highlighted_color", ((Color)get("text_editor/word_highlighted_color")).to_html());
+	cf->set_value(theme_section, "search_result_color", ((Color)get("text_editor/search_result_color")).to_html());
+	cf->set_value(theme_section, "search_result_border_color", ((Color)get("text_editor/search_result_border_color")).to_html());
 
 	Error err = cf->save(p_file);
 
@@ -1026,7 +969,7 @@ void EditorSettings::add_shortcut(const String &p_name, Ref<ShortCut> &p_shortcu
 	shortcuts[p_name] = p_shortcut;
 }
 
-bool EditorSettings::is_shortcut(const String &p_name, const Ref<InputEvent> &p_event) const {
+bool EditorSettings::is_shortcut(const String &p_name, const InputEvent &p_event) const {
 
 	const Map<String, Ref<ShortCut> >::Element *E = shortcuts.find(p_name);
 	if (!E) {
@@ -1059,37 +1002,19 @@ void EditorSettings::set_optimize_save(bool p_optimize) {
 	optimize_save = p_optimize;
 }
 
-Variant EditorSettings::get_project_metadata(const String &p_section, const String &p_key, Variant p_default) {
-	Ref<ConfigFile> cf = memnew(ConfigFile);
-	String path = get_project_settings_path().plus_file("project_metadata.cfg");
-	Error err = cf->load(path);
-	if (err != OK) {
-		return p_default;
-	}
-	return cf->get_value(p_section, p_key, p_default);
-}
-
-void EditorSettings::set_project_metadata(const String &p_section, const String &p_key, Variant p_data) {
-	Ref<ConfigFile> cf = memnew(ConfigFile);
-	String path = get_project_settings_path().plus_file("project_metadata.cfg");
-	cf->load(path);
-	cf->set_value(p_section, p_key, p_data);
-	cf->save(path);
-}
-
 void EditorSettings::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("erase", "property"), &EditorSettings::erase);
-	ClassDB::bind_method(D_METHOD("get_settings_path"), &EditorSettings::get_settings_path);
-	ClassDB::bind_method(D_METHOD("get_project_settings_path"), &EditorSettings::get_project_settings_path);
+	ObjectTypeDB::bind_method(_MD("erase", "property"), &EditorSettings::erase);
+	ObjectTypeDB::bind_method(_MD("get_settings_path"), &EditorSettings::get_settings_path);
+	ObjectTypeDB::bind_method(_MD("get_project_settings_path"), &EditorSettings::get_project_settings_path);
 
-	ClassDB::bind_method(D_METHOD("add_property_info", "info"), &EditorSettings::_add_property_info_bind);
+	ObjectTypeDB::bind_method(_MD("add_property_info", "info"), &EditorSettings::_add_property_info_bind);
 
-	ClassDB::bind_method(D_METHOD("set_favorite_dirs", "dirs"), &EditorSettings::set_favorite_dirs);
-	ClassDB::bind_method(D_METHOD("get_favorite_dirs"), &EditorSettings::get_favorite_dirs);
+	ObjectTypeDB::bind_method(_MD("set_favorite_dirs", "dirs"), &EditorSettings::set_favorite_dirs);
+	ObjectTypeDB::bind_method(_MD("get_favorite_dirs"), &EditorSettings::get_favorite_dirs);
 
-	ClassDB::bind_method(D_METHOD("set_recent_dirs", "dirs"), &EditorSettings::set_recent_dirs);
-	ClassDB::bind_method(D_METHOD("get_recent_dirs"), &EditorSettings::get_recent_dirs);
+	ObjectTypeDB::bind_method(_MD("set_recent_dirs", "dirs"), &EditorSettings::set_recent_dirs);
+	ObjectTypeDB::bind_method(_MD("get_recent_dirs"), &EditorSettings::get_recent_dirs);
 
 	ADD_SIGNAL(MethodInfo("settings_changed"));
 }
@@ -1127,7 +1052,7 @@ EditorSettings::EditorSettings() {
 
 EditorSettings::~EditorSettings() {
 
-	//singleton=NULL;
+	//	singleton=NULL;
 }
 
 Ref<ShortCut> ED_GET_SHORTCUT(const String &p_path) {
@@ -1143,16 +1068,15 @@ Ref<ShortCut> ED_GET_SHORTCUT(const String &p_path) {
 
 Ref<ShortCut> ED_SHORTCUT(const String &p_path, const String &p_name, uint32_t p_keycode) {
 
-	Ref<InputEventKey> ie;
+	InputEvent ie;
 	if (p_keycode) {
-		ie.instance();
-
-		ie->set_unicode(p_keycode & KEY_CODE_MASK);
-		ie->set_scancode(p_keycode & KEY_CODE_MASK);
-		ie->set_shift(bool(p_keycode & KEY_MASK_SHIFT));
-		ie->set_alt(bool(p_keycode & KEY_MASK_ALT));
-		ie->set_control(bool(p_keycode & KEY_MASK_CTRL));
-		ie->set_metakey(bool(p_keycode & KEY_MASK_META));
+		ie.type = InputEvent::KEY;
+		ie.key.unicode = p_keycode & KEY_CODE_MASK;
+		ie.key.scancode = p_keycode & KEY_CODE_MASK;
+		ie.key.mod.shift = bool(p_keycode & KEY_MASK_SHIFT);
+		ie.key.mod.alt = bool(p_keycode & KEY_MASK_ALT);
+		ie.key.mod.control = bool(p_keycode & KEY_MASK_CTRL);
+		ie.key.mod.meta = bool(p_keycode & KEY_MASK_META);
 	}
 
 	Ref<ShortCut> sc = EditorSettings::get_singleton()->get_shortcut(p_path);

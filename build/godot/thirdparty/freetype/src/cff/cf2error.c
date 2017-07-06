@@ -44,7 +44,7 @@
   cf2_setError( FT_Error*  error,
                 FT_Error   value )
   {
-    if ( error && !*error )
+    if ( error && *error == 0 )
       *error = value;
   }
 

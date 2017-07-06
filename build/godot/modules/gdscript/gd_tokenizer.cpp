@@ -86,11 +86,9 @@ const char *GDTokenizer::token_names[TK_MAX] = {
 	"continue",
 	"pass",
 	"return",
-	"match",
 	"func",
 	"class",
 	"extends",
-	"is",
 	"onready",
 	"tool",
 	"static",
@@ -104,10 +102,6 @@ const char *GDTokenizer::token_names[TK_MAX] = {
 	"yield",
 	"signal",
 	"breakpoint",
-	"rpc",
-	"sync",
-	"master",
-	"slave",
 	"'['",
 	"']'",
 	"'{'",
@@ -119,12 +113,8 @@ const char *GDTokenizer::token_names[TK_MAX] = {
 	"'.'",
 	"'?'",
 	"':'",
-	"'$'",
 	"'\\n'",
 	"PI",
-	"_",
-	"INF",
-	"NAN",
 	"Error",
 	"EOF",
 	"Cursor"
@@ -462,9 +452,6 @@ void GDTokenizerText::_advance() {
 			case ':':
 				_make_token(TK_COLON); //for methods maybe but now useless.
 				break;
-			case '$':
-				_make_token(TK_DOLLAR); //for the get_node() shortener
-				break;
 			case '^': {
 				if (GETCHAR(1) == '=') {
 					_make_token(TK_OP_ASSIGN_BIT_XOR);
@@ -515,11 +502,9 @@ void GDTokenizerText::_advance() {
 				if (GETCHAR(1) == '=') {
 					_make_token(TK_OP_ASSIGN_ADD);
 					INCPOS(1);
-					/*
-				}  else if (GETCHAR(1)=='+') {
-					_make_token(TK_OP_PLUS_PLUS);
-					INCPOS(1);
-				*/
+					//}  else if (GETCHAR(1)=='+') {
+					//	_make_token(TK_OP_PLUS_PLUS);
+					//	INCPOS(1);
 				} else {
 					_make_token(TK_OP_ADD);
 				}
@@ -530,11 +515,9 @@ void GDTokenizerText::_advance() {
 				if (GETCHAR(1) == '=') {
 					_make_token(TK_OP_ASSIGN_SUB);
 					INCPOS(1);
-					/*
-				}  else if (GETCHAR(1)=='-') {
-					_make_token(TK_OP_MINUS_MINUS);
-					INCPOS(1);
-				*/
+					//}  else if (GETCHAR(1)=='-') {
+					//	_make_token(TK_OP_MINUS_MINUS);
+					//	INCPOS(1);
 				} else {
 					_make_token(TK_OP_SUB);
 				}
@@ -734,14 +717,14 @@ void GDTokenizerText::_advance() {
 
 					INCPOS(str.length());
 					if (hexa_found) {
-						int64_t val = str.hex_to_int64();
+						int val = str.hex_to_int();
 						_make_constant(val);
 					} else if (period_found || exponent_found) {
-						double val = str.to_double();
+						real_t val = str.to_double();
 						//print_line("*%*%*%*% to convert: "+str+" result: "+rtos(val));
 						_make_constant(val);
 					} else {
-						int64_t val = str.to_int64();
+						int val = str.to_int();
 						_make_constant(val);
 					}
 
@@ -793,26 +776,29 @@ void GDTokenizerText::_advance() {
 							{ Variant::STRING, "String" },
 							{ Variant::VECTOR2, "Vector2" },
 							{ Variant::RECT2, "Rect2" },
-							{ Variant::TRANSFORM2D, "Transform2D" },
+							{ Variant::MATRIX32, "Matrix32" },
 							{ Variant::VECTOR3, "Vector3" },
-							{ Variant::RECT3, "Rect3" },
+							{ Variant::_AABB, "AABB" },
+							{ Variant::_AABB, "Rect3" },
 							{ Variant::PLANE, "Plane" },
 							{ Variant::QUAT, "Quat" },
-							{ Variant::BASIS, "Basis" },
+							{ Variant::MATRIX3, "Matrix3" },
 							{ Variant::TRANSFORM, "Transform" },
 							{ Variant::COLOR, "Color" },
+							{ Variant::IMAGE, "Image" },
 							{ Variant::_RID, "RID" },
 							{ Variant::OBJECT, "Object" },
+							{ Variant::INPUT_EVENT, "InputEvent" },
 							{ Variant::NODE_PATH, "NodePath" },
 							{ Variant::DICTIONARY, "Dictionary" },
 							{ Variant::ARRAY, "Array" },
-							{ Variant::POOL_BYTE_ARRAY, "PoolByteArray" },
-							{ Variant::POOL_INT_ARRAY, "PoolIntArray" },
-							{ Variant::POOL_REAL_ARRAY, "PoolFloatArray" },
-							{ Variant::POOL_STRING_ARRAY, "PoolStringArray" },
-							{ Variant::POOL_VECTOR2_ARRAY, "PoolVector2Array" },
-							{ Variant::POOL_VECTOR3_ARRAY, "PoolVector3Array" },
-							{ Variant::POOL_COLOR_ARRAY, "PoolColorArray" },
+							{ Variant::RAW_ARRAY, "RawArray" },
+							{ Variant::INT_ARRAY, "IntArray" },
+							{ Variant::REAL_ARRAY, "FloatArray" },
+							{ Variant::STRING_ARRAY, "StringArray" },
+							{ Variant::VECTOR2_ARRAY, "Vector2Array" },
+							{ Variant::VECTOR3_ARRAY, "Vector3Array" },
+							{ Variant::COLOR_ARRAY, "ColorArray" },
 							{ Variant::VARIANT_MAX, NULL },
 						};
 
@@ -865,7 +851,6 @@ void GDTokenizerText::_advance() {
 								{ TK_PR_FUNCTION, "func" },
 								{ TK_PR_CLASS, "class" },
 								{ TK_PR_EXTENDS, "extends" },
-								{ TK_PR_IS, "is" },
 								{ TK_PR_ONREADY, "onready" },
 								{ TK_PR_TOOL, "tool" },
 								{ TK_PR_STATIC, "static" },
@@ -877,10 +862,6 @@ void GDTokenizerText::_advance() {
 								{ TK_PR_YIELD, "yield" },
 								{ TK_PR_SIGNAL, "signal" },
 								{ TK_PR_BREAKPOINT, "breakpoint" },
-								{ TK_PR_REMOTE, "remote" },
-								{ TK_PR_MASTER, "master" },
-								{ TK_PR_SLAVE, "slave" },
-								{ TK_PR_SYNC, "sync" },
 								{ TK_PR_CONST, "const" },
 								{ TK_PR_ENUM, "enum" },
 								//controlflow
@@ -895,13 +876,9 @@ void GDTokenizerText::_advance() {
 								{ TK_CF_BREAK, "break" },
 								{ TK_CF_CONTINUE, "continue" },
 								{ TK_CF_RETURN, "return" },
-								{ TK_CF_MATCH, "match" },
 								{ TK_CF_PASS, "pass" },
 								{ TK_SELF, "self" },
 								{ TK_CONST_PI, "PI" },
-								{ TK_WILDCARD, "_" },
-								{ TK_CONST_INF, "INF" },
-								{ TK_CONST_NAN, "NAN" },
 								{ TK_ERROR, NULL }
 							};
 
@@ -1051,7 +1028,7 @@ void GDTokenizerText::advance(int p_amount) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BYTECODE_VERSION 12
+#define BYTECODE_VERSION 10
 
 Error GDTokenizerBuffer::set_code_buffer(const Vector<uint8_t> &p_buffer) {
 
@@ -1148,7 +1125,7 @@ Vector<uint8_t> GDTokenizerBuffer::parse_code_string(const String &p_code) {
 	Vector<uint8_t> buf;
 
 	Map<StringName, int> identifier_map;
-	HashMap<Variant, int, VariantHasher, VariantComparator> constant_map;
+	HashMap<Variant, int, VariantHasher> constant_map;
 	Map<uint32_t, int> line_map;
 	Vector<uint32_t> token_array;
 
@@ -1317,7 +1294,7 @@ StringName GDTokenizerBuffer::get_token_identifier(int p_offset) const {
 
 	ERR_FAIL_INDEX_V(offset, tokens.size(), StringName());
 	uint32_t identifier = tokens[offset] >> TOKEN_BITS;
-	ERR_FAIL_INDEX_V(identifier, (uint32_t)identifiers.size(), StringName());
+	ERR_FAIL_INDEX_V(identifier, identifiers.size(), StringName());
 
 	return identifiers[identifier];
 }
@@ -1373,7 +1350,7 @@ const Variant &GDTokenizerBuffer::get_token_constant(int p_offset) const {
 	int offset = token + p_offset;
 	ERR_FAIL_INDEX_V(offset, tokens.size(), nil);
 	uint32_t constant = tokens[offset] >> TOKEN_BITS;
-	ERR_FAIL_INDEX_V(constant, (uint32_t)constants.size(), nil);
+	ERR_FAIL_INDEX_V(constant, constants.size(), nil);
 	return constants[constant];
 }
 String GDTokenizerBuffer::get_token_error(int p_offset) const {

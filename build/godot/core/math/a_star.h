@@ -38,7 +38,7 @@
 
 class AStar : public Reference {
 
-	GDCLASS(AStar, Reference)
+	OBJ_TYPE(AStar, Reference)
 
 	uint64_t pass;
 
@@ -48,14 +48,14 @@ class AStar : public Reference {
 
 		int id;
 		Vector3 pos;
-		real_t weight_scale;
+		float weight_scale;
 		uint64_t last_pass;
 
 		Vector<Point *> neighbours;
 
 		//used for pathfinding
 		Point *prev_point;
-		real_t distance;
+		float distance;
 
 		Point()
 			: list(this) {}
@@ -100,12 +100,12 @@ protected:
 public:
 	int get_available_point_id() const;
 
-	void add_point(int p_id, const Vector3 &p_pos, real_t p_weight_scale = 1);
+	void add_point(int p_id, const Vector3 &p_pos, float p_weight_scale = 1);
 	Vector3 get_point_pos(int p_id) const;
-	real_t get_point_weight_scale(int p_id) const;
+	float get_point_weight_scale(int p_id) const;
 	void remove_point(int p_id);
 
-	void connect_points(int p_id, int p_with_id, bool bidirectional = true);
+	void connect_points(int p_id, int p_with_id);
 	void disconnect_points(int p_id, int p_with_id);
 	bool are_points_connected(int p_id, int p_with_id) const;
 
@@ -114,8 +114,8 @@ public:
 	int get_closest_point(const Vector3 &p_point) const;
 	Vector3 get_closest_pos_in_segment(const Vector3 &p_point) const;
 
-	PoolVector<Vector3> get_point_path(int p_from_id, int p_to_id);
-	PoolVector<int> get_id_path(int p_from_id, int p_to_id);
+	DVector<Vector3> get_point_path(int p_from_id, int p_to_id);
+	DVector<int> get_id_path(int p_from_id, int p_to_id);
 
 	AStar();
 	~AStar();

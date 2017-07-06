@@ -30,26 +30,12 @@
 
 /*
 Adapted to Godot from the Bullet library.
-*/
-
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
+See corresponding header file for licensing info.
 */
 
 #include "pin_joint_sw.h"
 
-bool PinJointSW::setup(real_t p_step) {
+bool PinJointSW::setup(float p_step) {
 
 	m_appliedImpulse = real_t(0.);
 
@@ -58,10 +44,10 @@ bool PinJointSW::setup(real_t p_step) {
 	for (int i = 0; i < 3; i++) {
 		normal[i] = 1;
 		memnew_placement(&m_jac[i], JacobianEntrySW(
-											A->get_principal_inertia_axes().transposed(),
-											B->get_principal_inertia_axes().transposed(),
-											A->get_transform().xform(m_pivotInA) - A->get_transform().origin - A->get_center_of_mass(),
-											B->get_transform().xform(m_pivotInB) - B->get_transform().origin - B->get_center_of_mass(),
+											A->get_transform().basis.transposed(),
+											B->get_transform().basis.transposed(),
+											A->get_transform().xform(m_pivotInA) - A->get_transform().origin,
+											B->get_transform().xform(m_pivotInB) - B->get_transform().origin,
 											normal,
 											A->get_inv_inertia(),
 											A->get_inv_mass(),
@@ -73,15 +59,15 @@ bool PinJointSW::setup(real_t p_step) {
 	return true;
 }
 
-void PinJointSW::solve(real_t p_step) {
+void PinJointSW::solve(float p_step) {
 
 	Vector3 pivotAInW = A->get_transform().xform(m_pivotInA);
 	Vector3 pivotBInW = B->get_transform().xform(m_pivotInB);
 
 	Vector3 normal(0, 0, 0);
 
-	//Vector3 angvelA = A->get_transform().origin.getBasis().transpose() * A->getAngularVelocity();
-	//Vector3 angvelB = B->get_transform().origin.getBasis().transpose() * B->getAngularVelocity();
+	//	Vector3 angvelA = A->get_transform().origin.getBasis().transpose() * A->getAngularVelocity();
+	//	Vector3 angvelB = B->get_transform().origin.getBasis().transpose() * B->getAngularVelocity();
 
 	for (int i = 0; i < 3; i++) {
 		normal[i] = 1;
@@ -126,7 +112,7 @@ void PinJointSW::solve(real_t p_step) {
 	}
 }
 
-void PinJointSW::set_param(PhysicsServer::PinJointParam p_param, real_t p_value) {
+void PinJointSW::set_param(PhysicsServer::PinJointParam p_param, float p_value) {
 
 	switch (p_param) {
 		case PhysicsServer::PIN_JOINT_BIAS: m_tau = p_value; break;
@@ -135,7 +121,7 @@ void PinJointSW::set_param(PhysicsServer::PinJointParam p_param, real_t p_value)
 	}
 }
 
-real_t PinJointSW::get_param(PhysicsServer::PinJointParam p_param) const {
+float PinJointSW::get_param(PhysicsServer::PinJointParam p_param) const {
 
 	switch (p_param) {
 		case PhysicsServer::PIN_JOINT_BIAS: return m_tau;

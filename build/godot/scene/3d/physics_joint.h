@@ -35,7 +35,7 @@
 
 class Joint : public Spatial {
 
-	GDCLASS(Joint, Spatial);
+	OBJ_TYPE(Joint, Spatial);
 
 	RID ba, bb;
 
@@ -77,7 +77,7 @@ public:
 
 class PinJoint : public Joint {
 
-	GDCLASS(PinJoint, Joint);
+	OBJ_TYPE(PinJoint, Joint);
 
 public:
 	enum Param {
@@ -102,7 +102,7 @@ VARIANT_ENUM_CAST(PinJoint::Param);
 
 class HingeJoint : public Joint {
 
-	GDCLASS(HingeJoint, Joint);
+	OBJ_TYPE(HingeJoint, Joint);
 
 public:
 	enum Param {
@@ -150,7 +150,7 @@ VARIANT_ENUM_CAST(HingeJoint::Flag);
 
 class SliderJoint : public Joint {
 
-	GDCLASS(SliderJoint, Joint);
+	OBJ_TYPE(SliderJoint, Joint);
 
 public:
 	enum Param {
@@ -203,7 +203,7 @@ VARIANT_ENUM_CAST(SliderJoint::Param);
 
 class ConeTwistJoint : public Joint {
 
-	GDCLASS(ConeTwistJoint, Joint);
+	OBJ_TYPE(ConeTwistJoint, Joint);
 
 public:
 	enum Param {
@@ -238,7 +238,7 @@ VARIANT_ENUM_CAST(ConeTwistJoint::Param);
 
 class Generic6DOFJoint : public Joint {
 
-	GDCLASS(Generic6DOFJoint, Joint);
+	OBJ_TYPE(Generic6DOFJoint, Joint);
 
 public:
 	enum Param {
@@ -324,7 +324,7 @@ VARIANT_ENUM_CAST(Generic6DOFJoint::Flag);
 #if 0
 class PhysicsJoint : public Spatial {
 
-	GDCLASS(PhysicsJoint,Spatial);
+	OBJ_TYPE(PhysicsJoint,Spatial);
 	OBJ_CATEGORY("3D Physics Nodes");
 
 	NodePath body_A;
@@ -377,7 +377,7 @@ public:
 
 class PhysicsJointPin : public PhysicsJoint {
 
-	GDCLASS( PhysicsJointPin, PhysicsJoint );
+	OBJ_TYPE( PhysicsJointPin, PhysicsJoint );
 
 protected:
 

@@ -34,7 +34,7 @@
 
 class RichTextLabel : public Control {
 
-	GDCLASS(RichTextLabel, Control);
+	OBJ_TYPE(RichTextLabel, Control);
 
 public:
 	enum Align {
@@ -186,7 +186,7 @@ private:
 
 	struct ItemNewline : public Item {
 
-		int line; // FIXME: Overriding base's line ?
+		int line;
 		ItemNewline() { type = ITEM_NEWLINE; }
 	};
 
@@ -272,7 +272,7 @@ private:
 	void _update_scroll();
 	void _scroll_changed(double);
 
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 	Item *_get_next_item(Item *p_item, bool p_free = false);
 
 	bool use_bbcode;

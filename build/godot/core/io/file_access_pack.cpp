@@ -32,7 +32,7 @@
 
 #include <stdio.h>
 
-#define PACK_VERSION 1
+#define PACK_VERSION 0
 
 Error PackedData::add_pack(const String &p_path) {
 
@@ -165,8 +165,8 @@ bool PackedSourcePCK::try_open_pack(const String &p_path) {
 	uint32_t ver_minor = f->get_32();
 	uint32_t ver_rev = f->get_32();
 
-	ERR_EXPLAIN("Pack version unsupported: " + itos(version));
-	ERR_FAIL_COND_V(version != PACK_VERSION, ERR_INVALID_DATA);
+	ERR_EXPLAIN("Pack version newer than supported by engine: " + itos(version));
+	ERR_FAIL_COND_V(version > PACK_VERSION, ERR_INVALID_DATA);
 	ERR_EXPLAIN("Pack created with a newer version of the engine: " + itos(ver_major) + "." + itos(ver_minor) + "." + itos(ver_rev));
 	ERR_FAIL_COND_V(ver_major > VERSION_MAJOR || (ver_major == VERSION_MAJOR && ver_minor > VERSION_MINOR), ERR_INVALID_DATA);
 
@@ -330,7 +330,7 @@ FileAccessPack::~FileAccessPack() {
 // DIR ACCESS
 //////////////////////////////////////////////////////////////////////////////////
 
-Error DirAccessPack::list_dir_begin() {
+bool DirAccessPack::list_dir_begin() {
 
 	list_dirs.clear();
 	list_files.clear();
@@ -345,7 +345,7 @@ Error DirAccessPack::list_dir_begin() {
 		list_files.push_back(E->get());
 	}
 
-	return OK;
+	return true;
 }
 
 String DirAccessPack::get_next() {
@@ -398,8 +398,6 @@ Error DirAccessPack::change_dir(String p_dir) {
 
 	nd = nd.simplify_path();
 
-	if (nd == "") nd = ".";
-
 	if (nd.begins_with("/")) {
 		nd = nd.replace_first("/", "");
 		absolute = true;
@@ -440,12 +438,13 @@ Error DirAccessPack::change_dir(String p_dir) {
 
 String DirAccessPack::get_current_dir() {
 
+	String p;
 	PackedData::PackedDir *pd = current;
-	String p = current->name;
-
 	while (pd->parent) {
-		pd = pd->parent;
-		p = pd->name + "/" + p;
+
+		if (pd != current)
+			p = "/" + p;
+		p = p + pd->name;
 	}
 
 	return "res://" + p;

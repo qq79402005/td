@@ -82,11 +82,11 @@ Ref<Curve2D> Path2D::get_curve() const {
 
 void Path2D::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_curve", "curve:Curve2D"), &Path2D::set_curve);
-	ClassDB::bind_method(D_METHOD("get_curve:Curve2D", "curve"), &Path2D::get_curve);
-	ClassDB::bind_method(D_METHOD("_curve_changed"), &Path2D::_curve_changed);
+	ObjectTypeDB::bind_method(_MD("set_curve", "curve:Curve2D"), &Path2D::set_curve);
+	ObjectTypeDB::bind_method(_MD("get_curve:Curve2D", "curve"), &Path2D::get_curve);
+	ObjectTypeDB::bind_method(_MD("_curve_changed"), &Path2D::_curve_changed);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve2D"), "set_curve", "get_curve");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "curve", PROPERTY_HINT_RESOURCE_TYPE, "Curve2D"), _SCS("set_curve"), _SCS("get_curve"));
 }
 
 Path2D::Path2D() {
@@ -118,7 +118,7 @@ void PathFollow2D::_update_transform() {
 		pos += n * h_offset;
 		pos += t * v_offset;
 
-		set_rotation(t.angle());
+		set_rot(t.angle());
 
 	} else {
 
@@ -126,7 +126,7 @@ void PathFollow2D::_update_transform() {
 		pos.y += v_offset;
 	}
 
-	set_position(pos);
+	set_pos(pos);
 }
 
 void PathFollow2D::_notification(int p_what) {
@@ -226,7 +226,7 @@ void PathFollow2D::_get_property_list(List<PropertyInfo> *p_list) const {
 
 String PathFollow2D::get_configuration_warning() const {
 
-	if (!is_visible_in_tree() || !is_inside_tree())
+	if (!is_visible() || !is_inside_tree())
 		return String();
 
 	if (!get_parent() || !get_parent()->cast_to<Path2D>()) {
@@ -238,26 +238,26 @@ String PathFollow2D::get_configuration_warning() const {
 
 void PathFollow2D::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_offset", "offset"), &PathFollow2D::set_offset);
-	ClassDB::bind_method(D_METHOD("get_offset"), &PathFollow2D::get_offset);
+	ObjectTypeDB::bind_method(_MD("set_offset", "offset"), &PathFollow2D::set_offset);
+	ObjectTypeDB::bind_method(_MD("get_offset"), &PathFollow2D::get_offset);
 
-	ClassDB::bind_method(D_METHOD("set_h_offset", "h_offset"), &PathFollow2D::set_h_offset);
-	ClassDB::bind_method(D_METHOD("get_h_offset"), &PathFollow2D::get_h_offset);
+	ObjectTypeDB::bind_method(_MD("set_h_offset", "h_offset"), &PathFollow2D::set_h_offset);
+	ObjectTypeDB::bind_method(_MD("get_h_offset"), &PathFollow2D::get_h_offset);
 
-	ClassDB::bind_method(D_METHOD("set_v_offset", "v_offset"), &PathFollow2D::set_v_offset);
-	ClassDB::bind_method(D_METHOD("get_v_offset"), &PathFollow2D::get_v_offset);
+	ObjectTypeDB::bind_method(_MD("set_v_offset", "v_offset"), &PathFollow2D::set_v_offset);
+	ObjectTypeDB::bind_method(_MD("get_v_offset"), &PathFollow2D::get_v_offset);
 
-	ClassDB::bind_method(D_METHOD("set_unit_offset", "unit_offset"), &PathFollow2D::set_unit_offset);
-	ClassDB::bind_method(D_METHOD("get_unit_offset"), &PathFollow2D::get_unit_offset);
+	ObjectTypeDB::bind_method(_MD("set_unit_offset", "unit_offset"), &PathFollow2D::set_unit_offset);
+	ObjectTypeDB::bind_method(_MD("get_unit_offset"), &PathFollow2D::get_unit_offset);
 
-	ClassDB::bind_method(D_METHOD("set_rotate", "enable"), &PathFollow2D::set_rotate);
-	ClassDB::bind_method(D_METHOD("is_rotating"), &PathFollow2D::is_rotating);
+	ObjectTypeDB::bind_method(_MD("set_rotate", "enable"), &PathFollow2D::set_rotate);
+	ObjectTypeDB::bind_method(_MD("is_rotating"), &PathFollow2D::is_rotating);
 
-	ClassDB::bind_method(D_METHOD("set_cubic_interpolation", "enable"), &PathFollow2D::set_cubic_interpolation);
-	ClassDB::bind_method(D_METHOD("get_cubic_interpolation"), &PathFollow2D::get_cubic_interpolation);
+	ObjectTypeDB::bind_method(_MD("set_cubic_interpolation", "enable"), &PathFollow2D::set_cubic_interpolation);
+	ObjectTypeDB::bind_method(_MD("get_cubic_interpolation"), &PathFollow2D::get_cubic_interpolation);
 
-	ClassDB::bind_method(D_METHOD("set_loop", "loop"), &PathFollow2D::set_loop);
-	ClassDB::bind_method(D_METHOD("has_loop"), &PathFollow2D::has_loop);
+	ObjectTypeDB::bind_method(_MD("set_loop", "loop"), &PathFollow2D::set_loop);
+	ObjectTypeDB::bind_method(_MD("has_loop"), &PathFollow2D::has_loop);
 }
 
 void PathFollow2D::set_offset(float p_offset) {

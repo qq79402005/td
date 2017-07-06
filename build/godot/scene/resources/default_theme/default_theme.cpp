@@ -41,7 +41,7 @@
 typedef Map<const void *, Ref<ImageTexture> > TexCacheMap;
 
 static TexCacheMap *tex_cache;
-static float scale = 1;
+static int scale = 1;
 
 template <class T>
 static Ref<StyleBoxTexture> make_stylebox(T p_src, float p_left, float p_top, float p_right, float p_botton, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_botton = -1, bool p_draw_center = true) {
@@ -53,22 +53,11 @@ static Ref<StyleBoxTexture> make_stylebox(T p_src, float p_left, float p_top, fl
 	} else {
 
 		texture = Ref<ImageTexture>(memnew(ImageTexture));
-		Ref<Image> img = memnew(Image(p_src));
-
+		Image img(p_src);
 		if (scale > 1) {
-			Size2 orig_size = Size2(img->get_width(), img->get_height());
-
-			img->convert(Image::FORMAT_RGBA8);
-			img->expand_x2_hq2x();
-			if (scale != 2.0) {
-				img->resize(orig_size.x * scale, orig_size.y * scale);
-			}
-		} else if (scale < 1) {
-			Size2 orig_size = Size2(img->get_width(), img->get_height());
-			img->convert(Image::FORMAT_RGBA8);
-			img->resize(orig_size.x * scale, orig_size.y * scale);
+			img.convert(Image::FORMAT_RGBA);
+			img.expand_x2_hq2x();
 		}
-
 		texture->create_from_image(img, ImageTexture::FLAG_FILTER);
 		(*tex_cache)[p_src] = texture;
 	}
@@ -101,19 +90,10 @@ template <class T>
 static Ref<Texture> make_icon(T p_src) {
 
 	Ref<ImageTexture> texture(memnew(ImageTexture));
-	Ref<Image> img = memnew(Image(p_src));
+	Image img = Image(p_src);
 	if (scale > 1) {
-		Size2 orig_size = Size2(img->get_width(), img->get_height());
-
-		img->convert(Image::FORMAT_RGBA8);
-		img->expand_x2_hq2x();
-		if (scale != 2.0) {
-			img->resize(orig_size.x * scale, orig_size.y * scale);
-		}
-	} else if (scale < 1) {
-		Size2 orig_size = Size2(img->get_width(), img->get_height());
-		img->convert(Image::FORMAT_RGBA8);
-		img->resize(orig_size.x * scale, orig_size.y * scale);
+		img.convert(Image::FORMAT_RGBA);
+		img.expand_x2_hq2x();
 	}
 	texture->create_from_image(img, ImageTexture::FLAG_FILTER);
 
@@ -121,8 +101,8 @@ static Ref<Texture> make_icon(T p_src) {
 }
 
 static Ref<Shader> make_shader(const char *vertex_code, const char *fragment_code, const char *lighting_code) {
-	Ref<Shader> shader = (memnew(Shader()));
-	//shader->set_code(vertex_code, fragment_code, lighting_code);
+	Ref<Shader> shader = (memnew(Shader(Shader::MODE_CANVAS_ITEM)));
+	shader->set_code(vertex_code, fragment_code, lighting_code);
 
 	return shader;
 }
@@ -138,8 +118,8 @@ static Ref<BitmapFont> make_font(int p_height, int p_ascent, int p_valign, int p
 
 		int chr = c[0];
 		Rect2 frect;
-		frect.position.x = c[1];
-		frect.position.y = c[2];
+		frect.pos.x = c[1];
+		frect.pos.y = c[2];
 		frect.size.x = c[3];
 		frect.size.y = c[4];
 		Point2 align(c[5], c[6] + p_valign);
@@ -158,7 +138,7 @@ static Ref<BitmapFont> make_font2(int p_height, int p_ascent, int p_charcount, c
 
 	Ref<BitmapFont> font(memnew(BitmapFont));
 
-	Ref<Image> image = memnew(Image(p_img));
+	Image image(p_img);
 	Ref<ImageTexture> tex = memnew(ImageTexture);
 	tex->create_from_image(image);
 
@@ -170,8 +150,8 @@ static Ref<BitmapFont> make_font2(int p_height, int p_ascent, int p_charcount, c
 
 		int chr = c[0];
 		Rect2 frect;
-		frect.position.x = c[1];
-		frect.position.y = c[2];
+		frect.pos.x = c[1];
+		frect.pos.y = c[2];
 		frect.size.x = c[3];
 		frect.size.y = c[4];
 		Point2 align(c[6], c[5]);
@@ -203,9 +183,12 @@ static Ref<StyleBox> make_empty_stylebox(float p_margin_left = -1, float p_margi
 	return style;
 }
 
-void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<Font> &large_font, Ref<Texture> &default_icon, Ref<StyleBox> &default_style, float p_scale) {
+void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<Font> &large_font, Ref<Texture> &default_icon, Ref<StyleBox> &default_style, bool p_hidpi) {
 
-	scale = p_scale;
+	if (p_hidpi)
+		scale = 2;
+	else
+		scale = 1;
 
 	tex_cache = memnew(TexCacheMap);
 
@@ -284,10 +267,16 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	// ToolButton
 
-	t->set_stylebox("normal", "ToolButton", make_empty_stylebox(6, 4, 6, 4));
-	t->set_stylebox("pressed", "ToolButton", make_stylebox(button_pressed_png, 4, 4, 4, 4, 6, 4, 6, 4));
-	t->set_stylebox("hover", "ToolButton", make_stylebox(button_normal_png, 4, 4, 4, 4, 6, 4, 6, 4));
-	t->set_stylebox("disabled", "ToolButton", make_empty_stylebox(6, 4, 6, 4));
+	Ref<StyleBox> tb_empty = memnew(StyleBoxEmpty);
+	tb_empty->set_default_margin(MARGIN_LEFT, 6 * scale);
+	tb_empty->set_default_margin(MARGIN_RIGHT, 6 * scale);
+	tb_empty->set_default_margin(MARGIN_TOP, 4 * scale);
+	tb_empty->set_default_margin(MARGIN_BOTTOM, 4 * scale);
+
+	t->set_stylebox("normal", "ToolButton", tb_empty);
+	t->set_stylebox("pressed", "ToolButton", make_stylebox(button_pressed_png, 4, 4, 4, 4));
+	t->set_stylebox("hover", "ToolButton", make_stylebox(button_normal_png, 4, 4, 4, 4));
+	t->set_stylebox("disabled", "ToolButton", make_empty_stylebox(4, 4, 4, 4));
 	t->set_stylebox("focus", "ToolButton", focus);
 	t->set_font("font", "ToolButton", default_font);
 
@@ -453,7 +442,6 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	t->set_font("font", "TextEdit", default_font);
 
-	t->set_color("background_color", "TextEdit", Color(0, 0, 0, 0));
 	t->set_color("completion_background_color", "TextEdit", Color::html("2C2A32"));
 	t->set_color("completion_selected_color", "TextEdit", Color::html("434244"));
 	t->set_color("completion_existing_color", "TextEdit", Color::html("21dfdfdf"));
@@ -487,43 +475,43 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_stylebox("scroll", "HScrollBar", make_stylebox(scroll_bg_png, 5, 5, 5, 5, 0, 0, 0, 0));
 	t->set_stylebox("scroll_focus", "HScrollBar", make_stylebox(scroll_bg_png, 5, 5, 5, 5, 0, 0, 0, 0));
 	t->set_stylebox("grabber", "HScrollBar", make_stylebox(scroll_grabber_png, 5, 5, 5, 5, 2, 2, 2, 2));
-	t->set_stylebox("grabber_highlight", "HScrollBar", make_stylebox(scroll_grabber_hl_png, 5, 5, 5, 5, 2, 2, 2, 2));
+	t->set_stylebox("grabber_hilite", "HScrollBar", make_stylebox(scroll_grabber_hl_png, 5, 5, 5, 5, 2, 2, 2, 2));
 
 	t->set_icon("increment", "HScrollBar", empty_icon);
-	t->set_icon("increment_highlight", "HScrollBar", empty_icon);
+	t->set_icon("increment_hilite", "HScrollBar", empty_icon);
 	t->set_icon("decrement", "HScrollBar", empty_icon);
-	t->set_icon("decrement_highlight", "HScrollBar", empty_icon);
+	t->set_icon("decrement_hilite", "HScrollBar", empty_icon);
 
 	// VScrollBar
 
 	t->set_stylebox("scroll", "VScrollBar", make_stylebox(scroll_bg_png, 5, 5, 5, 5, 0, 0, 0, 0));
 	t->set_stylebox("scroll_focus", "VScrollBar", make_stylebox(scroll_bg_png, 5, 5, 5, 5, 0, 0, 0, 0));
 	t->set_stylebox("grabber", "VScrollBar", make_stylebox(scroll_grabber_png, 5, 5, 5, 5, 2, 2, 2, 2));
-	t->set_stylebox("grabber_highlight", "VScrollBar", make_stylebox(scroll_grabber_hl_png, 5, 5, 5, 5, 2, 2, 2, 2));
+	t->set_stylebox("grabber_hilite", "VScrollBar", make_stylebox(scroll_grabber_hl_png, 5, 5, 5, 5, 2, 2, 2, 2));
 
 	t->set_icon("increment", "VScrollBar", empty_icon);
-	t->set_icon("increment_highlight", "VScrollBar", empty_icon);
+	t->set_icon("increment_hilite", "VScrollBar", empty_icon);
 	t->set_icon("decrement", "VScrollBar", empty_icon);
-	t->set_icon("decrement_highlight", "VScrollBar", empty_icon);
+	t->set_icon("decrement_hilite", "VScrollBar", empty_icon);
 
 	// HSlider
 
 	t->set_stylebox("slider", "HSlider", make_stylebox(hslider_bg_png, 4, 4, 4, 4));
-	t->set_stylebox("grabber_highlight", "HSlider", make_stylebox(hslider_grabber_hl_png, 6, 6, 6, 6));
+	t->set_stylebox("grabber_hilite", "HSlider", make_stylebox(hslider_grabber_hl_png, 6, 6, 6, 6));
 	t->set_stylebox("focus", "HSlider", focus);
 
 	t->set_icon("grabber", "HSlider", make_icon(hslider_grabber_png));
-	t->set_icon("grabber_highlight", "HSlider", make_icon(hslider_grabber_hl_png));
+	t->set_icon("grabber_hilite", "HSlider", make_icon(hslider_grabber_hl_png));
 	t->set_icon("tick", "HSlider", make_icon(hslider_tick_png));
 
 	// VSlider
 
 	t->set_stylebox("slider", "VSlider", make_stylebox(vslider_bg_png, 4, 4, 4, 4));
-	t->set_stylebox("grabber_highlight", "VSlider", make_stylebox(vslider_grabber_hl_png, 6, 6, 6, 6));
+	t->set_stylebox("grabber_hilite", "VSlider", make_stylebox(vslider_grabber_hl_png, 6, 6, 6, 6));
 	t->set_stylebox("focus", "HSlider", focus);
 
 	t->set_icon("grabber", "VSlider", make_icon(vslider_grabber_png));
-	t->set_icon("grabber_highlight", "VSlider", make_icon(vslider_grabber_hl_png));
+	t->set_icon("grabber_hilite", "VSlider", make_icon(vslider_grabber_hl_png));
 	t->set_icon("tick", "VSlider", make_icon(vslider_tick_png));
 
 	// SpinBox
@@ -532,17 +520,24 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	// WindowDialog
 
-	t->set_stylebox("panel", "WindowDialog", sb_expand(make_stylebox(popup_window_png, 10, 26, 10, 8), 8, 24, 8, 6));
-	t->set_constant("scaleborder_size", "WindowDialog", 4 * scale);
+	Ref<StyleBoxTexture> style_pp_win = sb_expand(make_stylebox(popup_window_png, 10, 30, 10, 8), 8, 26, 8, 4);
+	/*for(int i=0;i<4;i++)
+		style_pp_win->set_expand_margin_size((Margin)i,3);
+	style_pp_win->set_expand_margin_size(MARGIN_TOP,26);*/
 
-	t->set_font("title_font", "WindowDialog", large_font);
-	t->set_color("title_color", "WindowDialog", Color(0, 0, 0));
-	t->set_constant("title_height", "WindowDialog", 20 * scale);
+	t->set_stylebox("panel", "WindowDialog", style_pp_win);
 
 	t->set_icon("close", "WindowDialog", make_icon(close_png));
-	t->set_icon("close_highlight", "WindowDialog", make_icon(close_hl_png));
-	t->set_constant("close_h_ofs", "WindowDialog", 18 * scale);
-	t->set_constant("close_v_ofs", "WindowDialog", 18 * scale);
+	t->set_icon("close_hilite", "WindowDialog", make_icon(close_hl_png));
+
+	t->set_font("title_font", "WindowDialog", large_font);
+
+	t->set_color("title_color", "WindowDialog", Color(0, 0, 0));
+
+	t->set_constant("close_h_ofs", "WindowDialog", 22 * scale);
+	t->set_constant("close_v_ofs", "WindowDialog", 20 * scale);
+	t->set_constant("titlebar_height", "WindowDialog", 18 * scale);
+	t->set_constant("title_height", "WindowDialog", 20 * scale);
 
 	// File Dialog
 
@@ -582,32 +577,22 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	// GraphNode
 
-	Ref<StyleBoxTexture> graphsb = make_stylebox(graph_node_png, 6, 24, 6, 5, 16, 24, 16, 5);
-	Ref<StyleBoxTexture> graphsbcomment = make_stylebox(graph_node_comment_png, 6, 24, 6, 5, 16, 24, 16, 5);
-	Ref<StyleBoxTexture> graphsbcommentselected = make_stylebox(graph_node_comment_focus_png, 6, 24, 6, 5, 16, 24, 16, 5);
-	Ref<StyleBoxTexture> graphsbselected = make_stylebox(graph_node_selected_png, 6, 24, 6, 5, 16, 24, 16, 5);
+	Ref<StyleBoxTexture> graphsb = make_stylebox(graph_node_png, 6, 24, 6, 5, 3, 24, 16, 5);
+	Ref<StyleBoxTexture> graphsbselected = make_stylebox(graph_node_selected_png, 6, 24, 6, 5, 3, 24, 16, 5);
 	Ref<StyleBoxTexture> graphsbdefault = make_stylebox(graph_node_default_png, 4, 4, 4, 4, 6, 4, 4, 4);
 	Ref<StyleBoxTexture> graphsbdeffocus = make_stylebox(graph_node_default_focus_png, 4, 4, 4, 4, 6, 4, 4, 4);
-	Ref<StyleBoxTexture> graph_bpoint = make_stylebox(graph_node_breakpoint_png, 6, 24, 6, 5, 16, 24, 16, 5);
-	Ref<StyleBoxTexture> graph_position = make_stylebox(graph_node_position_png, 6, 24, 6, 5, 16, 24, 16, 5);
-
 	//graphsb->set_expand_margin_size(MARGIN_LEFT,10);
 	//graphsb->set_expand_margin_size(MARGIN_RIGHT,10);
 	t->set_stylebox("frame", "GraphNode", graphsb);
 	t->set_stylebox("selectedframe", "GraphNode", graphsbselected);
 	t->set_stylebox("defaultframe", "GraphNode", graphsbdefault);
 	t->set_stylebox("defaultfocus", "GraphNode", graphsbdeffocus);
-	t->set_stylebox("comment", "GraphNode", graphsbcomment);
-	t->set_stylebox("commentfocus", "GraphNode", graphsbcommentselected);
-	t->set_stylebox("breakpoint", "GraphNode", graph_bpoint);
-	t->set_stylebox("position", "GraphNode", graph_position);
 	t->set_constant("separation", "GraphNode", 1 * scale);
 	t->set_icon("port", "GraphNode", make_icon(graph_port_png));
 	t->set_icon("close", "GraphNode", make_icon(graph_node_close_png));
-	t->set_icon("resizer", "GraphNode", make_icon(window_resizer_png));
 	t->set_font("title_font", "GraphNode", default_font);
 	t->set_color("title_color", "GraphNode", Color(0, 0, 0, 1));
-	t->set_constant("title_offset", "GraphNode", 20 * scale);
+	t->set_constant("title_offset", "GraphNode", 18 * scale);
 	t->set_constant("close_offset", "GraphNode", 18 * scale);
 	t->set_constant("port_offset", "GraphNode", 3 * scale);
 
@@ -626,9 +611,6 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_stylebox("title_button_normal", "Tree", make_stylebox(tree_title_png, 4, 4, 4, 4));
 	t->set_stylebox("title_button_pressed", "Tree", make_stylebox(tree_title_pressed_png, 4, 4, 4, 4));
 	t->set_stylebox("title_button_hover", "Tree", make_stylebox(tree_title_png, 4, 4, 4, 4));
-	t->set_stylebox("custom_button", "Tree", sb_button_normal);
-	t->set_stylebox("custom_button_pressed", "Tree", sb_button_pressed);
-	t->set_stylebox("custom_button_hover", "Tree", sb_button_hover);
 
 	t->set_icon("checked", "Tree", make_icon(checked_png));
 	t->set_icon("unchecked", "Tree", make_icon(unchecked_png));
@@ -648,7 +630,6 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_color("guide_color", "Tree", Color(0, 0, 0, 0.1));
 	t->set_color("drop_position_color", "Tree", Color(1, 0.3, 0.2));
 	t->set_color("relationship_line_color", "Tree", Color::html("464646"));
-	t->set_color("custom_button_font_highlight", "Tree", control_font_color_hover);
 
 	t->set_constant("hseparation", "Tree", 4 * scale);
 	t->set_constant("vseparation", "Tree", 4 * scale);
@@ -690,17 +671,16 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_stylebox("panel", "TabContainer", tc_sb);
 
 	t->set_icon("increment", "TabContainer", make_icon(scroll_button_right_png));
-	t->set_icon("increment_highlight", "TabContainer", make_icon(scroll_button_right_hl_png));
+	t->set_icon("increment_hilite", "TabContainer", make_icon(scroll_button_right_hl_png));
 	t->set_icon("decrement", "TabContainer", make_icon(scroll_button_left_png));
-	t->set_icon("decrement_highlight", "TabContainer", make_icon(scroll_button_left_hl_png));
+	t->set_icon("decrement_hilite", "TabContainer", make_icon(scroll_button_left_hl_png));
 	t->set_icon("menu", "TabContainer", make_icon(tab_menu_png));
-	t->set_icon("menu_highlight", "TabContainer", make_icon(tab_menu_hl_png));
+	t->set_icon("menu_hilite", "TabContainer", make_icon(tab_menu_hl_png));
 
 	t->set_font("font", "TabContainer", default_font);
 
 	t->set_color("font_color_fg", "TabContainer", control_font_color_hover);
 	t->set_color("font_color_bg", "TabContainer", control_font_color_low);
-	t->set_color("font_color_disabled", "TabContainer", control_font_color_disabled);
 
 	t->set_constant("side_margin", "TabContainer", 8 * scale);
 	t->set_constant("top_margin", "TabContainer", 24 * scale);
@@ -717,16 +697,15 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_stylebox("button", "Tabs", make_stylebox(button_normal_png, 4, 4, 4, 4));
 
 	t->set_icon("increment", "Tabs", make_icon(scroll_button_right_png));
-	t->set_icon("increment_highlight", "Tabs", make_icon(scroll_button_right_hl_png));
+	t->set_icon("increment_hilite", "Tabs", make_icon(scroll_button_right_hl_png));
 	t->set_icon("decrement", "Tabs", make_icon(scroll_button_left_png));
-	t->set_icon("decrement_highlight", "Tabs", make_icon(scroll_button_left_hl_png));
+	t->set_icon("decrement_hilite", "Tabs", make_icon(scroll_button_left_hl_png));
 	t->set_icon("close", "Tabs", make_icon(tab_close_png));
 
 	t->set_font("font", "Tabs", default_font);
 
 	t->set_color("font_color_fg", "Tabs", control_font_color_hover);
 	t->set_color("font_color_bg", "Tabs", control_font_color_low);
-	t->set_color("font_color_disabled", "Tabs", control_font_color_disabled);
 
 	t->set_constant("top_margin", "Tabs", 24 * scale);
 	t->set_constant("label_valign_fg", "Tabs", 0 * scale);
@@ -765,8 +744,9 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	t->set_icon("screen_picker", "ColorPicker", make_icon(icon_color_pick_png));
 	t->set_icon("add_preset", "ColorPicker", make_icon(icon_add_png));
-	t->set_icon("color_hue", "ColorPicker", make_icon(color_picker_hue_png));
-	t->set_icon("color_sample", "ColorPicker", make_icon(color_picker_sample_png));
+
+	t->set_shader("uv_editor", "ColorPicker", make_shader("", uv_editor_shader_code, ""));
+	t->set_shader("w_editor", "ColorPicker", make_shader("", w_editor_shader_code, ""));
 
 	// TooltipPanel
 
@@ -856,12 +836,12 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 
 	t->set_stylebox("focus", "VButtonArray", focus);
 
-	// ReferenceRect
+	// ReferenceFrame
 
 	Ref<StyleBoxTexture> ttnc = make_stylebox(full_panel_bg_png, 8, 8, 8, 8);
 	ttnc->set_draw_center(false);
 
-	t->set_stylebox("border", "ReferenceRect", make_stylebox(reference_border_png, 4, 4, 4, 4));
+	t->set_stylebox("border", "ReferenceFrame", make_stylebox(reference_border_png, 4, 4, 4, 4));
 	t->set_stylebox("panelnc", "Panel", ttnc);
 	t->set_stylebox("panelf", "Panel", tc_sb);
 
@@ -871,12 +851,7 @@ void fill_default_theme(Ref<Theme> &t, const Ref<Font> &default_font, const Ref<
 	t->set_icon("minus", "GraphEdit", make_icon(icon_zoom_less_png));
 	t->set_icon("reset", "GraphEdit", make_icon(icon_zoom_reset_png));
 	t->set_icon("more", "GraphEdit", make_icon(icon_zoom_more_png));
-	t->set_icon("snap", "GraphEdit", make_icon(icon_snap_png));
 	t->set_stylebox("bg", "GraphEdit", make_stylebox(tree_bg_png, 4, 4, 4, 5));
-	t->set_color("grid_minor", "GraphEdit", Color(1, 1, 1, 0.05));
-	t->set_color("grid_major", "GraphEdit", Color(1, 1, 1, 0.2));
-	t->set_constant("bezier_len_pos", "GraphEdit", 80 * scale);
-	t->set_constant("bezier_len_neg", "GraphEdit", 160 * scale);
 
 	t->set_icon("logo", "Icons", make_icon(logo_png));
 
@@ -898,13 +873,14 @@ void make_default_theme(bool p_hidpi, Ref<Font> p_font) {
 	Ref<BitmapFont> default_font;
 	if (p_font.is_valid()) {
 		default_font = p_font;
-	} else if (p_hidpi) {
+	}
+	if (p_hidpi) {
 		default_font = make_font2(_hidpi_font_height, _hidpi_font_ascent, _hidpi_font_charcount, &_hidpi_font_charrects[0][0], _hidpi_font_kerning_pair_count, &_hidpi_font_kerning_pairs[0][0], _hidpi_font_img_width, _hidpi_font_img_height, _hidpi_font_img_data);
 	} else {
 		default_font = make_font2(_lodpi_font_height, _lodpi_font_ascent, _lodpi_font_charcount, &_lodpi_font_charrects[0][0], _lodpi_font_kerning_pair_count, &_lodpi_font_kerning_pairs[0][0], _lodpi_font_img_width, _lodpi_font_img_height, _lodpi_font_img_data);
 	}
 	Ref<BitmapFont> large_font = default_font;
-	fill_default_theme(t, default_font, large_font, default_icon, default_style, p_hidpi ? 2.0 : 1.0);
+	fill_default_theme(t, default_font, large_font, default_icon, default_style, p_hidpi);
 
 	Theme::set_default(t);
 	Theme::set_default_icon(default_icon);

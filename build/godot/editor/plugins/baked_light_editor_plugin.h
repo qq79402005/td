@@ -39,19 +39,16 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
-#if 0
-
 class MeshInstance;
 
 class BakedLightEditor : public Control {
 
-	GDCLASS(BakedLightEditor, Control );
-
+	OBJ_TYPE(BakedLightEditor, Control);
 
 	float update_timeout;
-	PoolVector<uint8_t> octree_texture;
-	PoolVector<uint8_t> light_texture;
-	PoolVector<int> octree_sampler;
+	DVector<uint8_t> octree_texture;
+	DVector<uint8_t> light_texture;
+	DVector<int> octree_sampler;
 
 	BakedLightBaker *baker;
 	AcceptDialog *err_dialog;
@@ -63,8 +60,6 @@ class BakedLightEditor : public Control {
 	Label *bake_info;
 
 	uint64_t last_rays_time;
-
-
 
 	BakedLightInstance *node;
 
@@ -82,13 +77,14 @@ class BakedLightEditor : public Control {
 	void _end_baking();
 	void _menu_option(int);
 
-friend class BakedLightEditorPlugin;
+	friend class BakedLightEditorPlugin;
+
 protected:
 	void _node_removed(Node *p_node);
 	static void _bind_methods();
 	void _notification(int p_what);
-public:
 
+public:
 	void edit(BakedLightInstance *p_baked_light);
 	BakedLightEditor();
 	~BakedLightEditor();
@@ -96,13 +92,12 @@ public:
 
 class BakedLightEditorPlugin : public EditorPlugin {
 
-	GDCLASS( BakedLightEditorPlugin, EditorPlugin );
+	OBJ_TYPE(BakedLightEditorPlugin, EditorPlugin);
 
 	BakedLightEditor *baked_light_editor;
 	EditorNode *editor;
 
 public:
-
 	virtual String get_name() const { return "BakedLight"; }
 	bool has_main_screen() const { return false; }
 	virtual void edit(Object *p_node);
@@ -111,8 +106,6 @@ public:
 
 	BakedLightEditorPlugin(EditorNode *p_node);
 	~BakedLightEditorPlugin();
-
 };
 
 #endif // MULTIMESH_EDITOR_PLUGIN_H
-#endif

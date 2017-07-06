@@ -41,7 +41,7 @@
 class SpatialEditorPlugin;
 
 class GridMapEditor : public VBoxContainer {
-	GDCLASS(GridMapEditor, VBoxContainer);
+	OBJ_TYPE(GridMapEditor, VBoxContainer);
 
 	enum {
 
@@ -113,9 +113,12 @@ class GridMapEditor : public VBoxContainer {
 	RID duplicate_mesh;
 	RID duplicate_instance;
 
-	Ref<SpatialMaterial> indicator_mat;
-	Ref<SpatialMaterial> inner_mat;
-	Ref<SpatialMaterial> outer_mat;
+	RID indicator_mat;
+
+	RID inner_mat;
+	RID outer_mat;
+	RID inner_mat_dup;
+	RID outer_mat_dup;
 
 	bool updating;
 
@@ -220,7 +223,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool forward_spatial_input_event(Camera *p_camera, const Ref<InputEvent> &p_event);
+	bool forward_spatial_input_event(Camera *p_camera, const InputEvent &p_event);
 
 	void edit(GridMap *p_gridmap);
 	GridMapEditor() {}
@@ -230,13 +233,13 @@ public:
 
 class GridMapEditorPlugin : public EditorPlugin {
 
-	GDCLASS(GridMapEditorPlugin, EditorPlugin);
+	OBJ_TYPE(GridMapEditorPlugin, EditorPlugin);
 
 	GridMapEditor *gridmap_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_spatial_input_event(Camera *p_camera, const Ref<InputEvent> &p_event) { return gridmap_editor->forward_spatial_input_event(p_camera, p_event); }
+	virtual bool forward_spatial_input_event(Camera *p_camera, const InputEvent &p_event) { return gridmap_editor->forward_spatial_input_event(p_camera, p_event); }
 	virtual String get_name() const { return "GridMap"; }
 	bool has_main_screen() const { return false; }
 	virtual void edit(Object *p_node);

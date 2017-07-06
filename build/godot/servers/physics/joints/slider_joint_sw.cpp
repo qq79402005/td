@@ -30,27 +30,7 @@
 
 /*
 Adapted to Godot from the Bullet library.
-*/
-
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-*/
-
-/*
-Added by Roman Ponomarev (rponom@gmail.com)
-April 04, 2008
-
+See corresponding header file for licensing info.
 */
 
 #include "slider_joint_sw.h"
@@ -126,7 +106,7 @@ SliderJointSW::SliderJointSW(BodySW *rbA, BodySW *rbB, const Transform &frameInA
 
 //-----------------------------------------------------------------------------
 
-bool SliderJointSW::setup(real_t p_step) {
+bool SliderJointSW::setup(float p_step) {
 
 	//calculate transforms
 	m_calculatedTransformA = A->get_transform() * m_frameInA;
@@ -144,10 +124,10 @@ bool SliderJointSW::setup(real_t p_step) {
 	for (i = 0; i < 3; i++) {
 		normalWorld = m_calculatedTransformA.basis.get_axis(i);
 		memnew_placement(&m_jacLin[i], JacobianEntrySW(
-											   A->get_principal_inertia_axes().transposed(),
-											   B->get_principal_inertia_axes().transposed(),
-											   m_relPosA - A->get_center_of_mass(),
-											   m_relPosB - B->get_center_of_mass(),
+											   A->get_transform().basis.transposed(),
+											   B->get_transform().basis.transposed(),
+											   m_relPosA,
+											   m_relPosB,
 											   normalWorld,
 											   A->get_inv_inertia(),
 											   A->get_inv_mass(),
@@ -162,8 +142,8 @@ bool SliderJointSW::setup(real_t p_step) {
 		normalWorld = m_calculatedTransformA.basis.get_axis(i);
 		memnew_placement(&m_jacAng[i], JacobianEntrySW(
 											   normalWorld,
-											   A->get_principal_inertia_axes().transposed(),
-											   B->get_principal_inertia_axes().transposed(),
+											   A->get_transform().basis.transposed(),
+											   B->get_transform().basis.transposed(),
 											   A->get_inv_inertia(),
 											   B->get_inv_inertia()));
 	}
@@ -376,7 +356,7 @@ Vector3 SliderJointSW::getAncorInB(void) {
 	return ancorInB;
 } // SliderJointSW::getAncorInB();
 
-void SliderJointSW::set_param(PhysicsServer::SliderJointParam p_param, real_t p_value) {
+void SliderJointSW::set_param(PhysicsServer::SliderJointParam p_param, float p_value) {
 
 	switch (p_param) {
 		case PhysicsServer::SLIDER_JOINT_LINEAR_LIMIT_UPPER: m_upperLinLimit = p_value; break;
@@ -405,7 +385,7 @@ void SliderJointSW::set_param(PhysicsServer::SliderJointParam p_param, real_t p_
 	}
 }
 
-real_t SliderJointSW::get_param(PhysicsServer::SliderJointParam p_param) const {
+float SliderJointSW::get_param(PhysicsServer::SliderJointParam p_param) const {
 
 	switch (p_param) {
 		case PhysicsServer::SLIDER_JOINT_LINEAR_LIMIT_UPPER: return m_upperLinLimit;

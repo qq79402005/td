@@ -37,13 +37,13 @@
 */
 class ScrollBar : public Range {
 
-	GDCLASS(ScrollBar, Range);
+	OBJ_TYPE(ScrollBar, Range);
 
-	enum HighlightStatus {
-		HIGHLIGHT_NONE,
-		HIGHLIGHT_DECR,
-		HIGHLIGHT_RANGE,
-		HIGHLIGHT_INCR,
+	enum HiliteStatus {
+		HILITE_NONE,
+		HILITE_DECR,
+		HILITE_RANGE,
+		HILITE_INCR,
 	};
 
 	static bool focus_by_default;
@@ -52,7 +52,7 @@ class ScrollBar : public Range {
 	Size2 size;
 	float custom_step;
 
-	HighlightStatus highlight;
+	HiliteStatus hilite;
 
 	struct Drag {
 
@@ -84,9 +84,9 @@ class ScrollBar : public Range {
 	bool click_handled;
 
 	void _drag_slave_exit();
-	void _drag_slave_input(const Ref<InputEvent> &p_input);
+	void _drag_slave_input(const InputEvent &p_input);
 
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 
 protected:
 	void _notification(int p_what);
@@ -107,7 +107,7 @@ public:
 
 class HScrollBar : public ScrollBar {
 
-	GDCLASS(HScrollBar, ScrollBar);
+	OBJ_TYPE(HScrollBar, ScrollBar);
 
 public:
 	HScrollBar()
@@ -116,7 +116,7 @@ public:
 
 class VScrollBar : public ScrollBar {
 
-	GDCLASS(VScrollBar, ScrollBar);
+	OBJ_TYPE(VScrollBar, ScrollBar);
 
 public:
 	VScrollBar()

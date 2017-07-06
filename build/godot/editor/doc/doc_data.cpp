@@ -28,14 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "doc_data.h"
+#include "version.h"
 
-#include "global_config.h"
 #include "global_constants.h"
+#include "globals.h"
 #include "io/compression.h"
 #include "io/marshalls.h"
 #include "scene/resources/theme.h"
 #include "script_language.h"
-#include "version.h"
 
 void DocData::merge_from(const DocData &p_data) {
 
@@ -132,9 +132,6 @@ void DocData::merge_from(const DocData &p_data) {
 				const PropertyDoc &pf = cf.properties[j];
 
 				p.description = pf.description;
-				p.setter = pf.setter;
-				p.getter = pf.getter;
-
 				break;
 			}
 		}
@@ -156,17 +153,10 @@ void DocData::merge_from(const DocData &p_data) {
 	}
 }
 
-void DocData::remove_from(const DocData &p_data) {
-	for (Map<String, ClassDoc>::Element *E = p_data.class_list.front(); E; E = E->next()) {
-		if (class_list.has(E->key()))
-			class_list.erase(E->key());
-	}
-}
-
 void DocData::generate(bool p_basic_types) {
 
 	List<StringName> classes;
-	ClassDB::get_class_list(&classes);
+	ObjectTypeDB::get_type_list(&classes);
 	classes.sort_custom<StringName::AlphCompare>();
 
 	while (classes.size()) {
@@ -179,45 +169,23 @@ void DocData::generate(bool p_basic_types) {
 		class_list[cname] = ClassDoc();
 		ClassDoc &c = class_list[cname];
 		c.name = cname;
-		c.inherits = ClassDB::get_parent_class(name);
-		c.category = ClassDB::get_category(name);
-
-		List<PropertyInfo> properties;
-		ClassDB::get_property_list(name, &properties, true);
-
-		for (List<PropertyInfo>::Element *E = properties.front(); E; E = E->next()) {
-			if (E->get().usage & PROPERTY_USAGE_GROUP || E->get().usage & PROPERTY_USAGE_CATEGORY)
-				continue;
-
-			PropertyDoc prop;
-			StringName setter = ClassDB::get_property_setter(name, E->get().name);
-			StringName getter = ClassDB::get_property_getter(name, E->get().name);
-
-			prop.name = E->get().name;
-			prop.setter = setter;
-			prop.getter = getter;
-			if (E->get().type == Variant::OBJECT && E->get().hint == PROPERTY_HINT_RESOURCE_TYPE)
-				prop.type = E->get().hint_string;
-			else
-				prop.type = Variant::get_type_name(E->get().type);
-
-			c.properties.push_back(prop);
-		}
+		c.inherits = ObjectTypeDB::type_inherits_from(name);
+		c.category = ObjectTypeDB::get_category(name);
 
 		List<MethodInfo> method_list;
-		ClassDB::get_method_list(name, &method_list, true);
+		ObjectTypeDB::get_method_list(name, &method_list, true);
 		method_list.sort();
 
 		for (List<MethodInfo>::Element *E = method_list.front(); E; E = E->next()) {
 
 			if (E->get().name == "" || (E->get().name[0] == '_' && !(E->get().flags & METHOD_FLAG_VIRTUAL)))
-				continue; //hidden, don't count
+				continue; //hiden, dont count
 
 			MethodDoc method;
 
 			method.name = E->get().name;
 
-			MethodBind *m = ClassDB::get_method(name, E->get().name);
+			MethodBind *m = ObjectTypeDB::get_method(name, E->get().name);
 
 			if (E->get().flags & METHOD_FLAG_VIRTUAL)
 				method.qualifiers = "virtual";
@@ -225,11 +193,6 @@ void DocData::generate(bool p_basic_types) {
 				if (method.qualifiers != "")
 					method.qualifiers += " ";
 				method.qualifiers += "const";
-
-			} else if (E->get().flags & METHOD_FLAG_VARARG) {
-				if (method.qualifiers != "")
-					method.qualifiers += " ";
-				method.qualifiers += "vararg";
 			}
 
 			for (int i = -1; i < E->get().arguments.size(); i++) {
@@ -249,7 +212,7 @@ void DocData::generate(bool p_basic_types) {
 					} else if (arginfo.type != Variant::NIL) // {
 #endif
 						method.return_type = (arginfo.hint == PROPERTY_HINT_RESOURCE_TYPE) ? arginfo.hint_string : Variant::get_type_name(arginfo.type);
-					//}
+					//					}
 
 				} else {
 
@@ -295,8 +258,8 @@ void DocData::generate(bool p_basic_types) {
 							case Variant::REAL:
 								//keep it
 								break;
-							case Variant::STRING:
-							case Variant::NODE_PATH:
+							case Variant::STRING: // 15
+							case Variant::NODE_PATH: // 15
 								default_arg_text = "\"" + default_arg_text + "\"";
 								break;
 							case Variant::TRANSFORM:
@@ -307,23 +270,23 @@ void DocData::generate(bool p_basic_types) {
 								default_arg_text = Variant::get_type_name(default_arg.get_type()) + "(" + default_arg_text + ")";
 								break;
 
-							case Variant::RECT3:
+							case Variant::_AABB: //sorry naming convention fail :( not like it's used often // 10
 							case Variant::COLOR:
 							case Variant::PLANE:
-							case Variant::POOL_BYTE_ARRAY:
-							case Variant::POOL_INT_ARRAY:
-							case Variant::POOL_REAL_ARRAY:
-							case Variant::POOL_STRING_ARRAY:
-							case Variant::POOL_VECTOR2_ARRAY:
-							case Variant::POOL_VECTOR3_ARRAY:
-							case Variant::POOL_COLOR_ARRAY:
+							case Variant::RAW_ARRAY:
+							case Variant::INT_ARRAY:
+							case Variant::REAL_ARRAY:
+							case Variant::STRING_ARRAY: //25
+							case Variant::VECTOR2_ARRAY:
+							case Variant::VECTOR3_ARRAY:
+							case Variant::COLOR_ARRAY:
 								default_arg_text = Variant::get_type_name(default_arg.get_type()) + "(" + default_arg_text + ")";
 								break;
-							case Variant::VECTOR2:
+							case Variant::VECTOR2: // 5
 							case Variant::RECT2:
 							case Variant::VECTOR3:
 							case Variant::QUAT:
-							case Variant::BASIS:
+							case Variant::MATRIX3:
 								default_arg_text = Variant::get_type_name(default_arg.get_type()) + default_arg_text;
 								break;
 							case Variant::OBJECT:
@@ -331,10 +294,15 @@ void DocData::generate(bool p_basic_types) {
 									default_arg_text = "NULL";
 									break;
 								}
+							case Variant::INPUT_EVENT:
 							case Variant::DICTIONARY: // 20
 							case Variant::ARRAY:
 							case Variant::_RID:
+							case Variant::IMAGE:
+								//case Variant::RESOURCE:
 
+								default_arg_text = Variant::get_type_name(default_arg.get_type()) + "()";
+								break;
 							default: {}
 						}
 
@@ -375,7 +343,7 @@ void DocData::generate(bool p_basic_types) {
 		}
 
 		List<MethodInfo> signal_list;
-		ClassDB::get_signal_list(name, &signal_list, true);
+		ObjectTypeDB::get_signal_list(name, &signal_list, true);
 
 		if (signal_list.size()) {
 
@@ -397,13 +365,13 @@ void DocData::generate(bool p_basic_types) {
 		}
 
 		List<String> constant_list;
-		ClassDB::get_integer_constant_list(name, &constant_list, true);
+		ObjectTypeDB::get_integer_constant_list(name, &constant_list, true);
 
 		for (List<String>::Element *E = constant_list.front(); E; E = E->next()) {
 
 			ConstantDoc constant;
 			constant.name = E->get();
-			constant.value = itos(ClassDB::get_integer_constant(name, E->get()));
+			constant.value = itos(ObjectTypeDB::get_integer_constant(name, E->get()));
 			c.constants.push_back(constant);
 		}
 
@@ -476,78 +444,97 @@ void DocData::generate(bool p_basic_types) {
 		if (i == Variant::OBJECT)
 			continue; //use the core type instead
 
-		String cname = Variant::get_type_name(Variant::Type(i));
+		int loops = 1;
 
-		class_list[cname] = ClassDoc();
-		ClassDoc &c = class_list[cname];
-		c.name = cname;
-		c.category = "Built-In Types";
+		if (i == Variant::INPUT_EVENT)
+			loops = InputEvent::TYPE_MAX;
 
-		Variant::CallError cerror;
-		Variant v = Variant::construct(Variant::Type(i), NULL, 0, cerror);
+		for (int j = 0; j < loops; j++) {
 
-		List<MethodInfo> method_list;
-		v.get_method_list(&method_list);
-		method_list.sort();
-		Variant::get_constructor_list(Variant::Type(i), &method_list);
+			String cname = Variant::get_type_name(Variant::Type(i));
 
-		for (List<MethodInfo>::Element *E = method_list.front(); E; E = E->next()) {
-
-			MethodInfo &mi = E->get();
-			MethodDoc method;
-
-			method.name = mi.name;
-
-			for (int i = 0; i < mi.arguments.size(); i++) {
-
-				ArgumentDoc arg;
-				PropertyInfo pi = mi.arguments[i];
-
-				arg.name = pi.name;
-				//print_line("arg name: "+arg.name);
-				if (pi.type == Variant::NIL)
-					arg.type = "var";
-				else
-					arg.type = Variant::get_type_name(pi.type);
-				int defarg = mi.default_arguments.size() - mi.arguments.size() + i;
-				if (defarg >= 0)
-					arg.default_value = mi.default_arguments[defarg];
-
-				method.arguments.push_back(arg);
+			if (i == Variant::INPUT_EVENT) {
+				static const char *ie_type[InputEvent::TYPE_MAX] = {
+					"", "Key", "MouseMotion", "MouseButton", "JoystickMotion", "JoystickButton", "ScreenTouch", "ScreenDrag", "Action"
+				};
+				cname += ie_type[j];
 			}
 
-			if (mi.return_val.type == Variant::NIL) {
-				if (mi.return_val.name != "")
-					method.return_type = "var";
+			class_list[cname] = ClassDoc();
+			ClassDoc &c = class_list[cname];
+			c.name = cname;
+			c.category = "Built-In Types";
 
-			} else {
-				method.return_type = Variant::get_type_name(mi.return_val.type);
+			Variant::CallError cerror;
+			Variant v = Variant::construct(Variant::Type(i), NULL, 0, cerror);
+
+			if (i == Variant::INPUT_EVENT) {
+				v.set("type", j);
 			}
 
-			c.methods.push_back(method);
-		}
+			List<MethodInfo> method_list;
+			v.get_method_list(&method_list);
+			method_list.sort();
+			Variant::get_constructor_list(Variant::Type(i), &method_list);
 
-		List<PropertyInfo> properties;
-		v.get_property_list(&properties);
-		for (List<PropertyInfo>::Element *E = properties.front(); E; E = E->next()) {
+			for (List<MethodInfo>::Element *E = method_list.front(); E; E = E->next()) {
 
-			PropertyInfo pi = E->get();
-			PropertyDoc property;
-			property.name = pi.name;
-			property.type = Variant::get_type_name(pi.type);
+				MethodInfo &mi = E->get();
+				MethodDoc method;
 
-			c.properties.push_back(property);
-		}
+				method.name = mi.name;
 
-		List<StringName> constants;
-		Variant::get_numeric_constants_for_type(Variant::Type(i), &constants);
+				for (int i = 0; i < mi.arguments.size(); i++) {
 
-		for (List<StringName>::Element *E = constants.front(); E; E = E->next()) {
+					ArgumentDoc arg;
+					PropertyInfo pi = mi.arguments[i];
 
-			ConstantDoc constant;
-			constant.name = E->get();
-			constant.value = itos(Variant::get_numeric_constant_value(Variant::Type(i), E->get()));
-			c.constants.push_back(constant);
+					arg.name = pi.name;
+					//print_line("arg name: "+arg.name);
+					if (pi.type == Variant::NIL)
+						arg.type = "var";
+					else
+						arg.type = Variant::get_type_name(pi.type);
+					int defarg = mi.default_arguments.size() - mi.arguments.size() + i;
+					if (defarg >= 0)
+						arg.default_value = mi.default_arguments[defarg];
+
+					method.arguments.push_back(arg);
+				}
+
+				if (mi.return_val.type == Variant::NIL) {
+					if (mi.return_val.name != "")
+						method.return_type = "var";
+
+				} else {
+					method.return_type = Variant::get_type_name(mi.return_val.type);
+				}
+
+				c.methods.push_back(method);
+			}
+
+			List<PropertyInfo> properties;
+			v.get_property_list(&properties);
+			for (List<PropertyInfo>::Element *E = properties.front(); E; E = E->next()) {
+
+				PropertyInfo pi = E->get();
+				PropertyDoc property;
+				property.name = pi.name;
+				property.type = Variant::get_type_name(pi.type);
+
+				c.properties.push_back(property);
+			}
+
+			List<StringName> constants;
+			Variant::get_numeric_constants_for_type(Variant::Type(i), &constants);
+
+			for (List<StringName>::Element *E = constants.front(); E; E = E->next()) {
+
+				ConstantDoc constant;
+				constant.name = E->get();
+				constant.value = itos(Variant::get_numeric_constant_value(Variant::Type(i), E->get()));
+				c.constants.push_back(constant);
+			}
 		}
 	}
 
@@ -568,18 +555,18 @@ void DocData::generate(bool p_basic_types) {
 			c.constants.push_back(cd);
 		}
 
-		List<GlobalConfig::Singleton> singletons;
-		GlobalConfig::get_singleton()->get_singletons(&singletons);
+		List<Globals::Singleton> singletons;
+		Globals::get_singleton()->get_singletons(&singletons);
 
 		//servers (this is kind of hackish)
-		for (List<GlobalConfig::Singleton>::Element *E = singletons.front(); E; E = E->next()) {
+		for (List<Globals::Singleton>::Element *E = singletons.front(); E; E = E->next()) {
 
 			PropertyDoc pd;
-			GlobalConfig::Singleton &s = E->get();
+			Globals::Singleton &s = E->get();
 			pd.name = s.name;
-			pd.type = s.ptr->get_class();
-			while (String(ClassDB::get_parent_class(pd.type)) != "Object")
-				pd.type = ClassDB::get_parent_class(pd.type);
+			pd.type = s.ptr->get_type();
+			while (String(ObjectTypeDB::type_inherits_from(pd.type)) != "Object")
+				pd.type = ObjectTypeDB::type_inherits_from(pd.type);
 			if (pd.type.begins_with("_"))
 				pd.type = pd.type.substr(1, pd.type.length());
 			c.properties.push_back(pd);
@@ -749,7 +736,7 @@ Error DocData::_load(Ref<XMLParser> parser) {
 		class_list[name] = ClassDoc();
 		ClassDoc &c = class_list[name];
 
-		//print_line("class: "+name);
+		//		print_line("class: "+name);
 		c.name = name;
 		if (parser->has_attribute("inherits"))
 			c.inherits = parser->get_attribute_value("inherits");
@@ -797,13 +784,6 @@ Error DocData::_load(Ref<XMLParser> parser) {
 								prop.name = parser->get_attribute_value("name");
 								ERR_FAIL_COND_V(!parser->has_attribute("type"), ERR_FILE_CORRUPT);
 								prop.type = parser->get_attribute_value("type");
-								if (parser->has_attribute("setter"))
-									prop.setter = parser->get_attribute_value("setter");
-								if (parser->has_attribute("getter"))
-									prop.getter = parser->get_attribute_value("getter");
-								if (parser->has_attribute("brief"))
-									prop.brief_description = parser->get_attribute_value("brief").xml_unescape();
-
 								parser->read();
 								if (parser->get_node_type() == XMLParser::NODE_TEXT)
 									prop.description = parser->get_node_data().strip_edges();
@@ -981,7 +961,7 @@ Error DocData::save(const String &p_path) {
 			for (int i = 0; i < c.properties.size(); i++) {
 
 				PropertyDoc &p = c.properties[i];
-				_write_string(f, 2, "<member name=\"" + p.name + "\" type=\"" + p.type + "\" setter=\"" + p.setter + "\" getter=\"" + p.getter + "\" brief=\"" + p.brief_description.xml_escape(true) + "\">");
+				_write_string(f, 2, "<member name=\"" + p.name + "\" type=\"" + p.type + "\">");
 				if (p.description != "")
 					_write_string(f, 3, p.description.xml_escape());
 				_write_string(f, 2, "</member>");

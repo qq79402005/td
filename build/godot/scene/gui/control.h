@@ -47,13 +47,14 @@ class Panel;
 
 class Control : public CanvasItem {
 
-	GDCLASS(Control, CanvasItem);
+	OBJ_TYPE(Control, CanvasItem);
 	OBJ_CATEGORY("GUI Nodes");
 
 public:
 	enum AnchorType {
 		ANCHOR_BEGIN,
 		ANCHOR_END,
+		ANCHOR_RATIO,
 		ANCHOR_CENTER,
 	};
 
@@ -65,16 +66,10 @@ public:
 
 	enum SizeFlags {
 
-		SIZE_FILL = 1,
-		SIZE_EXPAND = 2,
+		SIZE_EXPAND = 1,
+		SIZE_FILL = 2,
 		SIZE_EXPAND_FILL = SIZE_EXPAND | SIZE_FILL
 
-	};
-
-	enum MouseFilter {
-		MOUSE_FILTER_STOP,
-		MOUSE_FILTER_PASS,
-		MOUSE_FILTER_IGNORE
 	};
 
 	enum CursorShape {
@@ -129,12 +124,8 @@ private:
 		bool pending_min_size_update;
 		Point2 custom_minimum_size;
 
-		MouseFilter mouse_filter;
-
-		bool clip_contents;
-
-		bool block_minimum_size_adjust;
-		bool disable_visibility_clip;
+		bool ignore_mouse;
+		bool stop_mouse;
 
 		Control *parent;
 		ObjectID drag_owner;
@@ -167,7 +158,7 @@ private:
 	} data;
 
 	// used internally
-	Control *_find_control_at_pos(CanvasItem *p_node, const Point2 &p_pos, const Transform2D &p_xform, Transform2D &r_inv_xform);
+	Control *_find_control_at_pos(CanvasItem *p_node, const Point2 &p_pos, const Matrix32 &p_xform, Matrix32 &r_inv_xform);
 
 	void _window_find_focus_neighbour(const Vector2 &p_dir, Node *p_at, const Point2 *p_points, float p_min, float &r_closest_dist, Control **r_closest);
 	Control *_get_focus_neighbour(Margin p_margin, int p_count = 0);
@@ -198,17 +189,12 @@ private:
 	void _unref_font(Ref<Font> p_sc);
 	void _font_changed();
 
-	void _update_canvas_item_transform();
-
 	friend class Viewport;
 	void _modal_stack_remove();
 	void _modal_set_prev_focus_owner(ObjectID p_prev);
 
 protected:
-	virtual void add_child_notify(Node *p_child);
-	virtual void remove_child_notify(Node *p_child);
-
-	//virtual void _window_gui_input(InputEvent p_event);
+	//virtual void _window_input_event(InputEvent p_event);
 
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
@@ -277,12 +263,12 @@ public:
 	Point2 get_begin() const;
 	Point2 get_end() const;
 
-	void set_position(const Point2 &p_point);
+	void set_pos(const Point2 &p_point);
 	void set_size(const Size2 &p_size);
-	void set_global_position(const Point2 &p_point);
+	void set_global_pos(const Point2 &p_point);
 
-	Point2 get_position() const;
-	Point2 get_global_position() const;
+	Point2 get_pos() const;
+	Point2 get_global_pos() const;
 	Size2 get_size() const;
 	Rect2 get_rect() const;
 	Rect2 get_global_rect() const;
@@ -330,8 +316,11 @@ public:
 
 	Control *get_focus_owner() const;
 
-	void set_mouse_filter(MouseFilter p_filter);
-	MouseFilter get_mouse_filter() const;
+	void set_ignore_mouse(bool p_ignore);
+	bool is_ignoring_mouse() const;
+
+	void set_stop_mouse(bool p_stop);
+	bool is_stopping_mouse() const;
 
 	/* SKINNING */
 
@@ -375,7 +364,7 @@ public:
 	virtual CursorShape get_cursor_shape(const Point2 &p_pos = Point2i()) const;
 
 	virtual Rect2 get_item_rect() const;
-	virtual Transform2D get_transform() const;
+	virtual Matrix32 get_transform() const;
 
 	bool is_toplevel_control() const;
 
@@ -389,17 +378,6 @@ public:
 
 	Control *get_root_parent_control() const;
 
-	void set_clip_contents(bool p_clip);
-	bool is_clipping_contents();
-
-	void set_block_minimum_size_adjust(bool p_block);
-	bool is_minimum_size_adjust_blocked() const;
-
-	void set_disable_visibility_clip(bool p_ignore);
-	bool is_visibility_clip_disabled() const;
-
-	virtual void get_argument_options(const StringName &p_function, int p_idx, List<String> *r_options) const;
-
 	Control();
 	~Control();
 };
@@ -408,6 +386,5 @@ VARIANT_ENUM_CAST(Control::AnchorType);
 VARIANT_ENUM_CAST(Control::FocusMode);
 VARIANT_ENUM_CAST(Control::SizeFlags);
 VARIANT_ENUM_CAST(Control::CursorShape);
-VARIANT_ENUM_CAST(Control::MouseFilter);
 
 #endif

@@ -34,7 +34,7 @@
 
 class Tabs : public Control {
 
-	GDCLASS(Tabs, Control);
+	OBJ_TYPE(Tabs, Control);
 
 public:
 	enum TabAlign {
@@ -57,9 +57,7 @@ private:
 		String text;
 		Ref<Texture> icon;
 		int ofs_cache;
-		bool disabled;
 		int size_cache;
-		int size_text;
 		int x_cache;
 		int x_size_cache;
 
@@ -70,11 +68,12 @@ private:
 
 	int offset;
 	int max_drawn_tab;
-	int highlight_arrow;
+	int hilite_arrow;
 	bool buttons_visible;
 	bool missing_right;
 	Vector<Tab> tabs;
 	int current;
+	Control *_get_tab(int idx) const;
 	int _get_top_margin() const;
 	TabAlign tab_align;
 	int rb_hover;
@@ -85,14 +84,12 @@ private:
 	CloseButtonDisplayPolicy cb_displaypolicy;
 
 	int hover; // hovered tab
-	int min_width;
 
 	int get_tab_width(int p_idx) const;
 	void _ensure_no_over_offset();
-	void _update_cache();
 
 protected:
-	void _gui_input(const Ref<InputEvent> &p_event);
+	void _input_event(const InputEvent &p_event);
 	void _notification(int p_what);
 	static void _bind_methods();
 
@@ -105,9 +102,6 @@ public:
 	void set_tab_icon(int p_tab, const Ref<Texture> &p_icon);
 	Ref<Texture> get_tab_icon(int p_tab) const;
 
-	void set_tab_disabled(int p_tab, bool p_disabled);
-	bool get_tab_disabled(int p_tab) const;
-
 	void set_tab_right_button(int p_tab, const Ref<Texture> &p_right_button);
 	Ref<Texture> get_tab_right_button(int p_tab) const;
 
@@ -119,16 +113,13 @@ public:
 	int get_tab_count() const;
 	void set_current_tab(int p_current);
 	int get_current_tab() const;
-	int get_hovered_tab() const;
 
 	void remove_tab(int p_idx);
 
 	void clear_tabs();
 
 	void ensure_tab_visible(int p_idx);
-	void set_min_width(int p_width);
 
-	Rect2 get_tab_rect(int p_tab);
 	Size2 get_minimum_size() const;
 
 	Tabs();

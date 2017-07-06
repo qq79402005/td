@@ -28,9 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_plugin_settings.h"
-
 #include "editor_node.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/config_file.h"
 #include "os/file_access.h"
 #include "os/main_loop.h"
@@ -82,7 +81,7 @@ void EditorPluginSettings::update_plugins() {
 
 	plugins.sort();
 
-	Vector<String> active_plugins = GlobalConfig::get_singleton()->get("editor_plugins/enabled");
+	Vector<String> active_plugins = Globals::get_singleton()->get("plugins/active");
 
 	for (int i = 0; i < plugins.size(); i++) {
 
@@ -167,8 +166,8 @@ void EditorPluginSettings::_plugin_activity_changed() {
 
 void EditorPluginSettings::_bind_methods() {
 
-	ClassDB::bind_method("update_plugins", &EditorPluginSettings::update_plugins);
-	ClassDB::bind_method("_plugin_activity_changed", &EditorPluginSettings::_plugin_activity_changed);
+	ObjectTypeDB::bind_method("update_plugins", &EditorPluginSettings::update_plugins);
+	ObjectTypeDB::bind_method("_plugin_activity_changed", &EditorPluginSettings::_plugin_activity_changed);
 }
 
 EditorPluginSettings::EditorPluginSettings() {

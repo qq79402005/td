@@ -43,7 +43,7 @@ class CanvasItemEditor;
 
 class Path2DEditor : public HBoxContainer {
 
-	GDCLASS(Path2DEditor, HBoxContainer);
+	OBJ_TYPE(Path2DEditor, HBoxContainer);
 
 	UndoRedo *undo_redo;
 
@@ -95,20 +95,20 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool forward_gui_input(const Ref<InputEvent> &p_event);
+	bool forward_input_event(const InputEvent &p_event);
 	void edit(Node *p_path2d);
 	Path2DEditor(EditorNode *p_editor);
 };
 
 class Path2DEditorPlugin : public EditorPlugin {
 
-	GDCLASS(Path2DEditorPlugin, EditorPlugin);
+	OBJ_TYPE(Path2DEditorPlugin, EditorPlugin);
 
 	Path2DEditor *path2d_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_canvas_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event) { return path2d_editor->forward_gui_input(p_event); }
+	virtual bool forward_input_event(const InputEvent &p_event) { return path2d_editor->forward_input_event(p_event); }
 
 	virtual String get_name() const { return "Path2D"; }
 	bool has_main_screen() const { return false; }

@@ -30,24 +30,32 @@
 #ifndef OS_ANDROID_H
 #define OS_ANDROID_H
 
-#include "audio_driver_jandroid.h"
-#include "audio_driver_opensl.h"
 #include "drivers/unix/os_unix.h"
 #include "main/input_default.h"
 #include "os/input.h"
 #include "os/main_loop.h"
-//#include "power_android.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server_sw.h"
 #include "servers/physics/physics_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
+#include "servers/spatial_sound/spatial_sound_server_sw.h"
+#include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "servers/visual/rasterizer.h"
 
+//#ifdef USE_JAVA_FILE_ACCESS
+
 #ifdef ANDROID_NATIVE_ACTIVITY
+
 #include <android/log.h>
 #include <android/sensor.h>
 #include <android_native_app_glue.h>
+
+#else
+
 #endif
+
+#include "audio_driver_jandroid.h"
+#include "audio_driver_opensl.h"
 
 typedef void (*GFXInitFunc)(void *ud, bool gl2);
 typedef int (*OpenURIFunc)(const String &);
@@ -81,7 +89,7 @@ public:
 		JOY_EVENT_HAT = 2
 	};
 
-	struct JoypadEvent {
+	struct JoystickEvent {
 
 		int device;
 		int type;
@@ -95,6 +103,7 @@ private:
 	Vector<TouchPos> touch;
 
 	Point2 last_mouse;
+	unsigned int last_id;
 	GFXInitFunc gfx_init_func;
 	void *gfx_init_ud;
 
@@ -104,7 +113,12 @@ private:
 
 	bool use_16bits_fbo;
 
+	Rasterizer *rasterizer;
 	VisualServer *visual_server;
+	AudioServerSW *audio_server;
+	SampleManagerMallocSW *sample_manager;
+	SpatialSoundServerSW *spatial_sound_server;
+	SpatialSound2DServerSW *spatial_sound_2d_server;
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
 
@@ -140,8 +154,6 @@ private:
 	SetKeepScreenOnFunc set_keep_screen_on_func;
 	AlertFunc alert_func;
 
-	//power_android *power_manager;
-
 public:
 	// functions used by main to initialize/deintialize the OS
 	virtual int get_video_driver_count() const;
@@ -171,7 +183,7 @@ public:
 	virtual void set_mouse_show(bool p_show);
 	virtual void set_mouse_grab(bool p_grab);
 	virtual bool is_mouse_grab_enabled() const;
-	virtual Point2 get_mouse_position() const;
+	virtual Point2 get_mouse_pos() const;
 	virtual int get_mouse_button_state() const;
 	virtual void set_window_title(const String &p_title);
 
@@ -195,7 +207,7 @@ public:
 
 	void main_loop_begin();
 	bool main_loop_iterate();
-	void main_loop_request_go_back();
+	void main_loop_request_quit();
 	void main_loop_end();
 	void main_loop_focusout();
 	void main_loop_focusin();
@@ -227,11 +239,12 @@ public:
 	virtual String get_system_dir(SystemDir p_dir) const;
 
 	void process_accelerometer(const Vector3 &p_accelerometer);
+	void process_gravitymeter(const Vector3 &p_gravitymeter);
 	void process_magnetometer(const Vector3 &p_magnetometer);
 	void process_gyroscope(const Vector3 &p_gyroscope);
 	void process_touch(int p_what, int p_pointer, const Vector<TouchPos> &p_points);
-	void process_joy_event(JoypadEvent p_event);
-	void process_event(Ref<InputEvent> p_event);
+	void process_joy_event(JoystickEvent p_event);
+	void process_event(InputEvent p_event);
 	void init_video_mode(int p_video_width, int p_video_height);
 
 	virtual Error native_video_play(String p_path, float p_volume);

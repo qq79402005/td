@@ -537,7 +537,7 @@ ShaderGLES2::Version *ShaderGLES2::get_current_version() {
 	for (int j = 0; j < uniform_count; j++) {
 
 		v.uniform_location[j] = glGetUniformLocation(v.id, uniform_names[j]);
-		//print_line("uniform "+String(uniform_names[j])+" location "+itos(v.uniform_location[j]));
+		//	print_line("uniform "+String(uniform_names[j])+" location "+itos(v.uniform_location[j]));
 	}
 
 	// set texture uniforms

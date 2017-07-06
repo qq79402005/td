@@ -38,7 +38,7 @@
 class EditorFileSystemDirectory;
 
 class DependencyEditor : public AcceptDialog {
-	GDCLASS(DependencyEditor, AcceptDialog);
+	OBJ_TYPE(DependencyEditor, AcceptDialog);
 
 	Tree *tree;
 	Button *fixdeps;
@@ -68,7 +68,7 @@ public:
 };
 
 class DependencyEditorOwners : public AcceptDialog {
-	GDCLASS(DependencyEditorOwners, AcceptDialog);
+	OBJ_TYPE(DependencyEditorOwners, AcceptDialog);
 
 	ItemList *owners;
 	String editing;
@@ -80,7 +80,7 @@ public:
 };
 
 class DependencyRemoveDialog : public ConfirmationDialog {
-	GDCLASS(DependencyRemoveDialog, ConfirmationDialog);
+	OBJ_TYPE(DependencyRemoveDialog, ConfirmationDialog);
 
 	Label *text;
 	Tree *owners;
@@ -96,7 +96,7 @@ public:
 };
 
 class DependencyErrorDialog : public ConfirmationDialog {
-	GDCLASS(DependencyErrorDialog, ConfirmationDialog);
+	OBJ_TYPE(DependencyErrorDialog, ConfirmationDialog);
 
 	String for_file;
 	Button *fdep;
@@ -111,7 +111,7 @@ public:
 };
 
 class OrphanResourcesDialog : public ConfirmationDialog {
-	GDCLASS(OrphanResourcesDialog, ConfirmationDialog);
+	OBJ_TYPE(OrphanResourcesDialog, ConfirmationDialog);
 
 	DependencyEditor *dep_edit;
 	Tree *files;

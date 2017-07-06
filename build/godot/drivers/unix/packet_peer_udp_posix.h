@@ -48,7 +48,6 @@ class PacketPeerUDPPosix : public PacketPeerUDP {
 	mutable int packet_port;
 	mutable int queue_count;
 	int sockfd;
-	bool sock_blocking;
 	IP::Type sock_type;
 
 	IP_Address peer_addr;
@@ -57,7 +56,6 @@ class PacketPeerUDPPosix : public PacketPeerUDP {
 	_FORCE_INLINE_ int _get_socket();
 
 	static PacketPeerUDP *_create();
-	void _set_sock_blocking(bool p_blocking);
 	virtual Error _poll(bool p_block);
 
 public:
@@ -75,7 +73,7 @@ public:
 	virtual IP_Address get_packet_address() const;
 	virtual int get_packet_port() const;
 
-	virtual void set_dest_address(const IP_Address &p_address, int p_port);
+	virtual void set_send_address(const IP_Address &p_address, int p_port);
 
 	static void make_default();
 

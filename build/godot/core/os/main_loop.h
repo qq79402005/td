@@ -38,7 +38,7 @@
 */
 class MainLoop : public Object {
 
-	GDCLASS(MainLoop, Object);
+	OBJ_TYPE(MainLoop, Object);
 	OBJ_CATEGORY("Main Loop");
 
 	Ref<Script> init_script;
@@ -48,18 +48,16 @@ protected:
 
 public:
 	enum {
-		NOTIFICATION_WM_MOUSE_ENTER = 2,
-		NOTIFICATION_WM_MOUSE_EXIT = 3,
-		NOTIFICATION_WM_FOCUS_IN = 4,
-		NOTIFICATION_WM_FOCUS_OUT = 5,
-		NOTIFICATION_WM_QUIT_REQUEST = 6,
-		NOTIFICATION_WM_GO_BACK_REQUEST = 7,
+		NOTIFICATION_WM_MOUSE_ENTER = 3,
+		NOTIFICATION_WM_MOUSE_EXIT = 4,
+		NOTIFICATION_WM_FOCUS_IN = 5,
+		NOTIFICATION_WM_FOCUS_OUT = 6,
+		NOTIFICATION_WM_QUIT_REQUEST = 7,
 		NOTIFICATION_WM_UNFOCUS_REQUEST = 8,
 		NOTIFICATION_OS_MEMORY_WARNING = 9,
-		NOTIFICATION_TRANSLATION_CHANGED = 10,
 	};
 
-	virtual void input_event(const Ref<InputEvent> &p_event);
+	virtual void input_event(const InputEvent &p_event);
 	virtual void input_text(const String &p_text);
 
 	virtual void init();

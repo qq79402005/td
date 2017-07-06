@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -290,7 +289,6 @@ static String _parser_expr(const GDParser::Node *p_expr) {
 				case GDParser::OperatorNode::OP_BIT_XOR: {
 					txt = _parser_expr(c_node->arguments[0]) + "^" + _parser_expr(c_node->arguments[1]);
 				} break;
-				default: {}
 			}
 
 		} break;
@@ -627,27 +625,6 @@ static void _disassemble_class(const Ref<GDScript> &p_class, const Vector<String
 					txt += func.get_global_name(code[ip + 2]);
 					txt += "\"]";
 					incr += 4;
-
-				} break;
-				case GDFunction::OPCODE_SET_MEMBER: {
-
-					txt += " set_member ";
-					txt += "[\"";
-					txt += func.get_global_name(code[ip + 1]);
-					txt += "\"]=";
-					txt += DADDR(2);
-					incr += 3;
-
-				} break;
-				case GDFunction::OPCODE_GET_MEMBER: {
-
-					txt += " get_member ";
-					txt += DADDR(2);
-					txt += "=";
-					txt += "[\"";
-					txt += func.get_global_name(code[ip + 1]);
-					txt += "\"]";
-					incr += 3;
 
 				} break;
 				case GDFunction::OPCODE_ASSIGN: {
@@ -1047,7 +1024,7 @@ MainLoop *test(TestType p_test) {
 	} else if (p_test == TEST_BYTECODE) {
 
 		Vector<uint8_t> buf = GDTokenizerBuffer::parse_code_string(code);
-		String dst = test.get_basename() + ".gdc";
+		String dst = test.basename() + ".gdc";
 		FileAccess *fw = FileAccess::open(dst, FileAccess::WRITE);
 		fw->store_buffer(buf.ptr(), buf.size());
 		memdelete(fw);

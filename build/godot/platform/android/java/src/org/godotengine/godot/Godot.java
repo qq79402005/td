@@ -217,6 +217,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
+	private Sensor mGravity;
 	private Sensor mMagnetometer;
 	private Sensor mGyroscope;
 
@@ -258,8 +259,8 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 
 	public void onVideoInit(boolean use_gl2) {
 
-		//mView = new GodotView(getApplication(),io,use_gl2);
-		//setContentView(mView);
+//		mView = new GodotView(getApplication(),io,use_gl2);
+//		setContentView(mView);
 
 		layout = new FrameLayout(this);
 		layout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.FILL_PARENT));
@@ -341,7 +342,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
                     r = is.read(len);
                     if (r<4) {
 
-			Log.d("GODOT", "**ERROR** Wrong cmdline param length.\n");
+			Log.d("GODOT", "**ERROR** Wrong cmdline param lenght.\n");
                         return new String[0];
                     }
 		    int strlen=((int)(len[3]&0xFF)<<24) | ((int)(len[2]&0xFF)<<16) | ((int)(len[1]&0xFF)<<8) | ((int)(len[0]&0xFF));
@@ -406,6 +407,8 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+		mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+		mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
 		mMagnetometer = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 		mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
 		mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -583,7 +586,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		initializeGodot();
 
 		
-		//instanceSingleton( new GodotFacebook(this) );
+	//	instanceSingleton( new GodotFacebook(this) );
 
 
 	}
@@ -626,6 +629,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 
 		mView.onResume();
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_GAME);
+		mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
 		mSensorManager.registerListener(this, mMagnetometer, SensorManager.SENSOR_DELAY_GAME);
 		mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_GAME);
 		GodotLib.focusin();
@@ -691,6 +695,9 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		if (typeOfSensor == event.sensor.TYPE_ACCELEROMETER) {
 			GodotLib.accelerometer(x,y,z);
 		}
+		if (typeOfSensor == event.sensor.TYPE_GRAVITY) {
+			GodotLib.gravity(x,y,z);
+		}
 		if (typeOfSensor == event.sensor.TYPE_MAGNETIC_FIELD) {
 			GodotLib.magnetometer(x,y,z);
 		}
@@ -722,7 +729,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 	@Override public void onBackPressed() {
 
 		System.out.printf("** BACK REQUEST!\n");
-		//GodotLib.back();
+		GodotLib.quit();
 	}
 
 	public void forceQuit() {
@@ -805,11 +812,9 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 			} break;
 			case MotionEvent.ACTION_MOVE: {
 				GodotLib.touch(1,0,evcount,arr);
-				/*
-				for(int i=0;i<event.getPointerCount();i++) {
-					System.out.printf("%d - moved to: %f,%f\n",i, event.getX(i),event.getY(i));
-				}
-				*/
+				//for(int i=0;i<event.getPointerCount();i++) {
+				//	System.out.printf("%d - moved to: %f,%f\n",i, event.getX(i),event.getY(i));
+				//}
 			} break;
 			case MotionEvent.ACTION_POINTER_UP: {
 				final int indexPointUp = event.getActionIndex();
@@ -825,11 +830,9 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 			case MotionEvent.ACTION_CANCEL:
 			case MotionEvent.ACTION_UP: {
 				GodotLib.touch(2,0,evcount,arr);
-				/*
-				for(int i=0;i<event.getPointerCount();i++) {
-					System.out.printf("%d - up! %f,%f\n",i, event.getX(i),event.getY(i));
-				}
-				*/
+				//for(int i=0;i<event.getPointerCount();i++) {
+				//	System.out.printf("%d - up! %f,%f\n",i, event.getX(i),event.getY(i));
+				//}
 			} break;
 
 		}
@@ -871,11 +874,9 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		return mPaymentsManager;
 	}
 
-	/*
-	public void setPaymentsManager(PaymentsManager mPaymentsManager) {
-		this.mPaymentsManager = mPaymentsManager;
-	}
-	*/
+//	public void setPaymentsManager(PaymentsManager mPaymentsManager) {
+//		this.mPaymentsManager = mPaymentsManager;
+//	};
 
 
 	// Audio

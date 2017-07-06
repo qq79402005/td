@@ -76,16 +76,12 @@ public:
 	//virtual void set_mouse_show(bool p_show);
 	//virtual void set_mouse_grab(bool p_grab);
 	//virtual bool is_mouse_grab_enabled() const = 0;
-	//virtual void get_mouse_position(int &x, int &y) const;
+	//virtual void get_mouse_pos(int &x, int &y) const;
 	//virtual void set_window_title(const String& p_title);
 
 	//virtual void set_video_mode(const VideoMode& p_video_mode);
 	//virtual VideoMode get_video_mode() const;
 	//virtual void get_fullscreen_mode_list(List<VideoMode> *p_list) const;
-
-	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle);
-	virtual Error close_dynamic_library(void *p_library_handle);
-	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle);
 
 	virtual Error set_cwd(const String &p_cwd);
 
@@ -116,8 +112,6 @@ public:
 	virtual String get_installed_templates_path() const;
 	virtual String get_executable_path() const;
 	virtual String get_data_dir() const;
-
-	virtual bool check_feature_support(const String &p_feature);
 
 	//virtual void run( MainLoop * p_main_loop );
 };

@@ -811,16 +811,12 @@ void main() {
 	float specular_exp=1.0;
 	float glow=0.0;
 	float shade_param=0.0;
-#ifdef DISABLE_FRONT_FACING
-	float side=float(1)*2.0-1.0;
-#else
 	float side=float(gl_FrontFacing)*2.0-1.0;
-#endif
 #if defined(ENABLE_TANGENT_INTERP)
 	vec3 binormal = normalize(binormal_interp)*side;
 	vec3 tangent = normalize(tangent_interp)*side;
 #endif
-	//vec3 normal = abs(normalize(normal_interp))*side;
+//	vec3 normal = abs(normalize(normal_interp))*side;
 	vec3 normal = normalize(normal_interp)*side;
 #if defined(ENABLE_SCREEN_UV)
 	vec2 screen_uv = gl_FragCoord.xy*screen_uv_mult;
@@ -989,7 +985,7 @@ FRAGMENT_SHADER_CODE
 #ifdef LIGHT_USE_PSSM
 
 
-	//if (vertex_interp.z > light_pssm_split) {
+//	if (vertex_interp.z > light_pssm_split) {
 #if 0
 	highp vec3 splane = vec3(0.0,0.0,0.0);
 
@@ -1261,12 +1257,12 @@ LIGHT_SHADER_CODE
 
 	vec3 ambient = const_light_mult*ambient_light*diffuse.rgb;
 # if defined(LIGHT_TYPE_OMNI) || defined (LIGHT_TYPE_SPOT)
-	//ambient*=diffuse_interp.a; //attenuation affects ambient too
+//	ambient*=diffuse_interp.a; //attenuation affects ambient too
 
 # endif
 
-	//diffuse.rgb=(diffuse.rgb * diffuse_interp.rgb + specular * specular_interp)*shadow_attenuation + ambient;
-	//diffuse.rgb+=emission * const_light_mult;
+//	diffuse.rgb=(diffuse.rgb * diffuse_interp.rgb + specular * specular_interp)*shadow_attenuation + ambient;
+//	diffuse.rgb+=emission * const_light_mult;
 	diffuse.rgb=(diffuse.rgb * diffuse_interp.rgb + specular * specular_interp)*shadow_attenuation + ambient;
 	diffuse.rgb+=emission * const_light_mult;
 

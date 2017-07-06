@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -48,11 +47,12 @@
 #include "scene/gui/scroll_bar.h"
 #include "scene/gui/spin_box.h"
 #include "scene/gui/tab_container.h"
-#include "scene/gui/texture_rect.h"
+#include "scene/gui/texture_frame.h"
 #include "scene/gui/tree.h"
-#include "scene/main/scene_tree.h"
+#include "scene/main/scene_main_loop.h"
 
 #include "scene/3d/camera.h"
+#include "scene/3d/test_cube.h"
 #include "scene/main/viewport.h"
 
 namespace TestGUI {
@@ -86,10 +86,14 @@ public:
 		vp->add_child(camera);
 		camera->make_current();
 
+		TestCube *testcube = memnew( TestCube );
+		vp->add_child(testcube);
+		testcube->set_transform(Transform( Matrix3().rotated(Vector3(0,1,0),Math_PI*0.25), Vector3(0,0,-8)));
+
 		Sprite *sp = memnew( Sprite );
 		sp->set_texture( vp->get_render_target_texture() );
-		//sp->set_texture( ResourceLoader::load("res://ball.png") );
-		sp->set_position(Point2(300,300));
+//		sp->set_texture( ResourceLoader::load("res://ball.png") );
+		sp->set_pos(Point2(300,300));
 		get_root()->add_child(sp);
 
 
@@ -108,7 +112,7 @@ public:
 
 		Label *label = memnew(Label);
 
-		label->set_position(Point2(80, 90));
+		label->set_pos(Point2(80, 90));
 		label->set_size(Point2(170, 80));
 		label->set_align(Label::ALIGN_FILL);
 		//label->set_text("There");
@@ -118,7 +122,7 @@ public:
 
 		Button *button = memnew(Button);
 
-		button->set_position(Point2(20, 20));
+		button->set_pos(Point2(20, 20));
 		button->set_size(Point2(1, 1));
 		button->set_text("This is a biggie button");
 
@@ -136,7 +140,7 @@ public:
 		Ref<ImageTexture> tt = memnew( ImageTexture );
 		tt->create_from_image(img);
 		tf->set_texture(tt);
-		tf->set_position(Point2(50,50));
+		tf->set_pos(Point2(50,50));
 		//tf->set_scale(Point2(0.3,0.3));
 
 
@@ -146,7 +150,7 @@ public:
 		Tree *tree = memnew(Tree);
 		tree->set_columns(2);
 
-		tree->set_position(Point2(230, 210));
+		tree->set_pos(Point2(230, 210));
 		tree->set_size(Point2(150, 250));
 
 		TreeItem *item = tree->create_item();
@@ -187,14 +191,14 @@ public:
 
 		LineEdit *line_edit = memnew(LineEdit);
 
-		line_edit->set_position(Point2(30, 190));
+		line_edit->set_pos(Point2(30, 190));
 		line_edit->set_size(Point2(180, 1));
 
 		frame->add_child(line_edit);
 
 		HScrollBar *hscroll = memnew(HScrollBar);
 
-		hscroll->set_position(Point2(30, 290));
+		hscroll->set_pos(Point2(30, 290));
 		hscroll->set_size(Point2(180, 1));
 		hscroll->set_max(10);
 		hscroll->set_page(4);
@@ -203,7 +207,7 @@ public:
 
 		SpinBox *spin = memnew(SpinBox);
 
-		spin->set_position(Point2(30, 260));
+		spin->set_pos(Point2(30, 260));
 		spin->set_size(Point2(120, 1));
 
 		frame->add_child(spin);
@@ -211,7 +215,7 @@ public:
 
 		ProgressBar *progress = memnew(ProgressBar);
 
-		progress->set_position(Point2(30, 330));
+		progress->set_pos(Point2(30, 330));
 		progress->set_size(Point2(120, 1));
 
 		frame->add_child(progress);
@@ -220,7 +224,7 @@ public:
 		MenuButton *menu_button = memnew(MenuButton);
 
 		menu_button->set_text("I'm a menu!");
-		menu_button->set_position(Point2(30, 380));
+		menu_button->set_pos(Point2(30, 380));
 		menu_button->set_size(Point2(1, 1));
 
 		frame->add_child(menu_button);
@@ -239,7 +243,7 @@ public:
 		options->add_item("Hello, testing");
 		options->add_item("My Dearest");
 
-		options->set_position(Point2(230, 180));
+		options->set_pos(Point2(230, 180));
 		options->set_size(Point2(1, 1));
 
 		frame->add_child(options);
@@ -248,7 +252,7 @@ public:
 		Tree * tree = memnew( Tree );
 		tree->set_columns(2);
 
-		tree->set_position( Point2( 230,210 ) );
+		tree->set_pos( Point2( 230,210 ) );
 		tree->set_size( Point2( 150,250 ) );
 
 
@@ -276,7 +280,7 @@ public:
 
 		RichTextLabel *richtext = memnew(RichTextLabel);
 
-		richtext->set_position(Point2(600, 210));
+		richtext->set_pos(Point2(600, 210));
 		richtext->set_size(Point2(180, 250));
 		richtext->set_anchor_and_margin(MARGIN_RIGHT, Control::ANCHOR_END, 20);
 
@@ -295,7 +299,7 @@ public:
 		richtext->push_color(Color(0, 1.0, 0.5));
 		richtext->add_text("faeries.\n");
 		richtext->pop();
-		richtext->add_text("In this new episode, we will attempt to ");
+		richtext->add_text("In this new episode, we will attemp to ");
 		richtext->push_font(richtext->get_font("mono_font", "Fonts"));
 		richtext->push_color(Color(0.7, 0.5, 1.0));
 		richtext->add_text("deliver something nice");
@@ -332,37 +336,37 @@ public:
 		tabc->add_child(ctl);
 		label = memnew(Label);
 		label->set_text("Some Label");
-		label->set_position(Point2(20, 20));
+		label->set_pos(Point2(20, 20));
 		ctl->add_child(label);
 
 		ctl = memnew(Control);
 		ctl->set_name("tab 3");
 		button = memnew(Button);
 		button->set_text("Some Button");
-		button->set_position(Point2(30, 50));
+		button->set_pos(Point2(30, 50));
 		ctl->add_child(button);
 
 		tabc->add_child(ctl);
 
 		frame->add_child(tabc);
 
-		tabc->set_position(Point2(400, 210));
+		tabc->set_pos(Point2(400, 210));
 		tabc->set_size(Point2(180, 250));
 
-		/*Ref<ImageTexture> text = memnew( ImageTexture );
+		Ref<ImageTexture> text = memnew(ImageTexture);
 		text->load("test_data/concave.png");
 
-		Sprite* sprite = memnew(Sprite);
+		Sprite *sprite = memnew(Sprite);
 		sprite->set_texture(text);
-		sprite->set_position(Point2(300, 300));
+		sprite->set_pos(Point2(300, 300));
 		frame->add_child(sprite);
 		sprite->show();
 
-		Sprite* sprite2 = memnew(Sprite);
+		Sprite *sprite2 = memnew(Sprite);
 		sprite->set_texture(text);
 		sprite->add_child(sprite2);
-		sprite2->set_position(Point2(50, 50));
-		sprite2->show();*/
+		sprite2->set_pos(Point2(50, 50));
+		sprite2->show();
 	}
 };
 
@@ -370,6 +374,6 @@ MainLoop *test() {
 
 	return memnew(TestMainLoop);
 }
-} // namespace TestGUI
+}
 
 #endif

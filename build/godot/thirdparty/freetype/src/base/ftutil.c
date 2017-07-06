@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    FreeType utility file for memory and list management (body).         */
 /*                                                                         */
-/*  Copyright 2002-2017 by                                                 */
+/*  Copyright 2002-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -74,7 +74,7 @@
     if ( size > 0 )
     {
       block = memory->alloc( memory, size );
-      if ( !block )
+      if ( block == NULL )
         error = FT_THROW( Out_Of_Memory );
     }
     else if ( size < 0 )
@@ -141,7 +141,7 @@
     }
     else if ( cur_count == 0 )
     {
-      FT_ASSERT( !block );
+      FT_ASSERT( block == NULL );
 
       block = ft_mem_alloc( memory, new_count*item_size, &error );
     }
@@ -153,7 +153,7 @@
 
 
       block2 = memory->realloc( memory, cur_size, new_size, block );
-      if ( !block2 )
+      if ( block2 == NULL )
         error = FT_THROW( Out_Of_Memory );
       else
         block = block2;

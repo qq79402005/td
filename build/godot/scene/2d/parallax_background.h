@@ -36,7 +36,7 @@
 
 class ParallaxBackground : public CanvasLayer {
 
-	GDCLASS(ParallaxBackground, CanvasLayer);
+	OBJ_TYPE(ParallaxBackground, CanvasLayer);
 
 	Point2 offset;
 	float scale;
@@ -51,7 +51,7 @@ class ParallaxBackground : public CanvasLayer {
 	void _update_scroll();
 
 protected:
-	void _camera_moved(const Transform2D &p_transform);
+	void _camera_moved(const Matrix32 &p_transform);
 
 	void _notification(int p_what);
 	static void _bind_methods();

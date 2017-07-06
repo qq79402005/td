@@ -64,7 +64,7 @@ public:
 		void set_filter(AudioFilterSW *p_filter);
 		void process(float *p_samples, int p_amount, int p_stride = 1);
 		void update_coeffs();
-		_ALWAYS_INLINE_ void process_one(float &p_sample);
+		inline void process_one(float &p_sample);
 
 		Processor();
 	};

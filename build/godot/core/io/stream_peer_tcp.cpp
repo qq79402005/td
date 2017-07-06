@@ -42,18 +42,18 @@ Error StreamPeerTCP::_connect(const String &p_address, int p_port) {
 			return ERR_CANT_RESOLVE;
 	}
 
-	connect_to_host(ip, p_port);
+	connect(ip, p_port);
 	return OK;
 }
 
 void StreamPeerTCP::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("connect_to_host", "host", "port"), &StreamPeerTCP::_connect);
-	ClassDB::bind_method(D_METHOD("is_connected_to_host"), &StreamPeerTCP::is_connected_to_host);
-	ClassDB::bind_method(D_METHOD("get_status"), &StreamPeerTCP::get_status);
-	ClassDB::bind_method(D_METHOD("get_connected_host"), &StreamPeerTCP::get_connected_host);
-	ClassDB::bind_method(D_METHOD("get_connected_port"), &StreamPeerTCP::get_connected_port);
-	ClassDB::bind_method(D_METHOD("disconnect_from_host"), &StreamPeerTCP::disconnect_from_host);
+	ObjectTypeDB::bind_method(_MD("connect", "host", "port"), &StreamPeerTCP::_connect);
+	ObjectTypeDB::bind_method(_MD("is_connected"), &StreamPeerTCP::is_connected);
+	ObjectTypeDB::bind_method(_MD("get_status"), &StreamPeerTCP::get_status);
+	ObjectTypeDB::bind_method(_MD("get_connected_host"), &StreamPeerTCP::get_connected_host);
+	ObjectTypeDB::bind_method(_MD("get_connected_port"), &StreamPeerTCP::get_connected_port);
+	ObjectTypeDB::bind_method(_MD("disconnect"), &StreamPeerTCP::disconnect);
 
 	BIND_CONSTANT(STATUS_NONE);
 	BIND_CONSTANT(STATUS_CONNECTING);

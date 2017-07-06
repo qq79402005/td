@@ -35,14 +35,16 @@
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
-
 class RoomBounds : public Resource {
 
-	GDCLASS(RoomBounds, Resource);
+	OBJ_TYPE(RoomBounds, Resource);
 	RES_BASE_EXTENSION("room");
 
 	RID area;
-	PoolVector<Face3> geometry_hint;
+	DVector<Face3> geometry_hint;
+
+	void _regenerate_bsp();
+	void _regenerate_bsp_cubic();
 
 protected:
 	static void _bind_methods();
@@ -50,8 +52,11 @@ protected:
 public:
 	virtual RID get_rid() const;
 
-	void set_geometry_hint(const PoolVector<Face3> &geometry_hint);
-	PoolVector<Face3> get_geometry_hint() const;
+	void set_bounds(const BSP_Tree &p_bounds);
+	BSP_Tree get_bounds() const;
+
+	void set_geometry_hint(const DVector<Face3> &geometry_hint);
+	DVector<Face3> get_geometry_hint() const;
 
 	RoomBounds();
 	~RoomBounds();

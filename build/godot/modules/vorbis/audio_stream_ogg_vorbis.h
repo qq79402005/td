@@ -39,7 +39,7 @@
 
 class AudioStreamPlaybackOGGVorbis : public AudioStreamPlayback {
 
-	GDCLASS(AudioStreamPlaybackOGGVorbis, AudioStreamPlayback);
+	OBJ_TYPE(AudioStreamPlaybackOGGVorbis, AudioStreamPlayback);
 
 	enum {
 		MIN_MIX = 1024
@@ -111,7 +111,7 @@ public:
 
 class AudioStreamOGGVorbis : public AudioStream {
 
-	GDCLASS(AudioStreamOGGVorbis, AudioStream);
+	OBJ_TYPE(AudioStreamOGGVorbis, AudioStream);
 
 	String file;
 

@@ -40,7 +40,7 @@ class FileAccess;
 struct EditorProgressBG;
 class EditorFileSystemDirectory : public Object {
 
-	GDCLASS(EditorFileSystemDirectory, Object);
+	OBJ_TYPE(EditorFileSystemDirectory, Object);
 
 	String name;
 	uint64_t modified_time;
@@ -49,12 +49,28 @@ class EditorFileSystemDirectory : public Object {
 	EditorFileSystemDirectory *parent;
 	Vector<EditorFileSystemDirectory *> subdirs;
 
+	struct ImportMeta {
+
+		struct Source {
+
+			String path;
+			String md5;
+			uint64_t modified_time;
+			bool missing;
+		};
+
+		Vector<Source> sources;
+		String import_editor;
+		Vector<String> deps;
+		bool enabled;
+		bool sources_changed;
+	};
+
 	struct FileInfo {
 		String file;
 		StringName type;
 		uint64_t modified_time;
-		uint64_t import_modified_time;
-		Vector<String> deps;
+		ImportMeta meta;
 		bool verified; //used for checking changes
 	};
 
@@ -82,7 +98,14 @@ public:
 	String get_file(int p_idx) const;
 	String get_file_path(int p_idx) const;
 	StringName get_file_type(int p_idx) const;
+	bool get_file_meta(int p_idx) const;
+	bool is_missing_sources(int p_idx) const;
+	bool have_sources_changed(int p_idx) const;
+	Vector<String> get_missing_sources(int p_idx) const;
 	Vector<String> get_file_deps(int p_idx) const;
+	int get_source_count(int p_idx) const;
+	String get_source_file(int p_idx, int p_source) const;
+	bool is_source_file_missing(int p_idx, int p_source) const;
 
 	EditorFileSystemDirectory *get_parent();
 
@@ -95,7 +118,7 @@ public:
 
 class EditorFileSystem : public Node {
 
-	GDCLASS(EditorFileSystem, Node);
+	OBJ_TYPE(EditorFileSystem, Node);
 
 	_THREAD_SAFE_CLASS_
 
@@ -107,7 +130,7 @@ class EditorFileSystem : public Node {
 			ACTION_DIR_REMOVE,
 			ACTION_FILE_ADD,
 			ACTION_FILE_REMOVE,
-			ACTION_FILE_REIMPORT
+			ACTION_FILE_SOURCES_CHANGED
 		};
 
 		Action action;
@@ -132,7 +155,6 @@ class EditorFileSystem : public Node {
 
 	bool abort_scan;
 	bool scanning;
-	bool importing;
 	float scan_total;
 
 	void _scan_filesystem();
@@ -146,7 +168,7 @@ class EditorFileSystem : public Node {
 
 		String type;
 		uint64_t modification_time;
-		uint64_t import_modification_time;
+		EditorFileSystemDirectory::ImportMeta meta;
 		Vector<String> deps;
 	};
 
@@ -161,21 +183,25 @@ class EditorFileSystem : public Node {
 		ScanProgress get_sub(int p_current, int p_total) const;
 	};
 
-	void _save_filesystem_cache();
+	static EditorFileSystemDirectory::ImportMeta _get_meta(const String &p_path);
+
+	bool _check_meta_sources(EditorFileSystemDirectory::ImportMeta &p_meta);
+
 	void _save_filesystem_cache(EditorFileSystemDirectory *p_dir, FileAccess *p_file);
 
 	bool _find_file(const String &p_file, EditorFileSystemDirectory **r_d, int &r_file_pos) const;
 
 	void _scan_fs_changes(EditorFileSystemDirectory *p_dir, const ScanProgress &p_progress);
 
+	int md_count;
+
 	Set<String> valid_extensions;
-	Set<String> import_extensions;
 
 	void _scan_new_dir(EditorFileSystemDirectory *p_dir, DirAccess *da, const ScanProgress &p_progress);
 
 	Thread *thread_sources;
-	bool scanning_changes;
-	bool scanning_changes_done;
+	bool scanning_sources;
+	bool scanning_sources_done;
 
 	static void _thread_func_sources(void *_userdata);
 
@@ -185,14 +211,7 @@ class EditorFileSystem : public Node {
 	bool _update_scan_actions();
 
 	static void _resource_saved(const String &p_path);
-
-	void _update_extensions();
-
-	void _reimport_file(const String &p_file);
-
-	bool _check_missing_imported_files(const String &p_path);
-
-	bool reimport_on_missing_imported_files;
+	String _find_first_from_source(EditorFileSystemDirectory *p_dir, const String &p_src) const;
 
 protected:
 	void _notification(int p_what);
@@ -203,18 +222,15 @@ public:
 
 	EditorFileSystemDirectory *get_filesystem();
 	bool is_scanning() const;
-	bool is_importing() const { return importing; }
 	float get_scanning_progress() const;
 	void scan();
-	void scan_changes();
+	void scan_sources();
 	void get_changed_sources(List<String> *r_changed);
 	void update_file(const String &p_file);
-
-	EditorFileSystemDirectory *get_filesystem_path(const String &p_path);
+	String find_resource_from_source(const String &p_path) const;
+	EditorFileSystemDirectory *get_path(const String &p_path);
 	String get_file_type(const String &p_file) const;
 	EditorFileSystemDirectory *find_file(const String &p_file, int *r_index) const;
-
-	void reimport_files(const Vector<String> &p_files);
 
 	EditorFileSystem();
 	~EditorFileSystem();

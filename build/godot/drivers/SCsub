@@ -16,15 +16,14 @@ SConscript('alsa/SCsub')
 SConscript('pulseaudio/SCsub')
 if (env["platform"] == "windows"):
     SConscript("rtaudio/SCsub")
-if (env["xaudio2"] == "yes"):
-    SConscript("xaudio2/SCsub")
 
 # Graphics drivers
-SConscript('gles3/SCsub')
+SConscript('gles2/SCsub')
 SConscript('gl_context/SCsub')
 
 # Core dependencies
 SConscript("png/SCsub")
+SConscript("nrex/SCsub")
 
 # Tools override
 # FIXME: Should likely be integrated in the tools/ codebase

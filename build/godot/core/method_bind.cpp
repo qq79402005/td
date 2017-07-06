@@ -65,11 +65,6 @@ void MethodBind::_set_const(bool p_const) {
 	_const = p_const;
 }
 
-void MethodBind::_set_returns(bool p_returns) {
-
-	_returns = p_returns;
-}
-
 StringName MethodBind::get_name() const {
 	return name;
 }
@@ -118,7 +113,6 @@ MethodBind::MethodBind() {
 	argument_types = NULL;
 #endif
 	_const = false;
-	_returns = false;
 }
 
 MethodBind::~MethodBind() {

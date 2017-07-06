@@ -36,18 +36,17 @@
 
 class VideoPlayer : public Control {
 
-	GDCLASS(VideoPlayer, Control);
+	OBJ_TYPE(VideoPlayer, Control);
 
-	/*	struct InternalStream : public AudioServer::AudioStream {
+	struct InternalStream : public AudioServer::AudioStream {
 		VideoPlayer *player;
 		virtual int get_channel_count() const;
 		virtual void set_mix_rate(int p_rate); //notify the stream of the mix rate
-		virtual bool mix(int32_t *p_buffer,int p_frames);
+		virtual bool mix(int32_t *p_buffer, int p_frames);
 		virtual void update();
 	};
-*/
 
-	//	InternalStream internal_stream;
+	InternalStream internal_stream;
 	Ref<VideoStreamPlayback> playback;
 	Ref<VideoStream> stream;
 
@@ -59,7 +58,7 @@ class VideoPlayer : public Control {
 	RID stream_rid;
 
 	Ref<ImageTexture> texture;
-	Ref<Image> last_frame;
+	Image last_frame;
 
 	AudioRBResampler resampler;
 

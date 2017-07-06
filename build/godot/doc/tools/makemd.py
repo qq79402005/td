@@ -273,12 +273,6 @@ def make_doku_class(node):
         f.write('\n###  Signals  \n')
         for m in list(events):
             make_method(f, node.attrib['name'], m, True, True)
-            d = m.find('description')
-            if d == None or d.text.strip() == '':
-                continue
-            f.write('\n')
-            f.write(dokuize_text(d.text.strip()))
-            f.write('\n')
 
     members = node.find('members')
 

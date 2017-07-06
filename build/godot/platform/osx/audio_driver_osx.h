@@ -32,11 +32,11 @@
 #ifndef AUDIO_DRIVER_OSX_H
 #define AUDIO_DRIVER_OSX_H
 
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server_sw.h"
 
 #include <AudioUnit/AudioUnit.h>
 
-class AudioDriverOSX : public AudioDriver {
+class AudioDriverOSX : public AudioDriverSW {
 
 	AudioComponentInstance audio_unit;
 	bool active;
@@ -60,7 +60,7 @@ public:
 	virtual Error init();
 	virtual void start();
 	virtual int get_mix_rate() const;
-	virtual SpeakerMode get_speaker_mode() const;
+	virtual OutputFormat get_output_format() const;
 	virtual void lock();
 	virtual void unlock();
 	virtual void finish();

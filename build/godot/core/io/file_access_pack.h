@@ -198,7 +198,7 @@ class DirAccessPack : public DirAccess {
 	bool cdir;
 
 public:
-	virtual Error list_dir_begin();
+	virtual bool list_dir_begin();
 	virtual String get_next();
 	virtual bool current_is_dir() const;
 	virtual bool current_is_hidden() const;

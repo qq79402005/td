@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,6 +30,7 @@
 #include <wchar.h>
 //#include "math_funcs.h"
 #include "core/io/ip_address.h"
+#include "drivers/nrex/regex.h"
 #include "os/os.h"
 #include <stdio.h>
 
@@ -235,7 +235,7 @@ bool test_13() {
 	/* how can i embed UTF in here? */
 
 	static const CharType ustr[] = { 0x304A, 0x360F, 0x3088, 0x3046, 0 };
-	//static const wchar_t ustr[] = { 'P', 0xCE, 'p',0xD3, 0 };
+	//	static const wchar_t ustr[] = { 'P', 0xCE, 'p',0xD3, 0 };
 	String s = ustr;
 
 	OS::get_singleton()->print("\tUnicode: %ls\n", ustr);
@@ -428,8 +428,17 @@ bool test_25() {
 
 bool test_26() {
 
-	//TODO: Do replacement RegEx test
-	return true;
+	OS::get_singleton()->print("\n\nTest 26: RegEx\n");
+	RegEx regexp("(.*):(.*)");
+
+	int res = regexp.find("name:password");
+	printf("\tmatch: %s\n", (res >= 0) ? "true" : "false");
+
+	printf("\t%i captures:\n", regexp.get_capture_count());
+	for (int i = 0; i < regexp.get_capture_count(); i++) {
+		printf("%ls\n", regexp.get_capture(i).c_str());
+	}
+	return (res >= 0);
 };
 
 struct test_27_data {
@@ -801,6 +810,7 @@ bool test_28() {
 
 bool test_29() {
 
+	bool error = false;
 	bool state = true;
 	bool success = false;
 

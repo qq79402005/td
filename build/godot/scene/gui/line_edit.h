@@ -38,7 +38,7 @@
 */
 class LineEdit : public Control {
 
-	GDCLASS(LineEdit, Control);
+	OBJ_TYPE(LineEdit, Control);
 
 public:
 	enum Align {
@@ -91,10 +91,6 @@ private:
 	} selection;
 
 	Timer *caret_blink_timer;
-
-	void _text_changed();
-	bool expand_to_text_length;
-
 	bool caret_blink_enabled;
 	bool draw_caret;
 	bool window_has_focus;
@@ -119,7 +115,7 @@ private:
 	void _editor_settings_changed();
 #endif
 
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 	void _notification(int p_what);
 
 protected:
@@ -173,9 +169,6 @@ public:
 	void select(int p_from = 0, int p_to = -1);
 
 	virtual Size2 get_minimum_size() const;
-
-	void set_expand_to_text_length(bool p_len);
-	bool get_expand_to_text_length() const;
 
 	virtual bool is_text_field() const;
 	LineEdit();

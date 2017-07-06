@@ -36,7 +36,7 @@
 #include "dir_access_jandroid.h"
 #include "file_access_android.h"
 #include "file_access_jandroid.h"
-#include "global_config.h"
+#include "globals.h"
 #include "java_class_wrapper.h"
 #include "main/input_default.h"
 #include "main/main.h"
@@ -116,9 +116,9 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			v.val.l = jStr;
 			v.obj = jStr;
 		} break;
-		case Variant::POOL_STRING_ARRAY: {
+		case Variant::STRING_ARRAY: {
 
-			PoolVector<String> sarray = *p_arg;
+			DVector<String> sarray = *p_arg;
 			jobjectArray arr = env->NewObjectArray(sarray.size(), env->FindClass("java/lang/String"), env->NewStringUTF(""));
 
 			for (int j = 0; j < sarray.size(); j++) {
@@ -175,30 +175,30 @@ jvalret _variant_to_jvalue(JNIEnv *env, Variant::Type p_type, const Variant *p_a
 			v.obj = jdict;
 		} break;
 
-		case Variant::POOL_INT_ARRAY: {
+		case Variant::INT_ARRAY: {
 
-			PoolVector<int> array = *p_arg;
+			DVector<int> array = *p_arg;
 			jintArray arr = env->NewIntArray(array.size());
-			PoolVector<int>::Read r = array.read();
+			DVector<int>::Read r = array.read();
 			env->SetIntArrayRegion(arr, 0, array.size(), r.ptr());
 			v.val.l = arr;
 			v.obj = arr;
 
 		} break;
-		case Variant::POOL_BYTE_ARRAY: {
-			PoolVector<uint8_t> array = *p_arg;
+		case Variant::RAW_ARRAY: {
+			DVector<uint8_t> array = *p_arg;
 			jbyteArray arr = env->NewByteArray(array.size());
-			PoolVector<uint8_t>::Read r = array.read();
+			DVector<uint8_t>::Read r = array.read();
 			env->SetByteArrayRegion(arr, 0, array.size(), reinterpret_cast<const signed char *>(r.ptr()));
 			v.val.l = arr;
 			v.obj = arr;
 
 		} break;
-		case Variant::POOL_REAL_ARRAY: {
+		case Variant::REAL_ARRAY: {
 
-			PoolVector<float> array = *p_arg;
+			DVector<float> array = *p_arg;
 			jfloatArray arr = env->NewFloatArray(array.size());
-			PoolVector<float>::Read r = array.read();
+			DVector<float>::Read r = array.read();
 			env->SetFloatArrayRegion(arr, 0, array.size(), r.ptr());
 			v.val.l = arr;
 			v.obj = arr;
@@ -251,7 +251,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 		jobjectArray arr = (jobjectArray)obj;
 		int stringCount = env->GetArrayLength(arr);
 		//print_line("String array! " + String::num(stringCount));
-		PoolVector<String> sarr;
+		DVector<String> sarr;
 
 		for (int i = 0; i < stringCount; i++) {
 			jstring string = (jstring)env->GetObjectArrayElement(arr, i);
@@ -281,12 +281,12 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jintArray arr = (jintArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PoolVector<int> sarr;
+		DVector<int> sarr;
 		sarr.resize(fCount);
 
-		PoolVector<int>::Write w = sarr.write();
+		DVector<int>::Write w = sarr.write();
 		env->GetIntArrayRegion(arr, 0, fCount, w.ptr());
-		w = PoolVector<int>::Write();
+		w = DVector<int>::Write();
 		return sarr;
 	};
 
@@ -294,12 +294,12 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jbyteArray arr = (jbyteArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PoolVector<uint8_t> sarr;
+		DVector<uint8_t> sarr;
 		sarr.resize(fCount);
 
-		PoolVector<uint8_t>::Write w = sarr.write();
+		DVector<uint8_t>::Write w = sarr.write();
 		env->GetByteArrayRegion(arr, 0, fCount, reinterpret_cast<signed char *>(w.ptr()));
-		w = PoolVector<uint8_t>::Write();
+		w = DVector<uint8_t>::Write();
 		return sarr;
 	};
 
@@ -315,10 +315,10 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jdoubleArray arr = (jdoubleArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PoolRealArray sarr;
+		RealArray sarr;
 		sarr.resize(fCount);
 
-		PoolRealArray::Write w = sarr.write();
+		RealArray::Write w = sarr.write();
 
 		for (int i = 0; i < fCount; i++) {
 
@@ -333,10 +333,10 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jfloatArray arr = (jfloatArray)obj;
 		int fCount = env->GetArrayLength(arr);
-		PoolRealArray sarr;
+		RealArray sarr;
 		sarr.resize(fCount);
 
-		PoolRealArray::Write w = sarr.write();
+		RealArray::Write w = sarr.write();
 
 		for (int i = 0; i < fCount; i++) {
 
@@ -351,7 +351,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 		jobjectArray arr = (jobjectArray)obj;
 		int objCount = env->GetArrayLength(arr);
-		Array varr;
+		Array varr(true);
 
 		for (int i = 0; i < objCount; i++) {
 			jobject jobj = env->GetObjectArrayElement(arr, i);
@@ -365,12 +365,12 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 	if (name == "java.util.HashMap" || name == "org.godotengine.godot.Dictionary") {
 
-		Dictionary ret;
+		Dictionary ret(true);
 		jclass oclass = c;
 		jmethodID get_keys = env->GetMethodID(oclass, "get_keys", "()[Ljava/lang/String;");
 		jobjectArray arr = (jobjectArray)env->CallObjectMethod(obj, get_keys);
 
-		PoolStringArray keys = _jobject_to_variant(env, arr);
+		StringArray keys = _jobject_to_variant(env, arr);
 		env->DeleteLocalRef(arr);
 
 		jmethodID get_values = env->GetMethodID(oclass, "get_values", "()[Ljava/lang/Object;");
@@ -395,7 +395,7 @@ Variant _jobject_to_variant(JNIEnv *env, jobject obj) {
 
 class JNISingleton : public Object {
 
-	GDCLASS(JNISingleton, Object);
+	OBJ_TYPE(JNISingleton, Object);
 
 	struct MethodData {
 
@@ -504,7 +504,7 @@ public:
 				ret = String::utf8(env->GetStringUTFChars((jstring)o, NULL));
 				env->DeleteLocalRef(o);
 			} break;
-			case Variant::POOL_STRING_ARRAY: {
+			case Variant::STRING_ARRAY: {
 
 				jobjectArray arr = (jobjectArray)env->CallObjectMethodA(instance, E->get().method, v);
 
@@ -512,31 +512,31 @@ public:
 
 				env->DeleteLocalRef(arr);
 			} break;
-			case Variant::POOL_INT_ARRAY: {
+			case Variant::INT_ARRAY: {
 
 				jintArray arr = (jintArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				PoolVector<int> sarr;
+				DVector<int> sarr;
 				sarr.resize(fCount);
 
-				PoolVector<int>::Write w = sarr.write();
+				DVector<int>::Write w = sarr.write();
 				env->GetIntArrayRegion(arr, 0, fCount, w.ptr());
-				w = PoolVector<int>::Write();
+				w = DVector<int>::Write();
 				ret = sarr;
 				env->DeleteLocalRef(arr);
 			} break;
-			case Variant::POOL_REAL_ARRAY: {
+			case Variant::REAL_ARRAY: {
 
 				jfloatArray arr = (jfloatArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				PoolVector<float> sarr;
+				DVector<float> sarr;
 				sarr.resize(fCount);
 
-				PoolVector<float>::Write w = sarr.write();
+				DVector<float>::Write w = sarr.write();
 				env->GetFloatArrayRegion(arr, 0, fCount, w.ptr());
-				w = PoolVector<float>::Write();
+				w = DVector<float>::Write();
 				ret = sarr;
 				env->DeleteLocalRef(arr);
 			} break;
@@ -610,17 +610,18 @@ struct JAndroidPointerEvent {
 };
 
 static List<JAndroidPointerEvent> pointer_events;
-static List<Ref<InputEvent> > key_events;
-static List<OS_Android::JoypadEvent> joy_events;
+static List<InputEvent> key_events;
+static List<OS_Android::JoystickEvent> joy_events;
 static bool initialized = false;
 static Mutex *input_mutex = NULL;
 static Mutex *suspend_mutex = NULL;
 static int step = 0;
 static bool resized = false;
 static bool resized_reload = false;
-static bool go_back_request = false;
+static bool quit_request = false;
 static Size2 new_size;
 static Vector3 accelerometer;
+static Vector3 gravity;
 static Vector3 magnetometer;
 static Vector3 gyroscope;
 static HashMap<String, JNISingleton *> jni_singletons;
@@ -766,7 +767,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *en
 	env->GetJavaVM(&jvm);
 
 	_godot_instance = env->NewGlobalRef(activity);
-	//_godot_instance=activity;
+	//	_godot_instance=activity;
 
 	__android_log_print(ANDROID_LOG_INFO, "godot", "***************** HELLO FROM JNI!!!!!!!!");
 
@@ -842,7 +843,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *en
 				if (!rawString) {
 					__android_log_print(ANDROID_LOG_INFO, "godot", "cmdline arg %i is null\n", i);
 				} else {
-					//__android_log_print(ANDROID_LOG_INFO,"godot","cmdline arg %i is: %s\n",i,rawString);
+					//			__android_log_print(ANDROID_LOG_INFO,"godot","cmdline arg %i is: %s\n",i,rawString);
 
 					if (strcmp(rawString, "-main_pack") == 0)
 						use_apk_expansion = true;
@@ -882,8 +883,8 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *en
 
 	__android_log_print(ANDROID_LOG_INFO, "godot", "*****SETUP OK");
 
-	//video driver is determined here, because once initialized, it can't be changed
-	String vd = GlobalConfig::get_singleton()->get("display/driver");
+	//video driver is determined here, because once initialized, it cant be changed
+	String vd = Globals::get_singleton()->get("display/driver");
 
 	env->CallVoidMethod(_godot_instance, _on_video_init, (jboolean) true);
 
@@ -921,25 +922,17 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_newcontext(JNIEnv *en
 	}
 }
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_back(JNIEnv *env, jobject obj) {
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_quit(JNIEnv *env, jobject obj) {
 
 	input_mutex->lock();
-	go_back_request = true;
+	quit_request = true;
+	print_line("BACK PRESSED");
 	input_mutex->unlock();
 }
 
 static void _initialize_java_modules() {
 
-	if (!GlobalConfig::get_singleton()->has("android/modules")) {
-		print_line("ANDROID MODULES: Nothing to load, aborting");
-		return;
-	}
-
-	String modules = GlobalConfig::get_singleton()->get("android/modules");
-	modules = modules.strip_edges();
-	if (modules == String()) {
-		return;
-	}
+	String modules = Globals::get_singleton()->get("android/modules");
 	Vector<String> mods = modules.split(",", false);
 	print_line("ANDROID MODULES : " + modules);
 	__android_log_print(ANDROID_LOG_INFO, "godot", "mod count: %i", mods.size());
@@ -1005,7 +998,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 		// because of the way android forces you to do everything with threads
 
 		java_class_wrapper = memnew(JavaClassWrapper(_godot_instance));
-		GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton("JavaClassWrapper", java_class_wrapper));
+		Globals::get_singleton()->add_singleton(Globals::Singleton("JavaClassWrapper", java_class_wrapper));
 		_initialize_java_modules();
 
 		Main::setup2();
@@ -1036,7 +1029,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 
 	while (key_events.size()) {
 
-		Ref<InputEvent> event = key_events.front()->get();
+		InputEvent event = key_events.front()->get();
 		os_android->process_event(event);
 
 		key_events.pop_front();
@@ -1044,21 +1037,23 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 
 	while (joy_events.size()) {
 
-		OS_Android::JoypadEvent event = joy_events.front()->get();
+		OS_Android::JoystickEvent event = joy_events.front()->get();
 		os_android->process_joy_event(event);
 
 		joy_events.pop_front();
 	}
 
-	if (go_back_request) {
+	if (quit_request) {
 
-		os_android->main_loop_request_go_back();
-		go_back_request = false;
+		os_android->main_loop_request_quit();
+		quit_request = false;
 	}
 
 	input_mutex->unlock();
 
 	os_android->process_accelerometer(accelerometer);
+
+	os_android->process_gravitymeter(gravity);
 
 	os_android->process_magnetometer(magnetometer);
 
@@ -1100,10 +1095,8 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_touch(JNIEnv *env, jo
 	pointer_events.push_back(jpe);
 
 	input_mutex->unlock();
-	/*
-	if (os_android)
-		os_android->process_touch(ev,pointer,points);
-	*/
+	//if (os_android)
+	//		os_android->process_touch(ev,pointer,points);
 }
 
 /*
@@ -1363,7 +1356,7 @@ static unsigned int android_get_keysym(unsigned int p_code) {
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joybutton(JNIEnv *env, jobject obj, jint p_device, jint p_button, jboolean p_pressed) {
 
-	OS_Android::JoypadEvent jevent;
+	OS_Android::JoystickEvent jevent;
 	jevent.device = p_device;
 	jevent.type = OS_Android::JOY_EVENT_BUTTON;
 	jevent.index = p_button;
@@ -1376,7 +1369,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joybutton(JNIEnv *env
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joyaxis(JNIEnv *env, jobject obj, jint p_device, jint p_axis, jfloat p_value) {
 
-	OS_Android::JoypadEvent jevent;
+	OS_Android::JoystickEvent jevent;
 	jevent.device = p_device;
 	jevent.type = OS_Android::JOY_EVENT_AXIS;
 	jevent.index = p_axis;
@@ -1388,7 +1381,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joyaxis(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joyhat(JNIEnv *env, jobject obj, jint p_device, jint p_hat_x, jint p_hat_y) {
-	OS_Android::JoypadEvent jevent;
+	OS_Android::JoystickEvent jevent;
 	jevent.device = p_device;
 	jevent.type = OS_Android::JOY_EVENT_HAT;
 	int hat = 0;
@@ -1419,26 +1412,33 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_joyconnectionchanged(
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_key(JNIEnv *env, jobject obj, jint p_scancode, jint p_unicode_char, jboolean p_pressed) {
 
-	Ref<InputEventKey> ievent;
+	InputEvent ievent;
+	ievent.type = InputEvent::KEY;
+	ievent.device = 0;
 	int val = p_unicode_char;
 	int scancode = android_get_keysym(p_scancode);
-	ievent->set_scancode(scancode);
-	ievent->set_unicode(val);
-	ievent->set_pressed(p_pressed);
+	ievent.key.scancode = scancode;
+	ievent.key.unicode = val;
+	ievent.key.pressed = p_pressed;
 
-	print_line("Scancode: " + String::num(p_scancode) + ":" + String::num(ievent->get_scancode()) + " Unicode: " + String::num(val));
+	print_line("Scancode: " + String::num(p_scancode) + ":" + String::num(ievent.key.scancode) + " Unicode: " + String::num(val));
+
+	ievent.key.mod.shift = false;
+	ievent.key.mod.alt = false;
+	ievent.key.mod.control = false;
+	ievent.key.echo = false;
 
 	if (val == '\n') {
-		ievent->set_scancode(KEY_ENTER);
+		ievent.key.scancode = KEY_ENTER;
 	} else if (val == 61448) {
-		ievent->set_scancode(KEY_BACKSPACE);
-		ievent->set_unicode(KEY_BACKSPACE);
+		ievent.key.scancode = KEY_BACKSPACE;
+		ievent.key.unicode = KEY_BACKSPACE;
 	} else if (val == 61453) {
-		ievent->set_scancode(KEY_ENTER);
-		ievent->set_unicode(KEY_ENTER);
+		ievent.key.scancode = KEY_ENTER;
+		ievent.key.unicode = KEY_ENTER;
 	} else if (p_scancode == 4) {
 
-		go_back_request = true;
+		quit_request = true;
 	}
 
 	input_mutex->lock();
@@ -1450,6 +1450,13 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_accelerometer(JNIEnv 
 
 	input_mutex->lock();
 	accelerometer = Vector3(x, y, z);
+	input_mutex->unlock();
+}
+
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_gravity(JNIEnv *env, jobject obj, jfloat x, jfloat y, jfloat z) {
+
+	input_mutex->lock();
+	gravity = Vector3(x, y, z);
 	input_mutex->unlock();
 }
 
@@ -1504,8 +1511,8 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_singleton(JNIEnv *env
 	s->set_instance(env->NewGlobalRef(p_object));
 	jni_singletons[singname] = s;
 
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton(singname, s));
-	GlobalConfig::get_singleton()->set(singname, s);
+	Globals::get_singleton()->add_singleton(Globals::Singleton(singname, s));
+	Globals::get_singleton()->set(singname, s);
 }
 
 static Variant::Type get_jni_type(const String &p_type) {
@@ -1520,10 +1527,10 @@ static Variant::Type get_jni_type(const String &p_type) {
 		{ "float", Variant::REAL },
 		{ "double", Variant::REAL },
 		{ "java.lang.String", Variant::STRING },
-		{ "[I", Variant::POOL_INT_ARRAY },
-		{ "[B", Variant::POOL_BYTE_ARRAY },
-		{ "[F", Variant::POOL_REAL_ARRAY },
-		{ "[Ljava.lang.String;", Variant::POOL_STRING_ARRAY },
+		{ "[I", Variant::INT_ARRAY },
+		{ "[B", Variant::RAW_ARRAY },
+		{ "[F", Variant::REAL_ARRAY },
+		{ "[Ljava.lang.String;", Variant::STRING_ARRAY },
 		{ "org.godotengine.godot.Dictionary", Variant::DICTIONARY },
 		{ NULL, Variant::NIL }
 	};
@@ -1578,7 +1585,7 @@ JNIEXPORT jstring JNICALL Java_org_godotengine_godot_GodotLib_getGlobal(JNIEnv *
 
 	String js = env->GetStringUTFChars(path, NULL);
 
-	return env->NewStringUTF(GlobalConfig::get_singleton()->get(js).operator String().utf8().get_data());
+	return env->NewStringUTF(Globals::get_singleton()->get(js).operator String().utf8().get_data());
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_method(JNIEnv *env, jobject obj, jstring sname, jstring name, jstring ret, jobjectArray args) {
@@ -1672,7 +1679,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_calldeferred(JNIEnv *
 			args[i] = _jobject_to_variant(env, obj);
 		env->DeleteLocalRef(obj);
 
-		//print_line("\targ"+itos(i)+": "+Variant::get_type_name(args[i].get_type()));
+		//		print_line("\targ"+itos(i)+": "+Variant::get_type_name(args[i].get_type()));
 	};
 
 	obj->call_deferred(str_method, args[0], args[1], args[2], args[3], args[4]);

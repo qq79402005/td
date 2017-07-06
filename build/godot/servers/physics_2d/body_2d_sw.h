@@ -67,6 +67,9 @@ class Body2DSW : public CollisionObject2DSW {
 	Vector2 applied_force;
 	real_t applied_torque;
 
+	Vector2 one_way_collision_direction;
+	float one_way_collision_max_depth;
+
 	SelfList<Body2DSW> active_list;
 	SelfList<Body2DSW> inertia_update_list;
 	SelfList<Body2DSW> direct_state_query_list;
@@ -78,9 +81,10 @@ class Body2DSW : public CollisionObject2DSW {
 	bool can_sleep;
 	bool first_time_kinematic;
 	bool first_integration;
+	bool using_one_way_cache;
 	void _update_inertia();
 	virtual void _shapes_changed();
-	Transform2D new_transform;
+	Matrix32 new_transform;
 
 	Map<Constraint2DSW *, int> constraint_map;
 
@@ -103,7 +107,7 @@ class Body2DSW : public CollisionObject2DSW {
 
 		Vector2 local_pos;
 		Vector2 local_normal;
-		real_t depth;
+		float depth;
 		int local_shape;
 		Vector2 collider_pos;
 		int collider_shape;
@@ -162,7 +166,7 @@ public:
 	_FORCE_INLINE_ int get_max_contacts_reported() const { return contacts.size(); }
 
 	_FORCE_INLINE_ bool can_report_contacts() const { return !contacts.empty(); }
-	_FORCE_INLINE_ void add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, real_t p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos);
+	_FORCE_INLINE_ void add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, float p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos);
 
 	_FORCE_INLINE_ void add_exception(const RID &p_exception) { exceptions.insert(p_exception); }
 	_FORCE_INLINE_ void remove_exception(const RID &p_exception) { exceptions.erase(p_exception); }
@@ -218,8 +222,8 @@ public:
 		set_active(true);
 	}
 
-	void set_param(Physics2DServer::BodyParameter p_param, real_t);
-	real_t get_param(Physics2DServer::BodyParameter p_param) const;
+	void set_param(Physics2DServer::BodyParameter p_param, float);
+	float get_param(Physics2DServer::BodyParameter p_param) const;
 
 	void set_mode(Physics2DServer::BodyMode p_mode);
 	Physics2DServer::BodyMode get_mode() const;
@@ -241,6 +245,17 @@ public:
 
 	_FORCE_INLINE_ void set_continuous_collision_detection_mode(Physics2DServer::CCDMode p_mode) { continuous_cd_mode = p_mode; }
 	_FORCE_INLINE_ Physics2DServer::CCDMode get_continuous_collision_detection_mode() const { return continuous_cd_mode; }
+
+	void set_one_way_collision_direction(const Vector2 &p_dir) {
+		one_way_collision_direction = p_dir;
+		using_one_way_cache = one_way_collision_direction != Vector2();
+	}
+	Vector2 get_one_way_collision_direction() const { return one_way_collision_direction; }
+
+	void set_one_way_collision_max_depth(float p_depth) { one_way_collision_max_depth = p_depth; }
+	float get_one_way_collision_max_depth() const { return one_way_collision_max_depth; }
+
+	_FORCE_INLINE_ bool is_using_one_way_collision() const { return using_one_way_cache; }
 
 	void set_space(Space2DSW *p_space);
 
@@ -278,7 +293,7 @@ public:
 
 //add contact inline
 
-void Body2DSW::add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, real_t p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos) {
+void Body2DSW::add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_normal, float p_depth, int p_local_shape, const Vector2 &p_collider_pos, int p_collider_shape, ObjectID p_collider_instance_id, const RID &p_collider, const Vector2 &p_collider_velocity_at_pos) {
 
 	int c_max = contacts.size();
 
@@ -293,7 +308,7 @@ void Body2DSW::add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_no
 		idx = contact_count++;
 	} else {
 
-		real_t least_depth = 1e20;
+		float least_depth = 1e20;
 		int least_deep = -1;
 		for (int i = 0; i < c_max; i++) {
 
@@ -324,7 +339,7 @@ void Body2DSW::add_contact(const Vector2 &p_local_pos, const Vector2 &p_local_no
 
 class Physics2DDirectBodyStateSW : public Physics2DDirectBodyState {
 
-	GDCLASS(Physics2DDirectBodyStateSW, Physics2DDirectBodyState);
+	OBJ_TYPE(Physics2DDirectBodyStateSW, Physics2DDirectBodyState);
 
 public:
 	static Physics2DDirectBodyStateSW *singleton;
@@ -332,10 +347,10 @@ public:
 	real_t step;
 
 	virtual Vector2 get_total_gravity() const { return body->gravity; } // get gravity vector working on this body space/area
-	virtual real_t get_total_angular_damp() const { return body->area_angular_damp; } // get density of this body space/area
-	virtual real_t get_total_linear_damp() const { return body->area_linear_damp; } // get density of this body space/area
+	virtual float get_total_angular_damp() const { return body->area_angular_damp; } // get density of this body space/area
+	virtual float get_total_linear_damp() const { return body->area_linear_damp; } // get density of this body space/area
 
-	virtual real_t get_inverse_mass() const { return body->get_inv_mass(); } // get the mass
+	virtual float get_inverse_mass() const { return body->get_inv_mass(); } // get the mass
 	virtual real_t get_inverse_inertia() const { return body->get_inv_inertia(); } // get density of this body space
 
 	virtual void set_linear_velocity(const Vector2 &p_velocity) { body->set_linear_velocity(p_velocity); }
@@ -344,8 +359,8 @@ public:
 	virtual void set_angular_velocity(real_t p_velocity) { body->set_angular_velocity(p_velocity); }
 	virtual real_t get_angular_velocity() const { return body->get_angular_velocity(); }
 
-	virtual void set_transform(const Transform2D &p_transform) { body->set_state(Physics2DServer::BODY_STATE_TRANSFORM, p_transform); }
-	virtual Transform2D get_transform() const { return body->get_transform(); }
+	virtual void set_transform(const Matrix32 &p_transform) { body->set_state(Physics2DServer::BODY_STATE_TRANSFORM, p_transform); }
+	virtual Matrix32 get_transform() const { return body->get_transform(); }
 
 	virtual void set_sleep_state(bool p_enable) { body->set_active(!p_enable); }
 	virtual bool is_sleeping() const { return !body->is_active(); }

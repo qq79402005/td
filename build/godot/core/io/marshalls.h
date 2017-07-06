@@ -35,7 +35,7 @@
 #include "variant.h"
 
 /**
-  * Miscellaneous helpers for marshalling data types, and encoding
+  * Miscelaneous helpers for marshalling data types, and encoding
   * in an endian independent way
   */
 

@@ -53,6 +53,8 @@ public:
 	bool empty() const;
 	void clear();
 
+	bool is_shared() const;
+
 	bool operator==(const Array &p_array) const;
 
 	uint32_t hash() const;
@@ -81,11 +83,11 @@ public:
 	void erase(const Variant &p_value);
 
 	void push_front(const Variant &p_value);
-	Variant pop_back();
-	Variant pop_front();
+	void pop_back();
+	void pop_front();
 
 	Array(const Array &p_from);
-	Array();
+	Array(bool p_shared = false);
 	~Array();
 };
 

@@ -31,7 +31,7 @@
 
 class RemoteTransform2D : public Node2D {
 
-	GDCLASS(RemoteTransform2D, Node2D);
+	OBJ_TYPE(RemoteTransform2D, Node2D);
 
 	NodePath remote_node;
 

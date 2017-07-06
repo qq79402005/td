@@ -36,7 +36,7 @@
 
 class GameCenter : public Object {
 
-	GDCLASS(GameCenter, Object);
+	OBJ_TYPE(GameCenter, Object);
 
 	static GameCenter *instance;
 	static void _bind_methods();

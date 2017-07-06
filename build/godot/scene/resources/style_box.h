@@ -38,8 +38,8 @@
 */
 class StyleBox : public Resource {
 
-	GDCLASS(StyleBox, Resource);
-	RES_BASE_EXTENSION("stylebox");
+	OBJ_TYPE(StyleBox, Resource);
+	RES_BASE_EXTENSION("sbx");
 	OBJ_SAVE_TYPE(StyleBox);
 	float margin[4];
 
@@ -65,7 +65,7 @@ public:
 
 class StyleBoxEmpty : public StyleBox {
 
-	GDCLASS(StyleBoxEmpty, StyleBox);
+	OBJ_TYPE(StyleBoxEmpty, StyleBox);
 	virtual float get_style_margin(Margin p_margin) const { return 0; }
 
 public:
@@ -75,15 +75,13 @@ public:
 
 class StyleBoxTexture : public StyleBox {
 
-	GDCLASS(StyleBoxTexture, StyleBox);
+	OBJ_TYPE(StyleBoxTexture, StyleBox);
 
 	float expand_margin[4];
 	float margin[4];
 	Rect2 region_rect;
 	Ref<Texture> texture;
-	Ref<Texture> normal_map;
 	bool draw_center;
-	Color modulate;
 
 protected:
 	virtual float get_style_margin(Margin p_margin) const;
@@ -102,15 +100,9 @@ public:
 	void set_texture(RES p_texture);
 	RES get_texture() const;
 
-	void set_normal_map(RES p_normal_map);
-	RES get_normal_map() const;
-
 	void set_draw_center(bool p_draw);
 	bool get_draw_center() const;
 	virtual Size2 get_center_size() const;
-
-	void set_modulate(const Color &p_modulate);
-	Color get_modulate() const;
 
 	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const;
 
@@ -120,14 +112,13 @@ public:
 
 class StyleBoxFlat : public StyleBox {
 
-	GDCLASS(StyleBoxFlat, StyleBox);
+	OBJ_TYPE(StyleBoxFlat, StyleBox);
 
 	Color bg_color;
 	Color light_color;
 	Color dark_color;
 
 	int border_size;
-	int additional_border_size[4];
 
 	bool draw_center;
 	bool blend;
@@ -148,9 +139,6 @@ public:
 	void set_border_size(int p_size);
 	int get_border_size() const;
 
-	void _set_additional_border_size(Margin p_margin, int p_size);
-	int _get_additional_border_size(Margin p_margin) const;
-
 	void set_border_blend(bool p_blend);
 	bool get_border_blend() const;
 
@@ -162,6 +150,33 @@ public:
 
 	StyleBoxFlat();
 	~StyleBoxFlat();
+};
+
+class StyleBoxImageMask : public StyleBox {
+
+	OBJ_TYPE(StyleBoxImageMask, StyleBox);
+	virtual float get_style_margin(Margin p_margin) const { return 0; }
+
+	Image image;
+	float expand_margin[4];
+	bool expand;
+
+protected:
+	static void _bind_methods();
+
+public:
+	virtual void draw(RID p_canvas_item, const Rect2 &p_rect) const {}
+	virtual bool test_mask(const Point2 &p_point, const Rect2 &p_rect) const;
+
+	void set_image(const Image &p_image);
+	Image get_image() const;
+
+	void set_expand(bool p_expand);
+	bool get_expand() const;
+	void set_expand_margin_size(Margin p_expand_margin, float p_size);
+	float get_expand_margin_size(Margin p_expand_margin) const;
+
+	StyleBoxImageMask();
 };
 
 #endif

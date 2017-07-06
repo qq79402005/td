@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,7 +27,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "test_containers.h"
-
 #include "dvector.h"
 #include "math_funcs.h"
 #include "print_string.h"
@@ -55,6 +53,19 @@ MainLoop *test() {
 
 	{
 
+		//		static const int size = 16;
+		Image img;
+		img.create(default_mouse_cursor_xpm);
+
+		{
+			for (int i = 0; i < 8; i++) {
+
+				Image mipmap;
+				//img.make_mipmap(mipmap);
+				img = mipmap;
+				if (img.get_width() <= 4) break;
+			};
+		};
 	};
 
 #if 0
@@ -64,7 +75,7 @@ MainLoop *test() {
 	for (int i=0;i<1100;i++) {
 
 		int num=i;//(int)Math::random(0,1024);
-		//print_line("inserting "+itos(num));
+	//	print_line("inserting "+itos(num));
 		set.insert( num );
 	}
 

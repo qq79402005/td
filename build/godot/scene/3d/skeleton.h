@@ -38,7 +38,7 @@
 */
 class Skeleton : public Spatial {
 
-	GDCLASS(Skeleton, Spatial);
+	OBJ_TYPE(Skeleton, Spatial);
 
 	struct Bone {
 
@@ -89,6 +89,8 @@ class Skeleton : public Spatial {
 		}
 		return bound;
 	}
+
+	virtual RES _get_gizmo_geometry() const;
 
 protected:
 	bool _get(const StringName &p_name, Variant &r_ret) const;

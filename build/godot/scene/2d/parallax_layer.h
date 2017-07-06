@@ -34,7 +34,7 @@
 
 class ParallaxLayer : public Node2D {
 
-	GDCLASS(ParallaxLayer, Node2D);
+	OBJ_TYPE(ParallaxLayer, Node2D);
 
 	Point2 orig_offset;
 	Point2 orig_scale;

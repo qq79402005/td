@@ -52,8 +52,7 @@ void Transform::invert() {
 }
 
 Transform Transform::inverse() const {
-	// FIXME: this function assumes the basis is a rotation matrix, with no scaling.
-	// Transform::affine_inverse can handle matrices with scaling, so GDScript should eventually use that.
+
 	Transform ret = *this;
 	ret.invert();
 	return ret;
@@ -61,12 +60,12 @@ Transform Transform::inverse() const {
 
 void Transform::rotate(const Vector3 &p_axis, real_t p_phi) {
 
-	*this = rotated(p_axis, p_phi);
+	*this = *this * Transform(Matrix3(p_axis, p_phi), Vector3());
 }
 
 Transform Transform::rotated(const Vector3 &p_axis, real_t p_phi) const {
 
-	return Transform(Basis(p_axis, p_phi), Vector3()) * (*this);
+	return *this * Transform(Matrix3(p_axis, p_phi), Vector3());
 }
 
 void Transform::rotate_basis(const Vector3 &p_axis, real_t p_phi) {
@@ -82,10 +81,7 @@ Transform Transform::looking_at(const Vector3 &p_target, const Vector3 &p_up) co
 }
 
 void Transform::set_look_at(const Vector3 &p_eye, const Vector3 &p_target, const Vector3 &p_up) {
-#ifdef MATH_CHECKS
-	ERR_FAIL_COND(p_eye == p_target);
-	ERR_FAIL_COND(p_up.length() == 0);
-#endif
+
 	// Reference: MESA source code
 	Vector3 v_x, v_y, v_z;
 
@@ -99,9 +95,6 @@ void Transform::set_look_at(const Vector3 &p_eye, const Vector3 &p_target, const
 	v_y = p_up;
 
 	v_x = v_y.cross(v_z);
-#ifdef MATH_CHECKS
-	ERR_FAIL_COND(v_x.length() == 0);
-#endif
 
 	/* Recompute Y = Z cross X */
 	v_y = v_z.cross(v_x);
@@ -109,12 +102,13 @@ void Transform::set_look_at(const Vector3 &p_eye, const Vector3 &p_target, const
 	v_x.normalize();
 	v_y.normalize();
 
-	basis.set(v_x, v_y, v_z);
-
+	basis.set_axis(0, v_x);
+	basis.set_axis(1, v_y);
+	basis.set_axis(2, v_z);
 	origin = p_eye;
 }
 
-Transform Transform::interpolate_with(const Transform &p_transform, real_t p_c) const {
+Transform Transform::interpolate_with(const Transform &p_transform, float p_c) const {
 
 	/* not sure if very "efficient" but good enough? */
 
@@ -208,7 +202,7 @@ Transform::operator String() const {
 	return basis.operator String() + " - " + origin.operator String();
 }
 
-Transform::Transform(const Basis &p_basis, const Vector3 &p_origin) {
+Transform::Transform(const Matrix3 &p_basis, const Vector3 &p_origin) {
 
 	basis = p_basis;
 	origin = p_origin;

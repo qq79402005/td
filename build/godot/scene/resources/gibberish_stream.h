@@ -38,7 +38,7 @@
 #include "scene/resources/sample_library.h"
 class AudioStreamGibberish : public AudioStream {
 
-	GDCLASS( AudioStreamGibberish, AudioStream );
+	OBJ_TYPE( AudioStreamGibberish, AudioStream );
 
 	enum {
 

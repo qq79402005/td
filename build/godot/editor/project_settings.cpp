@@ -28,10 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "project_settings.h"
-
 #include "editor_node.h"
-#include "global_config.h"
 #include "global_constants.h"
+#include "globals.h"
 #include "os/keyboard.h"
 #include "scene/gui/margin_container.h"
 #include "scene/gui/tab_container.h"
@@ -74,41 +73,34 @@ static const char *_axis_names[JOY_AXIS_MAX * 2] = {
 
 void ProjectSettings::_notification(int p_what) {
 
-	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE: {
-			globals_editor->edit(GlobalConfig::get_singleton());
+	if (p_what == NOTIFICATION_ENTER_TREE) {
 
-			search_button->set_icon(get_icon("Zoom", "EditorIcons"));
-			clear_button->set_icon(get_icon("Close", "EditorIcons"));
+		globals_editor->edit(Globals::get_singleton());
 
-			translation_list->connect("button_pressed", this, "_translation_delete");
-			_update_actions();
-			popup_add->add_icon_item(get_icon("Keyboard", "EditorIcons"), TTR("Key "), INPUT_KEY); //"Key " - because the word 'key' has already been used as a key animation
-			popup_add->add_icon_item(get_icon("JoyButton", "EditorIcons"), TTR("Joy Button"), INPUT_JOY_BUTTON);
-			popup_add->add_icon_item(get_icon("JoyAxis", "EditorIcons"), TTR("Joy Axis"), INPUT_JOY_MOTION);
-			popup_add->add_icon_item(get_icon("Mouse", "EditorIcons"), TTR("Mouse Button"), INPUT_MOUSE_BUTTON);
+		search_button->set_icon(get_icon("Zoom", "EditorIcons"));
+		clear_button->set_icon(get_icon("Close", "EditorIcons"));
 
-			List<String> tfn;
-			ResourceLoader::get_recognized_extensions_for_type("Translation", &tfn);
-			for (List<String>::Element *E = tfn.front(); E; E = E->next()) {
+		translation_list->connect("button_pressed", this, "_translation_delete");
+		_update_actions();
+		popup_add->add_icon_item(get_icon("Keyboard", "EditorIcons"), TTR("Key "), InputEvent::KEY); //"Key " - because the word 'key' has already been used as a key animation
+		popup_add->add_icon_item(get_icon("JoyButton", "EditorIcons"), TTR("Joy Button"), InputEvent::JOYSTICK_BUTTON);
+		popup_add->add_icon_item(get_icon("JoyAxis", "EditorIcons"), TTR("Joy Axis"), InputEvent::JOYSTICK_MOTION);
+		popup_add->add_icon_item(get_icon("Mouse", "EditorIcons"), TTR("Mouse Button"), InputEvent::MOUSE_BUTTON);
 
-				translation_file_open->add_filter("*." + E->get());
-			}
+		List<String> tfn;
+		ResourceLoader::get_recognized_extensions_for_type("Translation", &tfn);
+		for (List<String>::Element *E = tfn.front(); E; E = E->next()) {
 
-			List<String> rfn;
-			ResourceLoader::get_recognized_extensions_for_type("Resource", &rfn);
-			for (List<String>::Element *E = rfn.front(); E; E = E->next()) {
+			translation_file_open->add_filter("*." + E->get());
+		}
 
-				translation_res_file_open->add_filter("*." + E->get());
-				translation_res_option_file_open->add_filter("*." + E->get());
-			}
-		} break;
-		case NOTIFICATION_POPUP_HIDE: {
-			EditorSettings::get_singleton()->set("interface/dialogs/project_settings_bounds", get_rect());
-		} break;
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			_update_actions();
-		} break;
+		List<String> rfn;
+		ResourceLoader::get_recognized_extensions_for_type("Resource", &rfn);
+		for (List<String>::Element *E = rfn.front(); E; E = E->next()) {
+
+			translation_res_file_open->add_filter("*." + E->get());
+			translation_res_option_file_open->add_filter("*." + E->get());
+		}
 	}
 }
 
@@ -119,7 +111,6 @@ void ProjectSettings::_action_selected() {
 		return;
 
 	add_at = "input/" + ti->get_text(0);
-	edit_idx = -1;
 }
 
 void ProjectSettings::_action_edited() {
@@ -146,7 +137,7 @@ void ProjectSettings::_action_edited() {
 
 	String action_prop = "input/" + new_name;
 
-	if (GlobalConfig::get_singleton()->has(action_prop)) {
+	if (Globals::get_singleton()->has(action_prop)) {
 
 		ti->set_text(0, old_name);
 		add_at = "input/" + old_name;
@@ -156,17 +147,20 @@ void ProjectSettings::_action_edited() {
 		return;
 	}
 
-	int order = GlobalConfig::get_singleton()->get_order(add_at);
-	Array va = GlobalConfig::get_singleton()->get(add_at);
+	int order = Globals::get_singleton()->get_order(add_at);
+	Array va = Globals::get_singleton()->get(add_at);
+	bool persisting = Globals::get_singleton()->is_persisting(add_at);
 
 	setting = true;
 	undo_redo->create_action(TTR("Rename Input Action Event"));
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "clear", add_at);
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "set", action_prop, va);
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "set_order", action_prop, order);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "clear", action_prop);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set", add_at, va);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set_order", add_at, order);
+	undo_redo->add_do_method(Globals::get_singleton(), "clear", add_at);
+	undo_redo->add_do_method(Globals::get_singleton(), "set", action_prop, va);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", action_prop, persisting);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_order", action_prop, order);
+	undo_redo->add_undo_method(Globals::get_singleton(), "clear", action_prop);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set", add_at, va);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set_persisting", add_at, persisting);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set_order", add_at, order);
 	undo_redo->add_do_method(this, "_update_actions");
 	undo_redo->add_undo_method(this, "_update_actions");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -179,89 +173,65 @@ void ProjectSettings::_action_edited() {
 
 void ProjectSettings::_device_input_add() {
 
-	Ref<InputEvent> ie;
+	InputEvent ie;
 	String name = add_at;
-	int idx = edit_idx;
-	Variant old_val = GlobalConfig::get_singleton()->get(name);
+	Variant old_val = Globals::get_singleton()->get(name);
 	Array arr = old_val;
-	//	ie.device = device_id->get_value();
-	//	ie.type = add_type;
+	ie.device = device_id->get_val();
+
+	ie.type = add_type;
 
 	switch (add_type) {
 
-		case INPUT_MOUSE_BUTTON: {
+		case InputEvent::MOUSE_BUTTON: {
 
-			Ref<InputEventMouseButton> mb;
-			mb.instance();
-			mb->set_button_index(device_index->get_selected() + 1);
-			mb->set_device(device_id->get_value());
+			ie.mouse_button.button_index = device_index->get_selected() + 1;
 
 			for (int i = 0; i < arr.size(); i++) {
 
-				Ref<InputEventMouseButton> aie = arr[i];
-				if (aie.is_null())
-					continue;
-				if (aie->get_device() == mb->get_device() && aie->get_button_index() == mb->get_button_index()) {
+				InputEvent aie = arr[i];
+				if (aie.device == ie.device && aie.type == InputEvent::MOUSE_BUTTON && aie.mouse_button.button_index == ie.mouse_button.button_index) {
 					return;
 				}
 			}
-
-			ie = mb;
 
 		} break;
-		case INPUT_JOY_MOTION: {
+		case InputEvent::JOYSTICK_MOTION: {
 
-			Ref<InputEventJoypadMotion> jm;
-			jm.instance();
-			jm->set_axis(device_index->get_selected() >> 1);
-			jm->set_axis_value(device_index->get_selected() & 1 ? 1 : -1);
-			jm->set_device(device_id->get_value());
+			ie.joy_motion.axis = device_index->get_selected() >> 1;
+			ie.joy_motion.axis_value = device_index->get_selected() & 1 ? 1 : -1;
 
 			for (int i = 0; i < arr.size(); i++) {
 
-				Ref<InputEventJoypadMotion> aie = arr[i];
-				if (aie.is_null())
-					continue;
-				if (aie->get_device() == jm->get_device() && aie->get_axis() == jm->get_axis() && aie->get_axis_value() == jm->get_axis_value()) {
+				InputEvent aie = arr[i];
+				if (aie.device == ie.device && aie.type == InputEvent::JOYSTICK_MOTION && aie.joy_motion.axis == ie.joy_motion.axis && aie.joy_motion.axis_value == ie.joy_motion.axis_value) {
 					return;
 				}
 			}
-
-			ie = jm;
 
 		} break;
-		case INPUT_JOY_BUTTON: {
+		case InputEvent::JOYSTICK_BUTTON: {
 
-			Ref<InputEventJoypadButton> jb;
-			jb.instance();
-
-			jb->set_button_index(device_index->get_selected());
-			jb->set_device(device_id->get_value());
+			ie.joy_button.button_index = device_index->get_selected();
 
 			for (int i = 0; i < arr.size(); i++) {
 
-				Ref<InputEventJoypadButton> aie = arr[i];
-				if (aie.is_null())
-					continue;
-				if (aie->get_device() == jb->get_device() && aie->get_button_index() == jb->get_button_index()) {
+				InputEvent aie = arr[i];
+				if (aie.device == ie.device && aie.type == InputEvent::JOYSTICK_BUTTON && aie.joy_button.button_index == ie.joy_button.button_index) {
 					return;
 				}
 			}
-			ie = jb;
 
 		} break;
 		default: {}
 	}
 
-	if (idx < 0 || idx >= arr.size()) {
-		arr.push_back(ie);
-	} else {
-		arr[idx] = ie;
-	}
+	arr.push_back(ie);
 
 	undo_redo->create_action(TTR("Add Input Action Event"));
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "set", name, arr);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set", name, old_val);
+	undo_redo->add_do_method(Globals::get_singleton(), "set", name, arr);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", name, true);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set", name, old_val);
 	undo_redo->add_do_method(this, "_update_actions");
 	undo_redo->add_undo_method(this, "_update_actions");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -273,42 +243,32 @@ void ProjectSettings::_device_input_add() {
 
 void ProjectSettings::_press_a_key_confirm() {
 
-	if (last_wait_for_key.is_null())
+	if (last_wait_for_key.type != InputEvent::KEY)
 		return;
 
-	Ref<InputEventKey> ie;
-	ie.instance();
-	ie->set_scancode(last_wait_for_key->get_scancode());
-	ie->set_shift(last_wait_for_key->get_shift());
-	ie->set_alt(last_wait_for_key->get_alt());
-	ie->set_control(last_wait_for_key->get_control());
-	ie->set_metakey(last_wait_for_key->get_metakey());
-
+	InputEvent ie;
+	ie.type = InputEvent::KEY;
+	ie.key.scancode = last_wait_for_key.key.scancode;
+	ie.key.mod = last_wait_for_key.key.mod;
 	String name = add_at;
-	int idx = edit_idx;
 
-	Variant old_val = GlobalConfig::get_singleton()->get(name);
+	Variant old_val = Globals::get_singleton()->get(name);
 	Array arr = old_val;
 
 	for (int i = 0; i < arr.size(); i++) {
 
-		Ref<InputEventKey> aie = arr[i];
-		if (aie.is_null())
-			continue;
-		if (aie->get_scancode_with_modifiers() == ie->get_scancode_with_modifiers()) {
+		InputEvent aie = arr[i];
+		if (aie.type == InputEvent::KEY && aie.key.scancode == ie.key.scancode && aie.key.mod == ie.key.mod) {
 			return;
 		}
 	}
 
-	if (idx < 0 || idx >= arr.size()) {
-		arr.push_back(ie);
-	} else {
-		arr[idx] = ie;
-	}
+	arr.push_back(ie);
 
 	undo_redo->create_action(TTR("Add Input Action Event"));
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "set", name, arr);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set", name, old_val);
+	undo_redo->add_do_method(Globals::get_singleton(), "set", name, arr);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", name, true);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set", name, old_val);
 	undo_redo->add_do_method(this, "_update_actions");
 	undo_redo->add_undo_method(this, "_update_actions");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -318,7 +278,7 @@ void ProjectSettings::_press_a_key_confirm() {
 	_show_last_added(ie, name);
 }
 
-void ProjectSettings::_show_last_added(const Ref<InputEvent> &p_event, const String &p_name) {
+void ProjectSettings::_show_last_added(const InputEvent &p_event, const String &p_name) {
 	TreeItem *r = input_editor->get_root();
 
 	String name = p_name;
@@ -351,21 +311,19 @@ void ProjectSettings::_show_last_added(const Ref<InputEvent> &p_event, const Str
 	if (found) input_editor->ensure_cursor_is_visible();
 }
 
-void ProjectSettings::_wait_for_key(const Ref<InputEvent> &p_event) {
+void ProjectSettings::_wait_for_key(const InputEvent &p_event) {
 
-	Ref<InputEventKey> k = p_event;
-
-	if (k.is_valid() && k->is_pressed() && k->get_scancode() != 0) {
+	if (p_event.type == InputEvent::KEY && p_event.key.pressed && p_event.key.scancode != 0) {
 
 		last_wait_for_key = p_event;
-		String str = keycode_get_string(k->get_scancode()).capitalize();
-		if (k->get_metakey())
+		String str = keycode_get_string(p_event.key.scancode).capitalize();
+		if (p_event.key.mod.meta)
 			str = TTR("Meta+") + str;
-		if (k->get_shift())
+		if (p_event.key.mod.shift)
 			str = TTR("Shift+") + str;
-		if (k->get_alt())
+		if (p_event.key.mod.alt)
 			str = TTR("Alt+") + str;
-		if (k->get_control())
+		if (p_event.key.mod.control)
 			str = TTR("Control+") + str;
 
 		press_a_key_label->set_text(str);
@@ -373,21 +331,22 @@ void ProjectSettings::_wait_for_key(const Ref<InputEvent> &p_event) {
 	}
 }
 
-void ProjectSettings::_add_item(int p_item, Ref<InputEvent> p_exiting_event) {
+void ProjectSettings::_add_item(int p_item) {
 
-	add_type = InputType(p_item);
+	add_type = InputEvent::Type(p_item);
 
 	switch (add_type) {
 
-		case INPUT_KEY: {
+		case InputEvent::KEY: {
 
 			press_a_key_label->set_text(TTR("Press a Key.."));
-			last_wait_for_key = Ref<InputEvent>();
+			last_wait_for_key = InputEvent();
 			press_a_key->popup_centered(Size2(250, 80) * EDSCALE);
 			press_a_key->grab_focus();
 		} break;
-		case INPUT_MOUSE_BUTTON: {
+		case InputEvent::MOUSE_BUTTON: {
 
+			device_id->set_val(0);
 			device_index_label->set_text(TTR("Mouse Button Index:"));
 			device_index->clear();
 			device_index->add_item(TTR("Left Button"));
@@ -400,20 +359,11 @@ void ProjectSettings::_add_item(int p_item, Ref<InputEvent> p_exiting_event) {
 			device_index->add_item(TTR("Button 8"));
 			device_index->add_item(TTR("Button 9"));
 			device_input->popup_centered_minsize(Size2(350, 95));
-
-			Ref<InputEventMouseButton> mb = p_exiting_event;
-			if (mb.is_valid()) {
-				device_index->select(mb->get_button_index() - 1);
-				device_id->set_value(mb->get_device());
-				device_input->get_ok()->set_text(TTR("Change"));
-			} else {
-				device_id->set_value(0);
-				device_input->get_ok()->set_text(TTR("Add"));
-			}
 		} break;
-		case INPUT_JOY_MOTION: {
+		case InputEvent::JOYSTICK_MOTION: {
 
-			device_index_label->set_text(TTR("Joypad Axis Index:"));
+			device_id->set_val(0);
+			device_index_label->set_text(TTR("Joystick Axis Index:"));
 			device_index->clear();
 			for (int i = 0; i < JOY_AXIS_MAX * 2; i++) {
 
@@ -422,19 +372,11 @@ void ProjectSettings::_add_item(int p_item, Ref<InputEvent> p_exiting_event) {
 			}
 			device_input->popup_centered_minsize(Size2(350, 95));
 
-			Ref<InputEventJoypadMotion> jm = p_exiting_event;
-			if (jm.is_valid()) {
-				device_index->select(jm->get_axis() * 2 + (jm->get_axis_value() > 0 ? 1 : 0));
-				device_id->set_value(jm->get_device());
-				device_input->get_ok()->set_text(TTR("Change"));
-			} else {
-				device_id->set_value(0);
-				device_input->get_ok()->set_text(TTR("Add"));
-			}
 		} break;
-		case INPUT_JOY_BUTTON: {
+		case InputEvent::JOYSTICK_BUTTON: {
 
-			device_index_label->set_text(TTR("Joypad Button Index:"));
+			device_id->set_val(0);
+			device_index_label->set_text(TTR("Joystick Button Index:"));
 			device_index->clear();
 
 			for (int i = 0; i < JOY_BUTTON_MAX; i++) {
@@ -443,64 +385,9 @@ void ProjectSettings::_add_item(int p_item, Ref<InputEvent> p_exiting_event) {
 			}
 			device_input->popup_centered_minsize(Size2(350, 95));
 
-			Ref<InputEventJoypadButton> jb = p_exiting_event;
-			if (jb.is_valid()) {
-				device_index->select(jb->get_button_index());
-				device_id->set_value(jb->get_device());
-				device_input->get_ok()->set_text(TTR("Change"));
-			} else {
-				device_id->set_value(0);
-				device_input->get_ok()->set_text(TTR("Add"));
-			}
-
 		} break;
 		default: {}
 	}
-}
-
-void ProjectSettings::_edit_item(Ref<InputEvent> p_exiting_event) {
-
-	InputType ie_type;
-
-	if ((Ref<InputEventKey>(p_exiting_event)).is_valid()) {
-		ie_type = INPUT_KEY;
-
-	} else if ((Ref<InputEventJoypadButton>(p_exiting_event)).is_valid()) {
-		ie_type = INPUT_JOY_BUTTON;
-
-	} else if ((Ref<InputEventMouseButton>(p_exiting_event)).is_valid()) {
-		ie_type = INPUT_MOUSE_BUTTON;
-
-	} else if ((Ref<InputEventJoypadMotion>(p_exiting_event)).is_valid()) {
-		ie_type = INPUT_JOY_MOTION;
-
-	} else {
-		return;
-	}
-
-	_add_item(ie_type, p_exiting_event);
-}
-void ProjectSettings::_action_activated() {
-
-	TreeItem *ti = input_editor->get_selected();
-
-	if (!ti || ti->get_parent() == input_editor->get_root())
-		return;
-
-	String name = "input/" + ti->get_parent()->get_text(0);
-	int idx = ti->get_metadata(0);
-	Array va = GlobalConfig::get_singleton()->get(name);
-
-	ERR_FAIL_INDEX(idx, va.size());
-
-	Ref<InputEvent> ie = va[idx];
-
-	if (ie.is_null())
-		return;
-
-	add_at = name;
-	edit_idx = idx;
-	_edit_item(ie);
 }
 
 void ProjectSettings::_action_button_pressed(Object *p_obj, int p_column, int p_id) {
@@ -510,15 +397,14 @@ void ProjectSettings::_action_button_pressed(Object *p_obj, int p_column, int p_
 	ERR_FAIL_COND(!ti);
 
 	if (p_id == 1) {
-		Point2 ofs = input_editor->get_global_position();
+		Point2 ofs = input_editor->get_global_pos();
 		Rect2 ir = input_editor->get_item_rect(ti);
-		ir.position.y -= input_editor->get_scroll().y;
-		ofs += ir.position + ir.size;
+		ir.pos.y -= input_editor->get_scroll().y;
+		ofs += ir.pos + ir.size;
 		ofs.x -= 100;
-		popup_add->set_position(ofs);
+		popup_add->set_pos(ofs);
 		popup_add->popup();
 		add_at = "input/" + ti->get_text(0);
-		edit_idx = -1;
 
 	} else if (p_id == 2) {
 		//remove
@@ -528,13 +414,14 @@ void ProjectSettings::_action_button_pressed(Object *p_obj, int p_column, int p_
 			//remove main thing
 
 			String name = "input/" + ti->get_text(0);
-			Variant old_val = GlobalConfig::get_singleton()->get(name);
-			int order = GlobalConfig::get_singleton()->get_order(name);
+			Variant old_val = Globals::get_singleton()->get(name);
+			int order = Globals::get_singleton()->get_order(name);
 
 			undo_redo->create_action(TTR("Add Input Action"));
-			undo_redo->add_do_method(GlobalConfig::get_singleton(), "clear", name);
-			undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set", name, old_val);
-			undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set_order", name, order);
+			undo_redo->add_do_method(Globals::get_singleton(), "clear", name);
+			undo_redo->add_undo_method(Globals::get_singleton(), "set", name, old_val);
+			undo_redo->add_undo_method(Globals::get_singleton(), "set_order", name, order);
+			undo_redo->add_undo_method(Globals::get_singleton(), "set_persisting", name, Globals::get_singleton()->is_persisting(name));
 			undo_redo->add_do_method(this, "_update_actions");
 			undo_redo->add_undo_method(this, "_update_actions");
 			undo_redo->add_do_method(this, "_settings_changed");
@@ -544,7 +431,7 @@ void ProjectSettings::_action_button_pressed(Object *p_obj, int p_column, int p_
 		} else {
 			//remove action
 			String name = "input/" + ti->get_parent()->get_text(0);
-			Variant old_val = GlobalConfig::get_singleton()->get(name);
+			Variant old_val = Globals::get_singleton()->get(name);
 			int idx = ti->get_metadata(0);
 
 			Array va = old_val;
@@ -559,39 +446,13 @@ void ProjectSettings::_action_button_pressed(Object *p_obj, int p_column, int p_
 			va.resize(va.size() - 1);
 
 			undo_redo->create_action(TTR("Erase Input Action Event"));
-			undo_redo->add_do_method(GlobalConfig::get_singleton(), "set", name, va);
-			undo_redo->add_undo_method(GlobalConfig::get_singleton(), "set", name, old_val);
+			undo_redo->add_do_method(Globals::get_singleton(), "set", name, va);
+			undo_redo->add_undo_method(Globals::get_singleton(), "set", name, old_val);
 			undo_redo->add_do_method(this, "_update_actions");
 			undo_redo->add_undo_method(this, "_update_actions");
 			undo_redo->add_do_method(this, "_settings_changed");
 			undo_redo->add_undo_method(this, "_settings_changed");
 			undo_redo->commit_action();
-		}
-	} else if (p_id == 3) {
-		//edit
-
-		if (ti->get_parent() == input_editor->get_root()) {
-
-			ti->set_as_cursor(0);
-			input_editor->edit_selected();
-
-		} else {
-			//edit action
-			String name = "input/" + ti->get_parent()->get_text(0);
-			int idx = ti->get_metadata(0);
-			Array va = GlobalConfig::get_singleton()->get(name);
-
-			ERR_FAIL_INDEX(idx, va.size());
-
-			Ref<InputEvent> ie = va[idx];
-
-			if (ie.is_null())
-				return;
-
-			ti->set_as_cursor(0);
-			add_at = name;
-			edit_idx = idx;
-			_edit_item(ie);
 		}
 	}
 }
@@ -606,7 +467,7 @@ void ProjectSettings::_update_actions() {
 	input_editor->set_hide_root(true);
 
 	List<PropertyInfo> props;
-	GlobalConfig::get_singleton()->get_property_list(&props);
+	Globals::get_singleton()->get_property_list(&props);
 
 	for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
 
@@ -621,85 +482,79 @@ void ProjectSettings::_update_actions() {
 		TreeItem *item = input_editor->create_item(root);
 		//item->set_cell_mode(0,TreeItem::CELL_MODE_CHECK);
 		item->set_text(0, name);
-		item->add_button(0, get_icon("Add", "EditorIcons"), 1, false, TTR("Add Event"));
-		if (!GlobalConfig::get_singleton()->get_input_presets().find(pi.name)) {
-			item->add_button(0, get_icon("Remove", "EditorIcons"), 2, false, TTR("Remove"));
+		item->add_button(0, get_icon("Add", "EditorIcons"), 1);
+		if (!Globals::get_singleton()->get_input_presets().find(pi.name)) {
+			item->add_button(0, get_icon("Remove", "EditorIcons"), 2);
 			item->set_editable(0, true);
 		}
 		item->set_custom_bg_color(0, get_color("prop_subsection", "Editor"));
 		//item->set_checked(0,pi.usage&PROPERTY_USAGE_CHECKED);
 
-		Array actions = GlobalConfig::get_singleton()->get(pi.name);
+		Array actions = Globals::get_singleton()->get(pi.name);
 
 		for (int i = 0; i < actions.size(); i++) {
 
-			Ref<InputEvent> ie = actions[i];
-			if (ie.is_null())
+			if (actions[i].get_type() != Variant::INPUT_EVENT)
 				continue;
+			InputEvent ie = actions[i];
 
 			TreeItem *action = input_editor->create_item(item);
 
-			Ref<InputEventKey> k = ie;
-			if (k.is_valid()) {
+			switch (ie.type) {
 
-				String str = keycode_get_string(k->get_scancode()).capitalize();
-				if (k->get_metakey())
-					str = TTR("Meta+") + str;
-				if (k->get_shift())
-					str = TTR("Shift+") + str;
-				if (k->get_alt())
-					str = TTR("Alt+") + str;
-				if (k->get_control())
-					str = TTR("Control+") + str;
+				case InputEvent::KEY: {
 
-				action->set_text(0, str);
-				action->set_icon(0, get_icon("Keyboard", "EditorIcons"));
+					String str = keycode_get_string(ie.key.scancode).capitalize();
+					if (ie.key.mod.meta)
+						str = TTR("Meta+") + str;
+					if (ie.key.mod.shift)
+						str = TTR("Shift+") + str;
+					if (ie.key.mod.alt)
+						str = TTR("Alt+") + str;
+					if (ie.key.mod.control)
+						str = TTR("Control+") + str;
+
+					action->set_text(0, str);
+					action->set_icon(0, get_icon("Keyboard", "EditorIcons"));
+
+				} break;
+				case InputEvent::JOYSTICK_BUTTON: {
+
+					String str = TTR("Device") + " " + itos(ie.device) + ", " + TTR("Button") + " " + itos(ie.joy_button.button_index);
+					if (ie.joy_button.button_index >= 0 && ie.joy_button.button_index < JOY_BUTTON_MAX)
+						str += String() + " (" + _button_names[ie.joy_button.button_index] + ").";
+					else
+						str += ".";
+
+					action->set_text(0, str);
+					action->set_icon(0, get_icon("JoyButton", "EditorIcons"));
+				} break;
+				case InputEvent::MOUSE_BUTTON: {
+
+					String str = TTR("Device") + " " + itos(ie.device) + ", ";
+					switch (ie.mouse_button.button_index) {
+						case BUTTON_LEFT: str += TTR("Left Button."); break;
+						case BUTTON_RIGHT: str += TTR("Right Button."); break;
+						case BUTTON_MIDDLE: str += TTR("Middle Button."); break;
+						case BUTTON_WHEEL_UP: str += TTR("Wheel Up."); break;
+						case BUTTON_WHEEL_DOWN: str += TTR("Wheel Down."); break;
+						default: str += TTR("Button") + " " + itos(ie.mouse_button.button_index) + ".";
+					}
+
+					action->set_text(0, str);
+					action->set_icon(0, get_icon("Mouse", "EditorIcons"));
+				} break;
+				case InputEvent::JOYSTICK_MOTION: {
+
+					int ax = ie.joy_motion.axis;
+					int n = 2 * ax + (ie.joy_motion.axis_value < 0 ? 0 : 1);
+					String desc = _axis_names[n];
+					String str = TTR("Device") + " " + itos(ie.device) + ", " + TTR("Axis") + " " + itos(ax) + " " + (ie.joy_motion.axis_value < 0 ? "-" : "+") + desc + ".";
+					action->set_text(0, str);
+					action->set_icon(0, get_icon("JoyAxis", "EditorIcons"));
+				} break;
 			}
-
-			Ref<InputEventJoypadButton> jb = ie;
-
-			if (jb.is_valid()) {
-
-				String str = TTR("Device") + " " + itos(jb->get_device()) + ", " + TTR("Button") + " " + itos(jb->get_button_index());
-				if (jb->get_button_index() >= 0 && jb->get_button_index() < JOY_BUTTON_MAX)
-					str += String() + " (" + _button_names[jb->get_button_index()] + ").";
-				else
-					str += ".";
-
-				action->set_text(0, str);
-				action->set_icon(0, get_icon("JoyButton", "EditorIcons"));
-			}
-
-			Ref<InputEventMouseButton> mb = ie;
-
-			if (mb.is_valid()) {
-				String str = TTR("Device") + " " + itos(mb->get_device()) + ", ";
-				switch (mb->get_button_index()) {
-					case BUTTON_LEFT: str += TTR("Left Button."); break;
-					case BUTTON_RIGHT: str += TTR("Right Button."); break;
-					case BUTTON_MIDDLE: str += TTR("Middle Button."); break;
-					case BUTTON_WHEEL_UP: str += TTR("Wheel Up."); break;
-					case BUTTON_WHEEL_DOWN: str += TTR("Wheel Down."); break;
-					default: str += TTR("Button") + " " + itos(mb->get_button_index()) + ".";
-				}
-
-				action->set_text(0, str);
-				action->set_icon(0, get_icon("Mouse", "EditorIcons"));
-			}
-
-			Ref<InputEventJoypadMotion> jm = ie;
-
-			if (jm.is_valid()) {
-
-				int ax = jm->get_axis();
-				int n = 2 * ax + (jm->get_axis_value() < 0 ? 0 : 1);
-				String desc = _axis_names[n];
-				String str = TTR("Device") + " " + itos(jm->get_device()) + ", " + TTR("Axis") + " " + itos(ax) + " " + (jm->get_axis_value() < 0 ? "-" : "+") + desc + ".";
-				action->set_text(0, str);
-				action->set_icon(0, get_icon("JoyAxis", "EditorIcons"));
-			}
-			action->add_button(0, get_icon("Edit", "EditorIcons"), 3, false, TTR("Edit"));
-			action->add_button(0, get_icon("Remove", "EditorIcons"), 2, false, TTR("Remove"));
+			action->add_button(0, get_icon("Remove", "EditorIcons"), 2);
 			action->set_metadata(0, i);
 			action->set_meta("__input", ie);
 		}
@@ -708,12 +563,8 @@ void ProjectSettings::_update_actions() {
 
 void ProjectSettings::popup_project_settings() {
 
-	// Restore valid window bounds or pop up at default size.
-	if (EditorSettings::get_singleton()->has("interface/dialogs/project_settings_bounds")) {
-		popup(EditorSettings::get_singleton()->get("interface/dialogs/project_settings_bounds"));
-	} else {
-		popup_centered_ratio();
-	}
+	//popup_centered(Size2(500,400));
+	popup_centered_ratio();
 	globals_editor->update_category_list();
 	_update_translations();
 	autoload_settings->update_autoload();
@@ -765,12 +616,13 @@ void ProjectSettings::_item_add() {
 
 	undo_redo->create_action("Add Global Property");
 
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), name, value);
+	undo_redo->add_do_property(Globals::get_singleton(), name, value);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", name, true);
 
-	if (GlobalConfig::get_singleton()->has(name)) {
-		undo_redo->add_undo_property(GlobalConfig::get_singleton(), name, GlobalConfig::get_singleton()->get(name));
+	if (Globals::get_singleton()->has(name)) {
+		undo_redo->add_undo_property(Globals::get_singleton(), name, Globals::get_singleton()->get(name));
 	} else {
-		undo_redo->add_undo_property(GlobalConfig::get_singleton(), name, Variant());
+		undo_redo->add_undo_property(Globals::get_singleton(), name, Variant());
 	}
 
 	undo_redo->add_do_method(globals_editor, "update_category_list");
@@ -797,9 +649,10 @@ void ProjectSettings::_item_del() {
 
 	undo_redo->create_action("Delete Global Property");
 
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), name, Variant());
+	undo_redo->add_do_property(Globals::get_singleton(), name, Variant());
 
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), name, GlobalConfig::get_singleton()->get(name));
+	undo_redo->add_undo_property(Globals::get_singleton(), name, Globals::get_singleton()->get(name));
+	undo_redo->add_undo_method(Globals::get_singleton(), "set_persisting", name, Globals::get_singleton()->is_persisting(name));
 
 	undo_redo->add_do_method(globals_editor, "update_category_list");
 	undo_redo->add_undo_method(globals_editor, "update_category_list");
@@ -826,7 +679,7 @@ void ProjectSettings::_action_add() {
 		return;
 	}
 
-	if (GlobalConfig::get_singleton()->has("input/" + action)) {
+	if (Globals::get_singleton()->has("input/" + action)) {
 		message->set_text(vformat(TTR("Action '%s' already exists!"), action));
 		message->popup_centered(Size2(300, 100));
 		return;
@@ -835,8 +688,9 @@ void ProjectSettings::_action_add() {
 	Array va;
 	String name = "input/" + action;
 	undo_redo->create_action(TTR("Add Input Action Event"));
-	undo_redo->add_do_method(GlobalConfig::get_singleton(), "set", name, va);
-	undo_redo->add_undo_method(GlobalConfig::get_singleton(), "clear", name);
+	undo_redo->add_do_method(Globals::get_singleton(), "set", name, va);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", name, true);
+	undo_redo->add_undo_method(Globals::get_singleton(), "clear", name);
 	undo_redo->add_do_method(this, "_update_actions");
 	undo_redo->add_undo_method(this, "_update_actions");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -860,11 +714,22 @@ void ProjectSettings::_action_add() {
 }
 
 void ProjectSettings::_item_checked(const String &p_item, bool p_check) {
+
+	undo_redo->create_action(TTR("Toggle Persisting"));
+	String full_item = globals_editor->get_full_item_path(p_item);
+
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", full_item, p_check);
+	undo_redo->add_undo_method(Globals::get_singleton(), "set_persisting", full_item, !p_check);
+	undo_redo->add_do_method(this, "_settings_changed");
+	undo_redo->add_undo_method(this, "_settings_changed");
+	undo_redo->add_do_method(globals_editor->get_property_editor(), "update_tree");
+	undo_redo->add_undo_method(globals_editor->get_property_editor(), "update_tree");
+	undo_redo->commit_action();
 }
 
 void ProjectSettings::_save() {
 
-	Error err = GlobalConfig::get_singleton()->save();
+	Error err = Globals::get_singleton()->save();
 	message->set_text(err != OK ? TTR("Error saving settings.") : TTR("Settings saved OK."));
 	message->popup_centered(Size2(300, 100));
 }
@@ -873,6 +738,20 @@ void ProjectSettings::_settings_prop_edited(const String &p_name) {
 
 	String full_item = globals_editor->get_full_item_path(p_name);
 
+	if (!Globals::get_singleton()->is_persisting(full_item)) {
+		Globals::get_singleton()->set_persisting(full_item, true);
+
+		{
+			//small usability workaround, if anything related to resolution scaling or size is modified, change all of them together
+			if (full_item == "display/width" || full_item == "display/height" || full_item == "display/stretch_mode") {
+				Globals::get_singleton()->set_persisting("display/height", true);
+				Globals::get_singleton()->set_persisting("display/width", true);
+			}
+		}
+
+		//		globals_editor->update_property(p_name);
+		globals_editor->get_property_editor()->update_tree();
+	}
 	_settings_changed();
 }
 
@@ -902,12 +781,12 @@ void ProjectSettings::_copy_to_platform(int p_which) {
 	}
 
 	String name = catname + "/" + propname;
-	Variant value = GlobalConfig::get_singleton()->get(name);
+	Variant value = Globals::get_singleton()->get(name);
 
 	catname += "." + popup_platform->get_popup()->get_item_text(p_which);
 	name = catname + "/" + propname;
 
-	GlobalConfig::get_singleton()->set(name, value);
+	Globals::get_singleton()->set(name, value);
 	globals_editor->get_property_editor()->update_tree();
 }
 
@@ -918,7 +797,7 @@ void ProjectSettings::add_translation(const String &p_translation) {
 
 void ProjectSettings::_translation_add(const String &p_path) {
 
-	PoolStringArray translations = GlobalConfig::get_singleton()->get("locale/translations");
+	StringArray translations = Globals::get_singleton()->get("locale/translations");
 
 	for (int i = 0; i < translations.size(); i++) {
 
@@ -928,8 +807,9 @@ void ProjectSettings::_translation_add(const String &p_path) {
 
 	translations.push_back(p_path);
 	undo_redo->create_action(TTR("Add Translation"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translations", translations);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translations", GlobalConfig::get_singleton()->get("locale/translations"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translations", translations);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translations", Globals::get_singleton()->get("locale/translations"));
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translations", true);
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -949,15 +829,15 @@ void ProjectSettings::_translation_delete(Object *p_item, int p_column, int p_bu
 
 	int idx = ti->get_metadata(0);
 
-	PoolStringArray translations = GlobalConfig::get_singleton()->get("locale/translations");
+	StringArray translations = Globals::get_singleton()->get("locale/translations");
 
 	ERR_FAIL_INDEX(idx, translations.size());
 
 	translations.remove(idx);
 
 	undo_redo->create_action(TTR("Remove Translation"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translations", translations);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translations", GlobalConfig::get_singleton()->get("locale/translations"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translations", translations);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translations", Globals::get_singleton()->get("locale/translations"));
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -975,19 +855,20 @@ void ProjectSettings::_translation_res_add(const String &p_path) {
 	Variant prev;
 	Dictionary remaps;
 
-	if (GlobalConfig::get_singleton()->has("locale/translation_remaps")) {
-		remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+	if (Globals::get_singleton()->has("locale/translation_remaps")) {
+		remaps = Globals::get_singleton()->get("locale/translation_remaps");
 		prev = remaps;
 	}
 
 	if (remaps.has(p_path))
 		return; //pointless already has it
 
-	remaps[p_path] = PoolStringArray();
+	remaps[p_path] = StringArray();
 
 	undo_redo->create_action(TTR("Add Remapped Path"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translation_remaps", remaps);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translation_remaps", prev);
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translation_remaps", remaps);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translation_remaps", true);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translation_remaps", prev);
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -1001,9 +882,9 @@ void ProjectSettings::_translation_res_option_file_open() {
 }
 void ProjectSettings::_translation_res_option_add(const String &p_path) {
 
-	ERR_FAIL_COND(!GlobalConfig::get_singleton()->has("locale/translation_remaps"));
+	ERR_FAIL_COND(!Globals::get_singleton()->has("locale/translation_remaps"));
 
-	Dictionary remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+	Dictionary remaps = Globals::get_singleton()->get("locale/translation_remaps");
 
 	TreeItem *k = translation_remap->get_selected();
 	ERR_FAIL_COND(!k);
@@ -1011,13 +892,14 @@ void ProjectSettings::_translation_res_option_add(const String &p_path) {
 	String key = k->get_metadata(0);
 
 	ERR_FAIL_COND(!remaps.has(key));
-	PoolStringArray r = remaps[key];
+	StringArray r = remaps[key];
 	r.push_back(p_path + ":" + "en");
 	remaps[key] = r;
 
 	undo_redo->create_action(TTR("Resource Remap Add Remap"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translation_remaps", remaps);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translation_remaps", GlobalConfig::get_singleton()->get("locale/translation_remaps"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translation_remaps", remaps);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translation_remaps", true);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translation_remaps", Globals::get_singleton()->get("locale/translation_remaps"));
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -1038,10 +920,10 @@ void ProjectSettings::_translation_res_option_changed() {
 	if (updating_translations)
 		return;
 
-	if (!GlobalConfig::get_singleton()->has("locale/translation_remaps"))
+	if (!Globals::get_singleton()->has("locale/translation_remaps"))
 		return;
 
-	Dictionary remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+	Dictionary remaps = Globals::get_singleton()->get("locale/translation_remaps");
 
 	TreeItem *k = translation_remap->get_selected();
 	ERR_FAIL_COND(!k);
@@ -1058,15 +940,16 @@ void ProjectSettings::_translation_res_option_changed() {
 	ERR_FAIL_INDEX(which, langs.size());
 
 	ERR_FAIL_COND(!remaps.has(key));
-	PoolStringArray r = remaps[key];
+	StringArray r = remaps[key];
 	ERR_FAIL_INDEX(idx, r.size());
 	r.set(idx, path + ":" + langs[which]);
 	remaps[key] = r;
 
 	updating_translations = true;
 	undo_redo->create_action(TTR("Change Resource Remap Language"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translation_remaps", remaps);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translation_remaps", GlobalConfig::get_singleton()->get("locale/translation_remaps"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translation_remaps", remaps);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translation_remaps", true);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translation_remaps", Globals::get_singleton()->get("locale/translation_remaps"));
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -1080,10 +963,10 @@ void ProjectSettings::_translation_res_delete(Object *p_item, int p_column, int 
 	if (updating_translations)
 		return;
 
-	if (!GlobalConfig::get_singleton()->has("locale/translation_remaps"))
+	if (!Globals::get_singleton()->has("locale/translation_remaps"))
 		return;
 
-	Dictionary remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+	Dictionary remaps = Globals::get_singleton()->get("locale/translation_remaps");
 
 	TreeItem *k = p_item->cast_to<TreeItem>();
 
@@ -1093,8 +976,9 @@ void ProjectSettings::_translation_res_delete(Object *p_item, int p_column, int 
 	remaps.erase(key);
 
 	undo_redo->create_action(TTR("Remove Resource Remap"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translation_remaps", remaps);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translation_remaps", GlobalConfig::get_singleton()->get("locale/translation_remaps"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translation_remaps", remaps);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translation_remaps", true);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translation_remaps", Globals::get_singleton()->get("locale/translation_remaps"));
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -1107,10 +991,10 @@ void ProjectSettings::_translation_res_option_delete(Object *p_item, int p_colum
 	if (updating_translations)
 		return;
 
-	if (!GlobalConfig::get_singleton()->has("locale/translation_remaps"))
+	if (!Globals::get_singleton()->has("locale/translation_remaps"))
 		return;
 
-	Dictionary remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+	Dictionary remaps = Globals::get_singleton()->get("locale/translation_remaps");
 
 	TreeItem *k = translation_remap->get_selected();
 	ERR_FAIL_COND(!k);
@@ -1121,14 +1005,15 @@ void ProjectSettings::_translation_res_option_delete(Object *p_item, int p_colum
 	int idx = ed->get_metadata(0);
 
 	ERR_FAIL_COND(!remaps.has(key));
-	PoolStringArray r = remaps[key];
+	StringArray r = remaps[key];
 	ERR_FAIL_INDEX(idx, remaps.size());
 	r.remove(idx);
 	remaps[key] = r;
 
 	undo_redo->create_action(TTR("Remove Resource Remap Option"));
-	undo_redo->add_do_property(GlobalConfig::get_singleton(), "locale/translation_remaps", remaps);
-	undo_redo->add_undo_property(GlobalConfig::get_singleton(), "locale/translation_remaps", GlobalConfig::get_singleton()->get("locale/translation_remaps"));
+	undo_redo->add_do_property(Globals::get_singleton(), "locale/translation_remaps", remaps);
+	undo_redo->add_do_method(Globals::get_singleton(), "set_persisting", "locale/translation_remaps", true);
+	undo_redo->add_undo_property(Globals::get_singleton(), "locale/translation_remaps", Globals::get_singleton()->get("locale/translation_remaps"));
 	undo_redo->add_do_method(this, "_update_translations");
 	undo_redo->add_undo_method(this, "_update_translations");
 	undo_redo->add_do_method(this, "_settings_changed");
@@ -1148,9 +1033,9 @@ void ProjectSettings::_update_translations() {
 	translation_list->clear();
 	TreeItem *root = translation_list->create_item(NULL);
 	translation_list->set_hide_root(true);
-	if (GlobalConfig::get_singleton()->has("locale/translations")) {
+	if (Globals::get_singleton()->has("locale/translations")) {
 
-		PoolStringArray translations = GlobalConfig::get_singleton()->get("locale/translations");
+		StringArray translations = Globals::get_singleton()->get("locale/translations");
 		for (int i = 0; i < translations.size(); i++) {
 
 			TreeItem *t = translation_list->create_item(root);
@@ -1158,7 +1043,7 @@ void ProjectSettings::_update_translations() {
 			t->set_text(0, translations[i].replace_first("res://", ""));
 			t->set_tooltip(0, translations[i]);
 			t->set_metadata(0, i);
-			t->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+			t->add_button(0, get_icon("Del", "EditorIcons"), 0);
 		}
 	}
 
@@ -1186,9 +1071,9 @@ void ProjectSettings::_update_translations() {
 		langnames += names[i];
 	}
 
-	if (GlobalConfig::get_singleton()->has("locale/translation_remaps")) {
+	if (Globals::get_singleton()->has("locale/translation_remaps")) {
 
-		Dictionary remaps = GlobalConfig::get_singleton()->get("locale/translation_remaps");
+		Dictionary remaps = Globals::get_singleton()->get("locale/translation_remaps");
 		List<Variant> rk;
 		remaps.get_key_list(&rk);
 		Vector<String> keys;
@@ -1204,12 +1089,12 @@ void ProjectSettings::_update_translations() {
 			t->set_text(0, keys[i].replace_first("res://", ""));
 			t->set_tooltip(0, keys[i]);
 			t->set_metadata(0, keys[i]);
-			t->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+			t->add_button(0, get_icon("Del", "EditorIcons"), 0);
 			if (keys[i] == remap_selected) {
 				t->select(0);
 				translation_res_option_add_button->set_disabled(false);
 
-				PoolStringArray selected = remaps[keys[i]];
+				StringArray selected = remaps[keys[i]];
 				for (int j = 0; j < selected.size(); j++) {
 
 					String s = selected[j];
@@ -1222,7 +1107,7 @@ void ProjectSettings::_update_translations() {
 					t2->set_text(0, path.replace_first("res://", ""));
 					t2->set_tooltip(0, path);
 					t2->set_metadata(0, j);
-					t2->add_button(0, get_icon("Del", "EditorIcons"), 0, false, TTR("Remove"));
+					t2->add_button(0, get_icon("Del", "EditorIcons"), 0);
 					t2->set_cell_mode(1, TreeItem::CELL_MODE_RANGE);
 					t2->set_text(1, langnames);
 					t2->set_editable(1, true);
@@ -1274,56 +1159,53 @@ void ProjectSettings::set_plugins_page() {
 
 void ProjectSettings::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_item_selected"), &ProjectSettings::_item_selected);
-	ClassDB::bind_method(D_METHOD("_item_add"), &ProjectSettings::_item_add);
-	ClassDB::bind_method(D_METHOD("_item_adds"), &ProjectSettings::_item_adds);
-	ClassDB::bind_method(D_METHOD("_item_del"), &ProjectSettings::_item_del);
-	ClassDB::bind_method(D_METHOD("_item_checked"), &ProjectSettings::_item_checked);
-	ClassDB::bind_method(D_METHOD("_save"), &ProjectSettings::_save);
-	ClassDB::bind_method(D_METHOD("_action_add"), &ProjectSettings::_action_add);
-	ClassDB::bind_method(D_METHOD("_action_adds"), &ProjectSettings::_action_adds);
-	ClassDB::bind_method(D_METHOD("_action_selected"), &ProjectSettings::_action_selected);
-	ClassDB::bind_method(D_METHOD("_action_edited"), &ProjectSettings::_action_edited);
-	ClassDB::bind_method(D_METHOD("_action_activated"), &ProjectSettings::_action_activated);
-	ClassDB::bind_method(D_METHOD("_action_button_pressed"), &ProjectSettings::_action_button_pressed);
-	ClassDB::bind_method(D_METHOD("_update_actions"), &ProjectSettings::_update_actions);
-	ClassDB::bind_method(D_METHOD("_wait_for_key"), &ProjectSettings::_wait_for_key);
-	ClassDB::bind_method(D_METHOD("_add_item"), &ProjectSettings::_add_item, DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("_device_input_add"), &ProjectSettings::_device_input_add);
-	ClassDB::bind_method(D_METHOD("_press_a_key_confirm"), &ProjectSettings::_press_a_key_confirm);
-	ClassDB::bind_method(D_METHOD("_settings_prop_edited"), &ProjectSettings::_settings_prop_edited);
-	ClassDB::bind_method(D_METHOD("_copy_to_platform"), &ProjectSettings::_copy_to_platform);
-	ClassDB::bind_method(D_METHOD("_update_translations"), &ProjectSettings::_update_translations);
-	ClassDB::bind_method(D_METHOD("_translation_delete"), &ProjectSettings::_translation_delete);
-	ClassDB::bind_method(D_METHOD("_settings_changed"), &ProjectSettings::_settings_changed);
-	ClassDB::bind_method(D_METHOD("_translation_add"), &ProjectSettings::_translation_add);
-	ClassDB::bind_method(D_METHOD("_translation_file_open"), &ProjectSettings::_translation_file_open);
+	ObjectTypeDB::bind_method(_MD("_item_selected"), &ProjectSettings::_item_selected);
+	ObjectTypeDB::bind_method(_MD("_item_add"), &ProjectSettings::_item_add);
+	ObjectTypeDB::bind_method(_MD("_item_adds"), &ProjectSettings::_item_adds);
+	ObjectTypeDB::bind_method(_MD("_item_del"), &ProjectSettings::_item_del);
+	ObjectTypeDB::bind_method(_MD("_item_checked"), &ProjectSettings::_item_checked);
+	ObjectTypeDB::bind_method(_MD("_save"), &ProjectSettings::_save);
+	ObjectTypeDB::bind_method(_MD("_action_add"), &ProjectSettings::_action_add);
+	ObjectTypeDB::bind_method(_MD("_action_adds"), &ProjectSettings::_action_adds);
+	ObjectTypeDB::bind_method(_MD("_action_selected"), &ProjectSettings::_action_selected);
+	ObjectTypeDB::bind_method(_MD("_action_edited"), &ProjectSettings::_action_edited);
+	ObjectTypeDB::bind_method(_MD("_action_button_pressed"), &ProjectSettings::_action_button_pressed);
+	ObjectTypeDB::bind_method(_MD("_update_actions"), &ProjectSettings::_update_actions);
+	ObjectTypeDB::bind_method(_MD("_wait_for_key"), &ProjectSettings::_wait_for_key);
+	ObjectTypeDB::bind_method(_MD("_add_item"), &ProjectSettings::_add_item);
+	ObjectTypeDB::bind_method(_MD("_device_input_add"), &ProjectSettings::_device_input_add);
+	ObjectTypeDB::bind_method(_MD("_press_a_key_confirm"), &ProjectSettings::_press_a_key_confirm);
+	ObjectTypeDB::bind_method(_MD("_settings_prop_edited"), &ProjectSettings::_settings_prop_edited);
+	ObjectTypeDB::bind_method(_MD("_copy_to_platform"), &ProjectSettings::_copy_to_platform);
+	ObjectTypeDB::bind_method(_MD("_update_translations"), &ProjectSettings::_update_translations);
+	ObjectTypeDB::bind_method(_MD("_translation_delete"), &ProjectSettings::_translation_delete);
+	ObjectTypeDB::bind_method(_MD("_settings_changed"), &ProjectSettings::_settings_changed);
+	ObjectTypeDB::bind_method(_MD("_translation_add"), &ProjectSettings::_translation_add);
+	ObjectTypeDB::bind_method(_MD("_translation_file_open"), &ProjectSettings::_translation_file_open);
 
-	ClassDB::bind_method(D_METHOD("_translation_res_add"), &ProjectSettings::_translation_res_add);
-	ClassDB::bind_method(D_METHOD("_translation_res_file_open"), &ProjectSettings::_translation_res_file_open);
-	ClassDB::bind_method(D_METHOD("_translation_res_option_add"), &ProjectSettings::_translation_res_option_add);
-	ClassDB::bind_method(D_METHOD("_translation_res_option_file_open"), &ProjectSettings::_translation_res_option_file_open);
-	ClassDB::bind_method(D_METHOD("_translation_res_select"), &ProjectSettings::_translation_res_select);
-	ClassDB::bind_method(D_METHOD("_translation_res_option_changed"), &ProjectSettings::_translation_res_option_changed);
-	ClassDB::bind_method(D_METHOD("_translation_res_delete"), &ProjectSettings::_translation_res_delete);
-	ClassDB::bind_method(D_METHOD("_translation_res_option_delete"), &ProjectSettings::_translation_res_option_delete);
+	ObjectTypeDB::bind_method(_MD("_translation_res_add"), &ProjectSettings::_translation_res_add);
+	ObjectTypeDB::bind_method(_MD("_translation_res_file_open"), &ProjectSettings::_translation_res_file_open);
+	ObjectTypeDB::bind_method(_MD("_translation_res_option_add"), &ProjectSettings::_translation_res_option_add);
+	ObjectTypeDB::bind_method(_MD("_translation_res_option_file_open"), &ProjectSettings::_translation_res_option_file_open);
+	ObjectTypeDB::bind_method(_MD("_translation_res_select"), &ProjectSettings::_translation_res_select);
+	ObjectTypeDB::bind_method(_MD("_translation_res_option_changed"), &ProjectSettings::_translation_res_option_changed);
+	ObjectTypeDB::bind_method(_MD("_translation_res_delete"), &ProjectSettings::_translation_res_delete);
+	ObjectTypeDB::bind_method(_MD("_translation_res_option_delete"), &ProjectSettings::_translation_res_option_delete);
 
-	ClassDB::bind_method(D_METHOD("_clear_search_box"), &ProjectSettings::_clear_search_box);
-	ClassDB::bind_method(D_METHOD("_toggle_search_bar"), &ProjectSettings::_toggle_search_bar);
+	ObjectTypeDB::bind_method(_MD("_clear_search_box"), &ProjectSettings::_clear_search_box);
+	ObjectTypeDB::bind_method(_MD("_toggle_search_bar"), &ProjectSettings::_toggle_search_bar);
 }
 
 ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	singleton = this;
-	set_title(TTR("Project Settings (project.godot)"));
-	set_resizable(true);
+	set_title(TTR("Project Settings (engine.cfg)"));
 	undo_redo = &p_data->get_undo_redo();
 	data = p_data;
 
 	tab_container = memnew(TabContainer);
-	tab_container->set_tab_align(TabContainer::ALIGN_LEFT);
 	add_child(tab_container);
-	//set_child_rect(tab_container);
+	set_child_rect(tab_container);
 
 	//tab_container->set_anchor_and_margin(MARGIN_LEFT,ANCHOR_BEGIN, 15 );
 	//tab_container->set_anchor_and_margin(MARGIN_RIGHT,ANCHOR_END, 15 );
@@ -1408,10 +1290,10 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	globals_editor = memnew(SectionedPropertyEditor);
 	props_base->add_child(globals_editor);
-	globals_editor->get_property_editor()->set_undo_redo(EditorNode::get_singleton()->get_undo_redo());
 	//globals_editor->hide_top_label();
 	globals_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
 	globals_editor->get_property_editor()->register_text_enter(search_box);
+	globals_editor->get_property_editor()->set_capitalize_paths(false);
 	globals_editor->get_property_editor()->get_scene_tree()->connect("cell_selected", this, "_item_selected");
 	globals_editor->get_property_editor()->connect("property_toggled", this, "_item_checked", varray(), CONNECT_DEFERRED);
 	globals_editor->get_property_editor()->connect("property_edited", this, "_settings_prop_edited");
@@ -1440,23 +1322,22 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	hbc->add_spacer();
 
-	/*List<StringName> ep;
+	List<StringName> ep;
 	EditorImportExport::get_singleton()->get_export_platforms(&ep);
 	ep.sort_custom<StringName::AlphCompare>();
 
-	for(List<StringName>::Element *E=ep.front();E;E=E->next()) {
+	for (List<StringName>::Element *E = ep.front(); E; E = E->next()) {
 
-		popup_platform->get_popup()->add_item( E->get() );
+		popup_platform->get_popup()->add_item(E->get());
+	}
 
-	}*/
-
-	popup_platform->get_popup()->connect("id_pressed", this, "_copy_to_platform");
+	popup_platform->get_popup()->connect("item_pressed", this, "_copy_to_platform");
 	get_ok()->set_text(TTR("Close"));
 	set_hide_on_ok(true);
 
 	message = memnew(ConfirmationDialog);
 	add_child(message);
-	//message->get_cancel()->hide();
+	//	message->get_cancel()->hide();
 	message->set_hide_on_ok(true);
 
 	Control *input_base = memnew(Control);
@@ -1473,7 +1354,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	l = memnew(Label);
 	vbc->add_child(l);
-	l->set_position(Point2(6, 5));
+	l->set_pos(Point2(6, 5));
 	l->set_text(TTR("Action:"));
 
 	hbc = memnew(HBoxContainer);
@@ -1494,12 +1375,11 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 	vbc->add_child(input_editor);
 	input_editor->set_v_size_flags(SIZE_EXPAND_FILL);
 	input_editor->connect("item_edited", this, "_action_edited");
-	input_editor->connect("item_activated", this, "_action_activated");
 	input_editor->connect("cell_selected", this, "_action_selected");
 	input_editor->connect("button_pressed", this, "_action_button_pressed");
 	popup_add = memnew(PopupMenu);
 	add_child(popup_add);
-	popup_add->connect("id_pressed", this, "_add_item");
+	popup_add->connect("item_pressed", this, "_add_item");
 
 	press_a_key = memnew(ConfirmationDialog);
 	press_a_key->set_focus_mode(FOCUS_ALL);
@@ -1513,7 +1393,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 	l->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_BEGIN, 30);
 	press_a_key_label = l;
 	press_a_key->add_child(l);
-	press_a_key->connect("gui_input", this, "_wait_for_key");
+	press_a_key->connect("input_event", this, "_wait_for_key");
 	press_a_key->connect("confirmed", this, "_press_a_key_confirm");
 
 	device_input = memnew(ConfirmationDialog);
@@ -1523,7 +1403,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	hbc = memnew(HBoxContainer);
 	device_input->add_child(hbc);
-	//device_input->set_child_rect(hbc);
+	device_input->set_child_rect(hbc);
 
 	VBoxContainer *vbc_left = memnew(VBoxContainer);
 	hbc->add_child(vbc_left);
@@ -1533,7 +1413,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 	vbc_left->add_child(l);
 
 	device_id = memnew(SpinBox);
-	device_id->set_value(0);
+	device_id->set_val(0);
 	vbc_left->add_child(device_id);
 
 	VBoxContainer *vbc_right = memnew(VBoxContainer);
@@ -1564,7 +1444,6 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	//translations
 	TabContainer *translations = memnew(TabContainer);
-	translations->set_tab_align(TabContainer::ALIGN_LEFT);
 	translations->set_name(TTR("Localization"));
 	tab_container->add_child(translations);
 
@@ -1665,7 +1544,7 @@ ProjectSettings::ProjectSettings(EditorData *p_data) {
 
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
-	timer->connect("timeout", GlobalConfig::get_singleton(), "save");
+	timer->connect("timeout", Globals::get_singleton(), "save");
 	timer->set_one_shot(true);
 	add_child(timer);
 

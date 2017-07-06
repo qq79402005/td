@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    CID-keyed Type1 font loader (body).                                  */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -461,9 +461,6 @@
       FT_Byte*      p;
 
 
-      if ( !num_subrs )
-        continue;
-
       /* reallocate offsets array if needed */
       if ( num_subrs + 1 > max_offsets )
       {
@@ -573,7 +570,7 @@
   {
     FT_UNUSED( face );
 
-    FT_ZERO( loader );
+    FT_MEM_ZERO( loader, sizeof ( *loader ) );
   }
 
 
@@ -736,11 +733,9 @@
       }
 
       /* we must convert the data section from hexadecimal to binary */
-      if ( FT_ALLOC( face->binary_data, parser->binary_length )    ||
-           FT_SET_ERROR( cid_hex_to_binary( face->binary_data,
-                                            parser->binary_length,
-                                            parser->data_offset,
-                                            face ) )               )
+      if ( FT_ALLOC( face->binary_data, parser->binary_length )         ||
+           cid_hex_to_binary( face->binary_data, parser->binary_length,
+                              parser->data_offset, face )               )
         goto Exit;
 
       FT_Stream_OpenMemory( face->cid_stream,
@@ -782,8 +777,7 @@
       CID_FaceDict  dict = cid->font_dicts + n;
 
 
-      if ( dict->sd_bytes < 0                        ||
-           ( dict->num_subrs && dict->sd_bytes < 1 ) )
+      if ( dict->sd_bytes < 0 )
       {
         FT_ERROR(( "cid_parse_dict: Invalid `SDBytes' value\n" ));
         error = FT_THROW( Invalid_File_Format );

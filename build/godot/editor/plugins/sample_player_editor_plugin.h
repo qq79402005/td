@@ -30,8 +30,6 @@
 #ifndef SAMPLE_PLAYER_EDITOR_PLUGIN_H
 #define SAMPLE_PLAYER_EDITOR_PLUGIN_H
 
-#if 0
-
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
 #include "scene/3d/spatial_sample_player.h"
@@ -44,14 +42,13 @@
 
 class SamplePlayerEditor : public Control {
 
-	GDCLASS(SamplePlayerEditor, Control );
+	OBJ_TYPE(SamplePlayerEditor, Control);
 
 	Panel *panel;
-	Button * play;
-	Button * stop;
+	Button *play;
+	Button *stop;
 	OptionButton *samples;
 	Node *node;
-
 
 	void _update_sample_library();
 	void _play();
@@ -61,21 +58,20 @@ protected:
 	void _notification(int p_what);
 	void _node_removed(Node *p_node);
 	static void _bind_methods();
-public:
 
+public:
 	void edit(Node *p_sample_player);
 	SamplePlayerEditor();
 };
 
 class SamplePlayerEditorPlugin : public EditorPlugin {
 
-	GDCLASS( SamplePlayerEditorPlugin, EditorPlugin );
+	OBJ_TYPE(SamplePlayerEditorPlugin, EditorPlugin);
 
 	SamplePlayerEditor *sample_player_editor;
 	EditorNode *editor;
 
 public:
-
 	virtual String get_name() const { return "SamplePlayer"; }
 	bool has_main_screen() const { return false; }
 	virtual void edit(Object *p_node);
@@ -84,8 +80,6 @@ public:
 
 	SamplePlayerEditorPlugin(EditorNode *p_node);
 	~SamplePlayerEditorPlugin();
-
 };
 
-#endif
 #endif // SAMPLE_PLAYER_EDITOR_PLUGIN_H

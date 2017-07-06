@@ -180,7 +180,7 @@ private:
 
 public:
 	/**
-	* return an const iterator to the beginning of the list.
+ 	* return an const iterator to the begining of the list.
 	*/
 	_FORCE_INLINE_ const Element *front() const {
 
@@ -188,7 +188,7 @@ public:
 	};
 
 	/**
-	* return an iterator to the beginning of the list.
+ 	* return an iterator to the begining of the list.
 	*/
 	_FORCE_INLINE_ Element *front() {
 		return _data ? _data->first : 0;
@@ -252,7 +252,7 @@ public:
 	}
 
 	/**
-	 * store a new element at the beginning of the list
+	 * store a new element at the begining of the list
 	 */
 	Element *push_front(const T &value) {
 
@@ -398,7 +398,10 @@ public:
 
 	T &operator[](int p_index) {
 
-		CRASH_BAD_INDEX(p_index, size());
+		if (p_index < 0 || p_index >= size()) {
+			T &aux = *((T *)0); //nullreturn
+			ERR_FAIL_COND_V(p_index < 0 || p_index >= size(), aux);
+		}
 
 		Element *I = front();
 		int c = 0;
@@ -412,12 +415,15 @@ public:
 			c++;
 		}
 
-		CRASH_NOW(); // bug!!
+		ERR_FAIL_V(*((T *)0)); // bug!!
 	}
 
 	const T &operator[](int p_index) const {
 
-		CRASH_BAD_INDEX(p_index, size());
+		if (p_index < 0 || p_index >= size()) {
+			T &aux = *((T *)0); //nullreturn
+			ERR_FAIL_COND_V(p_index < 0 || p_index >= size(), aux);
+		}
 
 		const Element *I = front();
 		int c = 0;
@@ -431,7 +437,7 @@ public:
 			c++;
 		}
 
-		CRASH_NOW(); // bug!!
+		ERR_FAIL_V(*((T *)0)); // bug!
 	}
 
 	void move_to_back(Element *p_I) {

@@ -36,7 +36,6 @@
 
 class ResourceInteractiveLoaderBinary : public ResourceInteractiveLoader {
 
-	bool translation_remapped;
 	String local_path;
 	String res_path;
 	String type;
@@ -53,8 +52,6 @@ class ResourceInteractiveLoaderBinary : public ResourceInteractiveLoader {
 
 	//Map<int,StringName> string_map;
 	Vector<StringName> string_map;
-
-	StringName _get_string();
 
 	struct ExtResoucre {
 		String path;
@@ -80,7 +77,7 @@ class ResourceInteractiveLoaderBinary : public ResourceInteractiveLoader {
 
 	friend class ResourceFormatLoaderBinary;
 
-	Error parse_variant(Variant &r_v);
+	Error parse_variant(Variant &r_v, bool p_for_export_data = false);
 
 public:
 	virtual void set_local_path(const String &p_local_path);
@@ -88,12 +85,13 @@ public:
 	virtual Error poll();
 	virtual int get_stage() const;
 	virtual int get_stage_count() const;
-	virtual void set_translation_remapped(bool p_remapped);
 
 	void set_remaps(const Map<String, String> &p_remaps) { remaps = p_remaps; }
 	void open(FileAccess *p_f);
 	String recognize(FileAccess *p_f);
 	void get_dependencies(FileAccess *p_f, List<String> *p_dependencies, bool p_add_types);
+
+	Error get_export_data(ExportData &r_export_data);
 
 	ResourceInteractiveLoaderBinary();
 	~ResourceInteractiveLoaderBinary();
@@ -107,7 +105,13 @@ public:
 	virtual bool handles_type(const String &p_type) const;
 	virtual String get_resource_type(const String &p_path) const;
 	virtual void get_dependencies(const String &p_path, List<String> *p_dependencies, bool p_add_types = false);
+	virtual Error load_import_metadata(const String &p_path, Ref<ResourceImportMetadata> &r_var) const;
 	virtual Error rename_dependencies(const String &p_path, const Map<String, String> &p_map);
+	virtual Error get_export_data(const String &p_path, ExportData &r_export_data);
+
+	static ResourceFormatLoaderBinary *singleton;
+
+	ResourceFormatLoaderBinary() { singleton = this; }
 };
 
 class ResourceFormatSaverBinaryInstance {

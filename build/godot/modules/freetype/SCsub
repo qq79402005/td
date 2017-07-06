@@ -34,13 +34,10 @@ if (env['builtin_freetype'] != 'no'):
         "src/base/fttype1.c",
         "src/base/ftwinfnt.c",
         "src/bdf/bdf.c",
-        "src/bzip2/ftbzip2.c",
         "src/cache/ftcache.c",
         "src/cff/cff.c",
         "src/cid/type1cid.c",
         "src/gxvalid/gxvalid.c",
-        "src/gzip/ftgzip.c",
-        "src/lzw/ftlzw.c",
         "src/otvalid/otvalid.c",
         "src/pcf/pcf.c",
         "src/pfr/pfr.c",
@@ -57,9 +54,9 @@ if (env['builtin_freetype'] != 'no'):
     ]
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
-    # Include header for UWP to fix build issues
-    if "platform" in env and env["platform"] == "uwp":
-        env.Append(CCFLAGS=['/FI', '"modules/freetype/uwpdef.h"'])
+    # Include header for WinRT to fix build issues
+    if "platform" in env and env["platform"] == "winrt":
+        env.Append(CCFLAGS=['/FI', '"modules/freetype/winrtdef.h"'])
 
     env.Append(CPPPATH=[thirdparty_dir, thirdparty_dir + "/include"])
 
@@ -80,9 +77,6 @@ if (env['builtin_freetype'] != 'no'):
             break
     if not inserted:
         env.Append(LIBS=[lib])
-    env.Append(CCFLAGS=['-DFT2_BUILD_LIBRARY'])
-    if (env['target'] != 'release'):
-        env.Append(CCFLAGS=['-DZLIB_DEBUG'])
 
 # Godot source files
 env.add_source_files(env.modules_sources, "*.cpp")

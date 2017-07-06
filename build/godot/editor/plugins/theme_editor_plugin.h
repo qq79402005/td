@@ -35,14 +35,14 @@
 #include "scene/gui/file_dialog.h"
 #include "scene/gui/option_button.h"
 #include "scene/gui/scroll_container.h"
-#include "scene/gui/texture_rect.h"
+#include "scene/gui/texture_frame.h"
 #include "scene/resources/theme.h"
 
 #include "editor/editor_node.h"
 
 class ThemeEditor : public Control {
 
-	GDCLASS(ThemeEditor, Control);
+	OBJ_TYPE(ThemeEditor, Control);
 
 	ScrollContainer *scroll;
 	VBoxContainer *main_vb;
@@ -97,7 +97,7 @@ public:
 
 class ThemeEditorPlugin : public EditorPlugin {
 
-	GDCLASS(ThemeEditorPlugin, EditorPlugin);
+	OBJ_TYPE(ThemeEditorPlugin, EditorPlugin);
 
 	ThemeEditor *theme_editor;
 	EditorNode *editor;

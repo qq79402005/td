@@ -28,12 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "resource_preloader_editor_plugin.h"
-
 #include "editor/editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/resource_loader.h"
+#include "scene/resources/scene_preloader.h"
 
-void ResourcePreloaderEditor::_gui_input(Ref<InputEvent> p_event) {
+void ResourcePreloaderEditor::_input_event(InputEvent p_event) {
 }
 
 void ResourcePreloaderEditor::_notification(int p_what) {
@@ -48,7 +48,7 @@ void ResourcePreloaderEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_READY) {
 
-		//NodePath("/root")->connect("node_removed", this,"_node_removed",Vector<Variant>(),true);
+		//		NodePath("/root")->connect("node_removed", this,"_node_removed",Vector<Variant>(),true);
 	}
 
 	if (p_what == NOTIFICATION_DRAW) {
@@ -73,7 +73,7 @@ void ResourcePreloaderEditor::_files_load_request(const Vector<String> &p_paths)
 			return; ///beh should show an error i guess
 		}
 
-		String basename = path.get_file().get_basename();
+		String basename = path.get_file().basename();
 		String name = basename;
 		int counter = 1;
 		while (preloader->has_resource(name)) {
@@ -167,7 +167,7 @@ void ResourcePreloaderEditor::_paste_pressed() {
 	if (name == "")
 		name = r->get_path().get_file();
 	if (name == "")
-		name = r->get_class();
+		name = r->get_type();
 
 	String basename = name;
 	int counter = 1;
@@ -229,7 +229,7 @@ void ResourcePreloaderEditor::_update_library() {
 		ERR_CONTINUE(r.is_null());
 
 		ti->set_tooltip(0, r->get_path());
-		String type = r->get_class();
+		String type = r->get_type();
 		ti->set_text(1, type);
 		ti->set_selectable(1, false);
 
@@ -315,7 +315,7 @@ void ResourcePreloaderEditor::drop_data_fw(const Point2 &p_point, const Variant 
 			if (r->get_name() != "") {
 				basename = r->get_name();
 			} else if (r->get_path().is_resource_file()) {
-				basename = r->get_path().get_basename();
+				basename = r->get_path().basename();
 			} else {
 				basename = "Resource";
 			}
@@ -346,18 +346,18 @@ void ResourcePreloaderEditor::drop_data_fw(const Point2 &p_point, const Variant 
 
 void ResourcePreloaderEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_gui_input"), &ResourcePreloaderEditor::_gui_input);
-	ClassDB::bind_method(D_METHOD("_load_pressed"), &ResourcePreloaderEditor::_load_pressed);
-	ClassDB::bind_method(D_METHOD("_item_edited"), &ResourcePreloaderEditor::_item_edited);
-	ClassDB::bind_method(D_METHOD("_delete_pressed"), &ResourcePreloaderEditor::_delete_pressed);
-	ClassDB::bind_method(D_METHOD("_paste_pressed"), &ResourcePreloaderEditor::_paste_pressed);
-	ClassDB::bind_method(D_METHOD("_delete_confirm_pressed"), &ResourcePreloaderEditor::_delete_confirm_pressed);
-	ClassDB::bind_method(D_METHOD("_files_load_request"), &ResourcePreloaderEditor::_files_load_request);
-	ClassDB::bind_method(D_METHOD("_update_library"), &ResourcePreloaderEditor::_update_library);
+	ObjectTypeDB::bind_method(_MD("_input_event"), &ResourcePreloaderEditor::_input_event);
+	ObjectTypeDB::bind_method(_MD("_load_pressed"), &ResourcePreloaderEditor::_load_pressed);
+	ObjectTypeDB::bind_method(_MD("_item_edited"), &ResourcePreloaderEditor::_item_edited);
+	ObjectTypeDB::bind_method(_MD("_delete_pressed"), &ResourcePreloaderEditor::_delete_pressed);
+	ObjectTypeDB::bind_method(_MD("_paste_pressed"), &ResourcePreloaderEditor::_paste_pressed);
+	ObjectTypeDB::bind_method(_MD("_delete_confirm_pressed"), &ResourcePreloaderEditor::_delete_confirm_pressed);
+	ObjectTypeDB::bind_method(_MD("_files_load_request"), &ResourcePreloaderEditor::_files_load_request);
+	ObjectTypeDB::bind_method(_MD("_update_library"), &ResourcePreloaderEditor::_update_library);
 
-	ClassDB::bind_method(D_METHOD("get_drag_data_fw"), &ResourcePreloaderEditor::get_drag_data_fw);
-	ClassDB::bind_method(D_METHOD("can_drop_data_fw"), &ResourcePreloaderEditor::can_drop_data_fw);
-	ClassDB::bind_method(D_METHOD("drop_data_fw"), &ResourcePreloaderEditor::drop_data_fw);
+	ObjectTypeDB::bind_method(_MD("get_drag_data_fw"), &ResourcePreloaderEditor::get_drag_data_fw);
+	ObjectTypeDB::bind_method(_MD("can_drop_data_fw"), &ResourcePreloaderEditor::can_drop_data_fw);
+	ObjectTypeDB::bind_method(_MD("drop_data_fw"), &ResourcePreloaderEditor::drop_data_fw);
 }
 
 ResourcePreloaderEditor::ResourcePreloaderEditor() {
@@ -419,7 +419,7 @@ void ResourcePreloaderEditorPlugin::edit(Object *p_object) {
 
 bool ResourcePreloaderEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_class("ResourcePreloader");
+	return p_object->is_type("ResourcePreloader");
 }
 
 void ResourcePreloaderEditorPlugin::make_visible(bool p_visible) {
@@ -428,14 +428,14 @@ void ResourcePreloaderEditorPlugin::make_visible(bool p_visible) {
 		//preloader_editor->show();
 		button->show();
 		editor->make_bottom_panel_item_visible(preloader_editor);
-		//preloader_editor->set_process(true);
+		//		preloader_editor->set_process(true);
 	} else {
 
-		if (preloader_editor->is_visible_in_tree())
+		if (preloader_editor->is_visible())
 			editor->hide_bottom_panel();
 		button->hide();
 		//preloader_editor->hide();
-		//preloader_editor->set_process(false);
+		//		preloader_editor->set_process(false);
 	}
 }
 
@@ -448,8 +448,8 @@ ResourcePreloaderEditorPlugin::ResourcePreloaderEditorPlugin(EditorNode *p_node)
 	button = editor->add_bottom_panel_item("ResourcePreloader", preloader_editor);
 	button->hide();
 
-	//preloader_editor->set_anchor( MARGIN_TOP, Control::ANCHOR_END);
-	//preloader_editor->set_margin( MARGIN_TOP, 120 );
+	//	preloader_editor->set_anchor( MARGIN_TOP, Control::ANCHOR_END);
+	//	preloader_editor->set_margin( MARGIN_TOP, 120 );
 }
 
 ResourcePreloaderEditorPlugin::~ResourcePreloaderEditorPlugin() {

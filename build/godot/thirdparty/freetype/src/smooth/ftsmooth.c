@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Anti-aliasing renderer interface (body).                             */
 /*                                                                         */
-/*  Copyright 2000-2017 by                                                 */
+/*  Copyright 2000-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -87,7 +87,7 @@
                       FT_GlyphSlot  slot,
                       FT_BBox*      cbox )
   {
-    FT_ZERO( cbox );
+    FT_MEM_ZERO( cbox, sizeof ( *cbox ) );
 
     if ( slot->format == render->glyph_format )
       FT_Outline_Get_CBox( &slot->outline, cbox );
@@ -114,68 +114,14 @@
 #ifndef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
     FT_Pos       height_org, width_org;
 #endif
-    FT_Int       hmul    = ( mode == FT_RENDER_MODE_LCD );
-    FT_Int       vmul    = ( mode == FT_RENDER_MODE_LCD_V );
+    FT_Int       hmul    = mode == FT_RENDER_MODE_LCD;
+    FT_Int       vmul    = mode == FT_RENDER_MODE_LCD_V;
 
     FT_Raster_Params  params;
 
     FT_Bool  have_outline_shifted = FALSE;
     FT_Bool  have_buffer          = FALSE;
 
-#ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
-
-    FT_Int                   lcd_extra          = 0;
-    FT_LcdFiveTapFilter      lcd_weights        = { 0 };
-    FT_Bool                  have_custom_weight = FALSE;
-    FT_Bitmap_LcdFilterFunc  lcd_filter_func    = NULL;
-
-
-    if ( slot->face )
-    {
-      FT_Char  i;
-
-
-      for ( i = 0; i < FT_LCD_FILTER_FIVE_TAPS; i++ )
-        if ( slot->face->internal->lcd_weights[i] != 0 )
-        {
-          have_custom_weight = TRUE;
-          break;
-        }
-    }
-
-    /*
-     * The LCD filter can be set library-wide and per-face.  Face overrides
-     * library.  If the face filter weights are all zero (the default), it
-     * means that the library default should be used.
-     */
-    if ( have_custom_weight )
-    {
-      /*
-       * A per-font filter is set.  It always uses the default 5-tap
-       * in-place FIR filter that needs 2 extra pixels.
-       */
-      ft_memcpy( lcd_weights,
-                 slot->face->internal->lcd_weights,
-                 FT_LCD_FILTER_FIVE_TAPS );
-      lcd_filter_func = ft_lcd_filter_fir;
-      lcd_extra       = 2;
-    }
-    else
-    {
-      /*
-       * The face's lcd_weights is {0, 0, 0, 0, 0}, meaning `use library
-       * default'.  If the library is set to use no LCD filtering
-       * (lcd_filter_func == NULL), `lcd_filter_func' here is also set to
-       * NULL and the tests further below pass over the filtering process.
-       */
-      ft_memcpy( lcd_weights,
-                 slot->library->lcd_weights,
-                 FT_LCD_FILTER_FIVE_TAPS );
-      lcd_filter_func = slot->library->lcd_filter_func;
-      lcd_extra       = slot->library->lcd_extra;
-    }
-
-#endif /*FT_CONFIG_OPTION_SUBPIXEL_RENDERING */
 
     /* check glyph image format */
     if ( slot->format != render->glyph_format )
@@ -231,23 +177,28 @@
       height *= 3;
 
 #ifdef FT_CONFIG_OPTION_SUBPIXEL_RENDERING
-    if ( lcd_filter_func )
+
+    if ( slot->library->lcd_filter_func )
     {
+      FT_Int  extra = slot->library->lcd_extra;
+
+
       if ( hmul )
       {
-        x_shift += 64 * ( lcd_extra >> 1 );
-        x_left  -= lcd_extra >> 1;
-        width   += 3 * lcd_extra;
+        x_shift += 64 * ( extra >> 1 );
+        x_left  -= extra >> 1;
+        width   += 3 * extra;
         pitch    = FT_PAD_CEIL( width, 4 );
       }
 
       if ( vmul )
       {
-        y_shift += 64 * ( lcd_extra >> 1 );
-        y_top   += lcd_extra >> 1;
-        height  += 3 * lcd_extra;
+        y_shift += 64 * ( extra >> 1 );
+        y_top   += extra >> 1;
+        height  += 3 * extra;
       }
     }
+
 #endif
 
     /*
@@ -348,8 +299,8 @@
     if ( error )
       goto Exit;
 
-    if ( lcd_filter_func )
-      lcd_filter_func( bitmap, mode, lcd_weights );
+    if ( slot->library->lcd_filter_func )
+      slot->library->lcd_filter_func( bitmap, mode, slot->library );
 
 #else /* !FT_CONFIG_OPTION_SUBPIXEL_RENDERING */
 
@@ -477,8 +428,7 @@
   }
 
 
-  FT_DEFINE_RENDERER(
-    ft_smooth_renderer_class,
+  FT_DEFINE_RENDERER( ft_smooth_renderer_class,
 
       FT_MODULE_RENDERER,
       sizeof ( FT_RendererRec ),
@@ -487,25 +437,25 @@
       0x10000L,
       0x20000L,
 
-      NULL,    /* module specific interface */
+      0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_smooth_init,  /* module_init   */
-      (FT_Module_Destructor) NULL,            /* module_done   */
-      (FT_Module_Requester)  NULL,            /* get_interface */
+      (FT_Module_Constructor)ft_smooth_init,
+      (FT_Module_Destructor) 0,
+      (FT_Module_Requester)  0
+    ,
 
     FT_GLYPH_FORMAT_OUTLINE,
 
-    (FT_Renderer_RenderFunc)   ft_smooth_render,     /* render_glyph    */
-    (FT_Renderer_TransformFunc)ft_smooth_transform,  /* transform_glyph */
-    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,   /* get_glyph_cbox  */
-    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,   /* set_mode        */
+    (FT_Renderer_RenderFunc)   ft_smooth_render,
+    (FT_Renderer_TransformFunc)ft_smooth_transform,
+    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,
+    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,
 
-    (FT_Raster_Funcs*)&FT_GRAYS_RASTER_GET           /* raster_class    */
+    (FT_Raster_Funcs*)    &FT_GRAYS_RASTER_GET
   )
 
 
-  FT_DEFINE_RENDERER(
-    ft_smooth_lcd_renderer_class,
+  FT_DEFINE_RENDERER( ft_smooth_lcd_renderer_class,
 
       FT_MODULE_RENDERER,
       sizeof ( FT_RendererRec ),
@@ -514,25 +464,24 @@
       0x10000L,
       0x20000L,
 
-      NULL,    /* module specific interface */
+      0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_smooth_init,  /* module_init   */
-      (FT_Module_Destructor) NULL,            /* module_done   */
-      (FT_Module_Requester)  NULL,            /* get_interface */
+      (FT_Module_Constructor)ft_smooth_init,
+      (FT_Module_Destructor) 0,
+      (FT_Module_Requester)  0
+    ,
 
     FT_GLYPH_FORMAT_OUTLINE,
 
-    (FT_Renderer_RenderFunc)   ft_smooth_render_lcd,  /* render_glyph    */
-    (FT_Renderer_TransformFunc)ft_smooth_transform,   /* transform_glyph */
-    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,    /* get_glyph_cbox  */
-    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,    /* set_mode        */
+    (FT_Renderer_RenderFunc)   ft_smooth_render_lcd,
+    (FT_Renderer_TransformFunc)ft_smooth_transform,
+    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,
+    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,
 
-    (FT_Raster_Funcs*)&FT_GRAYS_RASTER_GET            /* raster_class    */
+    (FT_Raster_Funcs*)    &FT_GRAYS_RASTER_GET
   )
 
-
-  FT_DEFINE_RENDERER(
-    ft_smooth_lcdv_renderer_class,
+  FT_DEFINE_RENDERER( ft_smooth_lcdv_renderer_class,
 
       FT_MODULE_RENDERER,
       sizeof ( FT_RendererRec ),
@@ -541,20 +490,21 @@
       0x10000L,
       0x20000L,
 
-      NULL,    /* module specific interface */
+      0,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_smooth_init,  /* module_init   */
-      (FT_Module_Destructor) NULL,            /* module_done   */
-      (FT_Module_Requester)  NULL,            /* get_interface */
+      (FT_Module_Constructor)ft_smooth_init,
+      (FT_Module_Destructor) 0,
+      (FT_Module_Requester)  0
+    ,
 
     FT_GLYPH_FORMAT_OUTLINE,
 
-    (FT_Renderer_RenderFunc)   ft_smooth_render_lcd_v,  /* render_glyph    */
-    (FT_Renderer_TransformFunc)ft_smooth_transform,     /* transform_glyph */
-    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,      /* get_glyph_cbox  */
-    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,      /* set_mode        */
+    (FT_Renderer_RenderFunc)   ft_smooth_render_lcd_v,
+    (FT_Renderer_TransformFunc)ft_smooth_transform,
+    (FT_Renderer_GetCBoxFunc)  ft_smooth_get_cbox,
+    (FT_Renderer_SetModeFunc)  ft_smooth_set_mode,
 
-    (FT_Raster_Funcs*)&FT_GRAYS_RASTER_GET              /* raster_class    */
+    (FT_Raster_Funcs*)    &FT_GRAYS_RASTER_GET
   )
 
 

@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "rich_text_editor_plugin.h"
-
 #include "canvas_item_editor_plugin.h"
 #include "os/file_access.h"
 
@@ -85,8 +84,8 @@ void RichTextEditor::_menu_option(int p_option) {
 
 void RichTextEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_menu_option"), &RichTextEditor::_menu_option);
-	ClassDB::bind_method(D_METHOD("_file_selected"), &RichTextEditor::_file_selected);
+	ObjectTypeDB::bind_method(_MD("_menu_option"), &RichTextEditor::_menu_option);
+	ObjectTypeDB::bind_method(_MD("_file_selected"), &RichTextEditor::_file_selected);
 }
 
 void RichTextEditor::edit(Node *p_rich_text) {
@@ -104,7 +103,7 @@ RichTextEditor::RichTextEditor() {
 	options->get_popup()->add_item(TTR("Parse BBCode"), PARSE_BBCODE);
 	options->get_popup()->add_item(TTR("Clear"), CLEAR);
 
-	options->get_popup()->connect("id_pressed", this, "_menu_option");
+	options->get_popup()->connect("item_pressed", this, "_menu_option");
 	file_dialog = memnew(EditorFileDialog);
 	add_child(file_dialog);
 	file_dialog->add_filter("*.txt");
@@ -119,7 +118,7 @@ void RichTextEditorPlugin::edit(Object *p_object) {
 
 bool RichTextEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_class("RichTextLabel");
+	return p_object->is_type("RichTextLabel");
 }
 
 void RichTextEditorPlugin::make_visible(bool p_visible) {

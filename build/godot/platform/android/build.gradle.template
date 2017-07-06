@@ -3,7 +3,7 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.android.tools.build:gradle:2.3.1'
+		classpath 'com.android.tools.build:gradle:2.1.0'
 		$$GRADLE_CLASSPATH$$
 	}
 }
@@ -31,7 +31,7 @@ android {
 	}
 
 	compileSdkVersion 23
-	buildToolsVersion "25.0.3"
+	buildToolsVersion "23.0.3"
 	useLibrary 'org.apache.http.legacy'
 
 	packagingOptions {
@@ -39,6 +39,8 @@ android {
 		exclude 'META-INF/NOTICE'
 	}
 	defaultConfig {
+		minSdkVersion 14
+		targetSdkVersion 23
 		$$GRADLE_DEFAULT_CONFIG$$
 	}
 	// Both signing and zip-aligning will be done at export time
@@ -56,6 +58,7 @@ android {
 				'res'
 				$$GRADLE_RES_DIRS$$  
 			]
+		//            libs.srcDirs = ['libs']
 			aidl.srcDirs = [
 				'aidl'
 				$$GRADLE_AIDL_DIRS$$   
@@ -63,6 +66,9 @@ android {
 			assets.srcDirs = [
 				'assets'
 				$$GRADLE_ASSET_DIRS$$
+			]
+			jniLibs.srcDirs = [
+				$$GRADLE_JNI_DIRS$$
 			]
 		}
 		debug.jniLibs.srcDirs = [

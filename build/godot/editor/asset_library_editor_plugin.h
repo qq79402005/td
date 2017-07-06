@@ -52,13 +52,13 @@
 
 class EditorAssetLibraryItem : public PanelContainer {
 
-	GDCLASS(EditorAssetLibraryItem, PanelContainer);
+	OBJ_TYPE(EditorAssetLibraryItem, PanelContainer);
 
 	TextureButton *icon;
 	LinkButton *title;
 	LinkButton *category;
 	LinkButton *author;
-	TextureRect *stars[5];
+	TextureFrame *stars[5];
 	Label *price;
 
 	int asset_id;
@@ -83,7 +83,7 @@ public:
 
 class EditorAssetLibraryItemDescription : public ConfirmationDialog {
 
-	GDCLASS(EditorAssetLibraryItemDescription, ConfirmationDialog);
+	OBJ_TYPE(EditorAssetLibraryItemDescription, ConfirmationDialog);
 
 	EditorAssetLibraryItem *item;
 	RichTextLabel *description;
@@ -99,7 +99,7 @@ class EditorAssetLibraryItemDescription : public ConfirmationDialog {
 	};
 
 	Vector<Preview> preview_images;
-	TextureRect *preview;
+	TextureFrame *preview;
 
 	void set_image(int p_type, int p_index, const Ref<Texture> &p_image);
 
@@ -129,9 +129,9 @@ public:
 
 class EditorAssetLibraryItemDownload : public PanelContainer {
 
-	GDCLASS(EditorAssetLibraryItemDownload, PanelContainer);
+	OBJ_TYPE(EditorAssetLibraryItemDownload, PanelContainer);
 
-	TextureRect *icon;
+	TextureFrame *icon;
 	Label *title;
 	ProgressBar *progress;
 	Button *install;
@@ -155,7 +155,7 @@ class EditorAssetLibraryItemDownload : public PanelContainer {
 	void _close();
 	void _install();
 	void _make_request();
-	void _http_download_completed(int p_status, int p_code, const PoolStringArray &headers, const PoolByteArray &p_data);
+	void _http_download_completed(int p_status, int p_code, const StringArray &headers, const ByteArray &p_data);
 
 protected:
 	void _notification(int p_what);
@@ -169,7 +169,7 @@ public:
 };
 
 class EditorAssetLibrary : public PanelContainer {
-	GDCLASS(EditorAssetLibrary, PanelContainer);
+	OBJ_TYPE(EditorAssetLibrary, PanelContainer);
 
 	String host;
 
@@ -246,8 +246,8 @@ class EditorAssetLibrary : public PanelContainer {
 	int last_queue_id;
 	Map<int, ImageQueue> image_queue;
 
-	void _image_update(bool use_cache, bool final, const PoolByteArray &p_data, int p_queue_id);
-	void _image_request_completed(int p_status, int p_code, const PoolStringArray &headers, const PoolByteArray &p_data, int p_queue_id);
+	void _image_update(bool use_cache, bool final, const ByteArray &p_data, int p_queue_id);
+	void _image_request_completed(int p_status, int p_code, const StringArray &headers, const ByteArray &p_data, int p_queue_id);
 	void _request_image(ObjectID p_for, String p_image_url, ImageType p_type, int p_image_index);
 	void _update_image_queue();
 
@@ -281,8 +281,8 @@ class EditorAssetLibrary : public PanelContainer {
 	void _search(int p_page = 0);
 	void _rerun_search(int p_ignore);
 	void _api_request(const String &p_request, RequestType p_request_type, const String &p_arguments = "");
-	void _http_request_completed(int p_status, int p_code, const PoolStringArray &headers, const PoolByteArray &p_data);
-	void _http_download_completed(int p_status, int p_code, const PoolStringArray &headers, const PoolByteArray &p_data);
+	void _http_request_completed(int p_status, int p_code, const StringArray &headers, const ByteArray &p_data);
+	void _http_download_completed(int p_status, int p_code, const StringArray &headers, const ByteArray &p_data);
 
 	void _repository_changed(int p_repository_id);
 	void _support_toggled(int p_support);
@@ -302,7 +302,7 @@ public:
 
 class AssetLibraryEditorPlugin : public EditorPlugin {
 
-	GDCLASS(AssetLibraryEditorPlugin, EditorPlugin);
+	OBJ_TYPE(AssetLibraryEditorPlugin, EditorPlugin);
 
 	EditorAssetLibrary *addon_library;
 	EditorNode *editor;

@@ -32,30 +32,27 @@
 
 #include "scene/gui/box_container.h"
 
-#if 0
 class BaseButton;
 
 class ButtonGroup : public BoxContainer {
 
-	GDCLASS(ButtonGroup,BoxContainer);
+	OBJ_TYPE(ButtonGroup, BoxContainer);
 
-
-	Set<BaseButton*> buttons;
-
+	Set<BaseButton *> buttons;
 
 	Array _get_button_list() const;
 	void _pressed(Object *p_button);
 
 protected:
-friend class BaseButton;
+	friend class BaseButton;
 
 	void _add_button(BaseButton *p_button);
 	void _remove_button(BaseButton *p_button);
 
 	static void _bind_methods();
-public:
 
-	void get_button_list(List<BaseButton*> *p_buttons) const;
+public:
+	void get_button_list(List<BaseButton *> *p_buttons) const;
 	BaseButton *get_pressed_button() const;
 	BaseButton *get_focused_button() const;
 	void set_pressed_button(BaseButton *p_button);
@@ -64,5 +61,4 @@ public:
 	ButtonGroup();
 };
 
-#endif
 #endif // BUTTON_GROUP_H

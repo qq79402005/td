@@ -42,7 +42,7 @@ class BakedLightInstance;
 
 class GridMap : public Spatial {
 
-	GDCLASS(GridMap, Spatial);
+	OBJ_TYPE(GridMap, Spatial);
 
 	enum {
 		MAP_DIRTY_TRANSFORMS = 1,
@@ -105,6 +105,8 @@ class GridMap : public Spatial {
 			Ref<NavigationMesh> navmesh;
 		};
 
+		Ref<Mesh> baked;
+		RID bake_instance;
 		RID collision_debug;
 		RID collision_debug_instance;
 
@@ -140,12 +142,14 @@ class GridMap : public Spatial {
 	float cell_size;
 	int octant_size;
 	bool center_x, center_y, center_z;
+	bool bake;
 	float cell_scale;
 	Navigation *navigation;
 
 	bool clip;
 	bool clip_above;
 	int clip_floor;
+	bool baked_lock;
 	Vector3::Axis clip_axis;
 
 	/**
@@ -200,7 +204,9 @@ class GridMap : public Spatial {
 	void _octant_exit_world(const OctantKey &p_key);
 	void _octant_update(const OctantKey &p_key);
 	void _octant_transform(const OctantKey &p_key);
+	void _octant_clear_baked(const OctantKey &p_key);
 	void _octant_clear_navmesh(const GridMap::OctantKey &);
+	void _octant_bake(const OctantKey &p_key, const Ref<TriangleMesh> &p_tmesh = RES(), const Vector<BakeLight> &p_lights = Vector<BakeLight>(), List<Vector3> *r_prebake = NULL);
 	bool awaiting_update;
 
 	void _queue_dirty_map();
@@ -212,6 +218,13 @@ class GridMap : public Spatial {
 	void _update_area_instances();
 
 	void _clear_internal(bool p_keep_areas = false);
+
+	BakedLightInstance *baked_light_instance;
+	bool use_baked_light;
+	void _find_baked_light();
+	void _baked_light_changed();
+
+	Array _get_baked_light_meshes();
 
 protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -248,8 +261,8 @@ public:
 
 	void set_clip(bool p_enabled, bool p_clip_above = true, int p_floor = 0, Vector3::Axis p_axis = Vector3::AXIS_X);
 
-	Error create_area(int p_id, const Rect3 &p_area);
-	Rect3 area_get_bounds(int p_area) const;
+	Error create_area(int p_id, const AABB &p_area);
+	AABB area_get_bounds(int p_area) const;
 	void area_set_exterior_portal(int p_area, bool p_enable);
 	void area_set_name(int p_area, const String &p_name);
 	String area_get_name(int p_area) const;
@@ -265,8 +278,13 @@ public:
 	void set_cell_scale(float p_scale);
 	float get_cell_scale() const;
 
-	Array get_meshes();
+	void set_bake(bool p_bake);
+	bool is_baking_enabled() const;
 
+	void bake_geometry();
+
+	void set_use_baked_light(bool p_use);
+	bool is_using_baked_light() const;
 	void clear();
 
 	GridMap();

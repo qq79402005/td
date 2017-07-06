@@ -51,9 +51,9 @@ String JSON::_print_var(const Variant &p_var) {
 		case Variant::BOOL: return p_var.operator bool() ? "true" : "false";
 		case Variant::INT: return itos(p_var);
 		case Variant::REAL: return rtos(p_var);
-		case Variant::POOL_INT_ARRAY:
-		case Variant::POOL_REAL_ARRAY:
-		case Variant::POOL_STRING_ARRAY:
+		case Variant::INT_ARRAY:
+		case Variant::REAL_ARRAY:
+		case Variant::STRING_ARRAY:
 		case Variant::ARRAY: {
 
 			String s = "[";
@@ -89,14 +89,14 @@ String JSON::_print_var(const Variant &p_var) {
 	}
 }
 
-String JSON::print(const Variant &p_var) {
+String JSON::print(const Dictionary &p_dict) {
 
-	return _print_var(p_var);
+	return _print_var(p_dict);
 }
 
 Error JSON::_get_token(const CharType *p_str, int &idx, int p_len, Token &r_token, int &line, String &r_err_str) {
 
-	while (p_len > 0) {
+	while (true) {
 		switch (p_str[idx]) {
 
 			case '\n': {
@@ -276,7 +276,7 @@ Error JSON::_parse_value(Variant &value, Token &token, const CharType *p_str, in
 
 	if (token.type == TK_CURLY_BRACKET_OPEN) {
 
-		Dictionary d;
+		Dictionary d(true);
 		Error err = _parse_object(d, p_str, index, p_len, line, r_err_str);
 		if (err)
 			return err;
@@ -284,7 +284,7 @@ Error JSON::_parse_value(Variant &value, Token &token, const CharType *p_str, in
 		return OK;
 	} else if (token.type == TK_BRACKET_OPEN) {
 
-		Array a;
+		Array a(true);
 		Error err = _parse_array(a, p_str, index, p_len, line, r_err_str);
 		if (err)
 			return err;
@@ -429,20 +429,24 @@ Error JSON::_parse_object(Dictionary &object, const CharType *p_str, int &index,
 	return ERR_PARSE_ERROR;
 }
 
-Error JSON::parse(const String &p_json, Variant &r_ret, String &r_err_str, int &r_err_line) {
+Error JSON::parse(const String &p_json, Dictionary &r_ret, String &r_err_str, int &r_err_line) {
 
 	const CharType *str = p_json.ptr();
 	int idx = 0;
 	int len = p_json.length();
 	Token token;
-	r_err_line = 0;
+	int line = 0;
 	String aux_key;
 
-	Error err = _get_token(str, idx, len, token, r_err_line, r_err_str);
+	Error err = _get_token(str, idx, len, token, line, r_err_str);
 	if (err)
 		return err;
 
-	err = _parse_value(r_ret, token, str, idx, len, r_err_line, r_err_str);
+	if (token.type != TK_CURLY_BRACKET_OPEN) {
 
-	return err;
+		r_err_str = "Expected '{'";
+		return ERR_PARSE_ERROR;
+	}
+
+	return _parse_object(r_ret, str, idx, len, r_err_line, r_err_str);
 }

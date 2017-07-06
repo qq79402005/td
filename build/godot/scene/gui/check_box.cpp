@@ -53,8 +53,14 @@ void CheckBox::_notification(int p_what) {
 }
 
 bool CheckBox::is_radio() {
+	Node *parent = this;
+	do {
+		parent = parent->get_parent();
+		if (parent->cast_to<ButtonGroup>())
+			break;
+	} while (parent);
 
-	return get_button_group().is_valid();
+	return (parent != 0);
 }
 
 CheckBox::CheckBox(const String &p_text)

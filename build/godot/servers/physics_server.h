@@ -37,7 +37,7 @@ class PhysicsDirectSpaceState;
 
 class PhysicsDirectBodyState : public Object {
 
-	GDCLASS(PhysicsDirectBodyState, Object);
+	OBJ_TYPE(PhysicsDirectBodyState, Object);
 
 protected:
 	static void _bind_methods();
@@ -47,11 +47,9 @@ public:
 	virtual float get_total_angular_damp() const = 0;
 	virtual float get_total_linear_damp() const = 0;
 
-	virtual Vector3 get_center_of_mass() const = 0;
-	virtual Basis get_principal_inertia_axes() const = 0;
 	virtual float get_inverse_mass() const = 0; // get the mass
 	virtual Vector3 get_inverse_inertia() const = 0; // get density of this body space
-	virtual Basis get_inverse_inertia_tensor() const = 0; // get density of this body space
+	virtual Matrix3 get_inverse_inertia_tensor() const = 0; // get density of this body space
 
 	virtual void set_linear_velocity(const Vector3 &p_velocity) = 0;
 	virtual Vector3 get_linear_velocity() const = 0;
@@ -64,7 +62,6 @@ public:
 
 	virtual void add_force(const Vector3 &p_force, const Vector3 &p_pos) = 0;
 	virtual void apply_impulse(const Vector3 &p_pos, const Vector3 &p_j) = 0;
-	virtual void apply_torque_impulse(const Vector3 &p_j) = 0;
 
 	virtual void set_sleep_state(bool p_enable) = 0;
 	virtual bool is_sleeping() const = 0;
@@ -94,13 +91,13 @@ class PhysicsShapeQueryResult;
 
 class PhysicsShapeQueryParameters : public Reference {
 
-	GDCLASS(PhysicsShapeQueryParameters, Reference);
+	OBJ_TYPE(PhysicsShapeQueryParameters, Reference);
 	friend class PhysicsDirectSpaceState;
 	RID shape;
 	Transform transform;
 	float margin;
 	Set<RID> exclude;
-	uint32_t collision_layer;
+	uint32_t layer_mask;
 	uint32_t object_type_mask;
 
 protected:
@@ -117,8 +114,8 @@ public:
 	void set_margin(float p_margin);
 	float get_margin() const;
 
-	void set_collision_layer(int p_collision_layer);
-	int get_collision_layer() const;
+	void set_layer_mask(int p_layer_mask);
+	int get_layer_mask() const;
 
 	void set_object_type_mask(int p_object_type_mask);
 	int get_object_type_mask() const;
@@ -131,10 +128,10 @@ public:
 
 class PhysicsDirectSpaceState : public Object {
 
-	GDCLASS(PhysicsDirectSpaceState, Object);
+	OBJ_TYPE(PhysicsDirectSpaceState, Object);
 
-	//Variant _intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_collision_mask=0);
-	//Variant _intersect_shape(const RID& p_shape, const Transform& p_xform,int p_result_max=64,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_collision_mask=0);
+	//	Variant _intersect_ray(const Vector3& p_from, const Vector3& p_to,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_collision_mask=0);
+	//	Variant _intersect_shape(const RID& p_shape, const Transform& p_xform,int p_result_max=64,const Vector<RID>& p_exclude=Vector<RID>(),uint32_t p_collision_mask=0);
 public:
 	enum ObjectTypeMask {
 		TYPE_MASK_STATIC_BODY = 1 << 0,
@@ -166,7 +163,7 @@ public:
 		int shape;
 	};
 
-	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_layer = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION, bool p_pick_ray = false) = 0;
+	virtual bool intersect_ray(const Vector3 &p_from, const Vector3 &p_to, RayResult &r_result, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_layer_mask = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION, bool p_pick_ray = false) = 0;
 
 	struct ShapeResult {
 
@@ -176,7 +173,7 @@ public:
 		int shape;
 	};
 
-	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, float p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_layer = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
+	virtual int intersect_shape(const RID &p_shape, const Transform &p_xform, float p_margin, ShapeResult *r_results, int p_result_max, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_layer_mask = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
 
 	struct ShapeRestInfo {
 
@@ -188,18 +185,18 @@ public:
 		Vector3 linear_velocity; //velocity at contact point
 	};
 
-	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &p_closest_safe, float &p_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_layer = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION, ShapeRestInfo *r_info = NULL) = 0;
+	virtual bool cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &p_closest_safe, float &p_closest_unsafe, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_layer_mask = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION, ShapeRestInfo *r_info = NULL) = 0;
 
-	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, float p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_layer = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
+	virtual bool collide_shape(RID p_shape, const Transform &p_shape_xform, float p_margin, Vector3 *r_results, int p_result_max, int &r_result_count, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_layer_mask = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
 
-	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, float p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_collision_layer = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
+	virtual bool rest_info(RID p_shape, const Transform &p_shape_xform, float p_margin, ShapeRestInfo *r_info, const Set<RID> &p_exclude = Set<RID>(), uint32_t p_layer_mask = 0xFFFFFFFF, uint32_t p_object_type_mask = TYPE_MASK_COLLISION) = 0;
 
 	PhysicsDirectSpaceState();
 };
 
 class PhysicsShapeQueryResult : public Reference {
 
-	GDCLASS(PhysicsShapeQueryResult, Reference);
+	OBJ_TYPE(PhysicsShapeQueryResult, Reference);
 
 	Vector<PhysicsDirectSpaceState::ShapeResult> result;
 
@@ -220,7 +217,7 @@ public:
 
 class PhysicsServer : public Object {
 
-	GDCLASS(PhysicsServer, Object);
+	OBJ_TYPE(PhysicsServer, Object);
 
 	static PhysicsServer *singleton;
 
@@ -332,7 +329,7 @@ public:
 	virtual Transform area_get_transform(RID p_area) const = 0;
 
 	virtual void area_set_collision_mask(RID p_area, uint32_t p_mask) = 0;
-	virtual void area_set_collision_layer(RID p_area, uint32_t p_layer) = 0;
+	virtual void area_set_layer_mask(RID p_area, uint32_t p_mask) = 0;
 
 	virtual void area_set_monitorable(RID p_area, bool p_monitorable) = 0;
 
@@ -382,14 +379,14 @@ public:
 	virtual void body_set_enable_continuous_collision_detection(RID p_body, bool p_enable) = 0;
 	virtual bool body_is_continuous_collision_detection_enabled(RID p_body) const = 0;
 
-	virtual void body_set_collision_layer(RID p_body, uint32_t p_layer) = 0;
-	virtual uint32_t body_get_collision_layer(RID p_body) const = 0;
+	virtual void body_set_layer_mask(RID p_body, uint32_t p_mask) = 0;
+	virtual uint32_t body_get_layer_mask(RID p_body, uint32_t p_mask) const = 0;
 
 	virtual void body_set_collision_mask(RID p_body, uint32_t p_mask) = 0;
-	virtual uint32_t body_get_collision_mask(RID p_body) const = 0;
+	virtual uint32_t body_get_collision_mask(RID p_body, uint32_t p_mask) const = 0;
 
 	virtual void body_set_user_flags(RID p_body, uint32_t p_flags) = 0;
-	virtual uint32_t body_get_user_flags(RID p_body) const = 0;
+	virtual uint32_t body_get_user_flags(RID p_body, uint32_t p_flags) const = 0;
 
 	// common body variables
 	enum BodyParameter {
@@ -425,7 +422,6 @@ public:
 	virtual Vector3 body_get_applied_torque(RID p_body) const = 0;
 
 	virtual void body_apply_impulse(RID p_body, const Vector3 &p_pos, const Vector3 &p_impulse) = 0;
-	virtual void body_apply_torque_impulse(RID p_body, const Vector3 &p_impulse) = 0;
 	virtual void body_set_axis_velocity(RID p_body, const Vector3 &p_axis_velocity) = 0;
 
 	enum BodyAxisLock {

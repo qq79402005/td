@@ -100,7 +100,7 @@ void ParallaxLayer::_notification(int p_what) {
 
 		case NOTIFICATION_ENTER_TREE: {
 
-			orig_offset = get_position();
+			orig_offset = get_pos();
 			orig_scale = get_scale();
 			_update_mirroring();
 		} break;
@@ -125,7 +125,7 @@ void ParallaxLayer::set_base_offset_and_scale(const Point2 &p_offset, float p_sc
 		new_ofs.y -= den * ceil(new_ofs.y / den);
 	}
 
-	set_position(new_ofs);
+	set_pos(new_ofs);
 	set_scale(Vector2(1, 1) * p_scale);
 }
 
@@ -140,17 +140,16 @@ String ParallaxLayer::get_configuration_warning() const {
 
 void ParallaxLayer::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_motion_scale", "scale"), &ParallaxLayer::set_motion_scale);
-	ClassDB::bind_method(D_METHOD("get_motion_scale"), &ParallaxLayer::get_motion_scale);
-	ClassDB::bind_method(D_METHOD("set_motion_offset", "offset"), &ParallaxLayer::set_motion_offset);
-	ClassDB::bind_method(D_METHOD("get_motion_offset"), &ParallaxLayer::get_motion_offset);
-	ClassDB::bind_method(D_METHOD("set_mirroring", "mirror"), &ParallaxLayer::set_mirroring);
-	ClassDB::bind_method(D_METHOD("get_mirroring"), &ParallaxLayer::get_mirroring);
+	ObjectTypeDB::bind_method(_MD("set_motion_scale", "scale"), &ParallaxLayer::set_motion_scale);
+	ObjectTypeDB::bind_method(_MD("get_motion_scale"), &ParallaxLayer::get_motion_scale);
+	ObjectTypeDB::bind_method(_MD("set_motion_offset", "offset"), &ParallaxLayer::set_motion_offset);
+	ObjectTypeDB::bind_method(_MD("get_motion_offset"), &ParallaxLayer::get_motion_offset);
+	ObjectTypeDB::bind_method(_MD("set_mirroring", "mirror"), &ParallaxLayer::set_mirroring);
+	ObjectTypeDB::bind_method(_MD("get_mirroring"), &ParallaxLayer::get_mirroring);
 
-	ADD_GROUP("Motion", "motion_");
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion_scale"), "set_motion_scale", "get_motion_scale");
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion_offset"), "set_motion_offset", "get_motion_offset");
-	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion_mirroring"), "set_mirroring", "get_mirroring");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion/scale"), _SCS("set_motion_scale"), _SCS("get_motion_scale"));
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion/offset"), _SCS("set_motion_offset"), _SCS("get_motion_offset"));
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "motion/mirroring"), _SCS("set_mirroring"), _SCS("get_mirroring"));
 }
 
 ParallaxLayer::ParallaxLayer() {

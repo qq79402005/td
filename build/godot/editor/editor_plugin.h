@@ -30,13 +30,11 @@
 #ifndef EDITOR_PLUGIN_H
 #define EDITOR_PLUGIN_H
 
-#include "editor/import/editor_import_plugin.h"
 #include "io/config_file.h"
 #include "scene/gui/tool_button.h"
 #include "scene/main/node.h"
 #include "scene/resources/texture.h"
 #include "undo_redo.h"
-
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -45,23 +43,19 @@ class EditorNode;
 class Spatial;
 class Camera;
 class EditorSelection;
-class EditorExport;
+class EditorImportExport;
 class EditorSettings;
 class SpatialEditorGizmo;
 class EditorImportPlugin;
 class EditorExportPlugin;
-class EditorResourcePreview;
-class EditorFileSystem;
 
 class EditorPlugin : public Node {
 
-	GDCLASS(EditorPlugin, Node);
+	OBJ_TYPE(EditorPlugin, Node);
 	friend class EditorData;
 	UndoRedo *undo_redo;
 
 	UndoRedo *_get_undo_redo() { return undo_redo; }
-
-	bool input_event_forwarding_always_enabled;
 
 protected:
 	static void _bind_methods();
@@ -104,17 +98,9 @@ public:
 	Control *get_editor_viewport();
 	void edit_resource(const Ref<Resource> &p_resource);
 
-	void add_tool_menu_item(const String &p_name, Object *p_handler, const String &p_callback, const Variant &p_ud = Variant());
-	void add_tool_submenu_item(const String &p_name, Object *p_submenu);
-	void remove_tool_menu_item(const String &p_name);
-
-	void set_input_event_forwarding_always_enabled();
-	bool is_input_event_forwarding_always_enabled() { return input_event_forwarding_always_enabled; }
-
 	virtual Ref<SpatialEditorGizmo> create_spatial_gizmo(Spatial *p_spatial);
-	virtual bool forward_canvas_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event);
-	virtual void forward_draw_over_canvas(const Transform2D &p_canvas_xform, Control *p_canvas);
-	virtual bool forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event);
+	virtual bool forward_input_event(const InputEvent &p_event);
+	virtual bool forward_spatial_input_event(Camera *p_camera, const InputEvent &p_event);
 	virtual String get_name() const;
 	virtual bool has_main_screen() const;
 	virtual void make_visible(bool p_visible);
@@ -130,30 +116,24 @@ public:
 	virtual bool get_remove_list(List<Node *> *p_list);
 	virtual void set_window_layout(Ref<ConfigFile> p_layout);
 	virtual void get_window_layout(Ref<ConfigFile> p_layout);
-	virtual void edited_scene_changed() {} // if changes are pending in editor, apply them
-
-	void update_canvas();
-
-	virtual void inspect_object(Object *p_obj, const String &p_for_property = String());
+	virtual void edited_scene_changed(){}; // if changes are pending in editor, apply them
 
 	void queue_save_layout() const;
 
 	Control *get_base_control();
 
-	void make_bottom_panel_item_visible(Control *p_item);
-	void hide_bottom_panel();
+	void add_import_plugin(const Ref<EditorImportPlugin> &p_editor_import);
+	void remove_import_plugin(const Ref<EditorImportPlugin> &p_editor_import);
+
+	void add_export_plugin(const Ref<EditorExportPlugin> &p_editor_export);
+	void remove_export_plugin(const Ref<EditorExportPlugin> &p_editor_export);
 
 	EditorSelection *get_selection();
 	//EditorImportExport *get_import_export();
 	EditorSettings *get_editor_settings();
-	EditorResourcePreview *get_resource_previewer();
-	EditorFileSystem *get_resource_file_system();
 
 	virtual void restore_global_state();
 	virtual void save_global_state();
-
-	void add_import_plugin(const Ref<EditorImportPlugin> &p_importer);
-	void remove_import_plugin(const Ref<EditorImportPlugin> &p_importer);
 
 	EditorPlugin();
 	virtual ~EditorPlugin();

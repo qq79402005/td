@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  filesystem_dock.h                                                    */
+/*  scenes_dock.h                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -52,7 +52,7 @@
 class EditorNode;
 
 class FileSystemDock : public VBoxContainer {
-	GDCLASS(FileSystemDock, VBoxContainer);
+	OBJ_TYPE(FileSystemDock, VBoxContainer);
 
 public:
 	enum DisplayMode {
@@ -74,12 +74,6 @@ private:
 		FILE_COPY_PATH
 	};
 
-	enum FolderMenu {
-		FOLDER_EXPAND_ALL,
-		FOLDER_COLLAPSE_ALL,
-		FOLDER_SHOW_IN_EXPLORER
-	};
-
 	VBoxContainer *scanning_vb;
 	ProgressBar *scanning_progress;
 	VSplitContainer *split_box;
@@ -96,14 +90,13 @@ private:
 	Button *button_hist_prev;
 	LineEdit *current_path;
 	LineEdit *search_box;
-	TextureRect *search_icon;
+	TextureFrame *search_icon;
 	HBoxContainer *path_hb;
 
 	bool split_mode;
 	DisplayMode display_mode;
 
 	PopupMenu *file_options;
-	PopupMenu *folder_options;
 
 	DependencyEditor *deps_editor;
 	DependencyEditorOwners *owners_editor;
@@ -126,9 +119,6 @@ private:
 	Tree *tree; //directories
 	ItemList *files;
 
-	void _file_multi_selected(int p_index, bool p_selected);
-	void _file_selected();
-
 	void _go_to_tree();
 	void _go_to_dir(const String &p_dir);
 	void _select_file(int p_idx);
@@ -142,7 +132,6 @@ private:
 	void _move_operation(const String &p_to_path);
 
 	void _file_option(int p_option);
-	void _folder_option(int p_option);
 	void _update_files(bool p_keep_selection);
 	void _change_file_display();
 
@@ -158,7 +147,6 @@ private:
 
 	void _favorites_pressed();
 	void _open_pressed();
-	void _dir_rmb_pressed(const Vector2 &local_mouse_pos);
 	void _search_changed(const String &p_text);
 
 	void _files_list_rmb_select(int p_item, const Vector2 &p_pos);
@@ -191,7 +179,6 @@ public:
 	String get_selected_path() const;
 
 	String get_current_path() const;
-	void navigate_to_path(const String &p_path);
 	void focus_on_filter();
 
 	void fix_dependencies(const String &p_for_file);
@@ -200,7 +187,6 @@ public:
 
 	int get_split_offset() { return split_box->get_split_offset(); }
 	void set_split_offset(int p_offset) { split_box->set_split_offset(p_offset); }
-	void select_file(const String &p_file);
 
 	FileSystemDock(EditorNode *p_editor);
 	~FileSystemDock();

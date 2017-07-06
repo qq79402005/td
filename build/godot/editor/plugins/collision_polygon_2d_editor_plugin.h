@@ -43,7 +43,7 @@ class CanvasItemEditor;
 
 class CollisionPolygon2DEditor : public HBoxContainer {
 
-	GDCLASS(CollisionPolygon2DEditor, HBoxContainer);
+	OBJ_TYPE(CollisionPolygon2DEditor, HBoxContainer);
 
 	UndoRedo *undo_redo;
 	enum Mode {
@@ -80,20 +80,20 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool forward_gui_input(const Ref<InputEvent> &p_event);
+	bool forward_input_event(const InputEvent &p_event);
 	void edit(Node *p_collision_polygon);
 	CollisionPolygon2DEditor(EditorNode *p_editor);
 };
 
 class CollisionPolygon2DEditorPlugin : public EditorPlugin {
 
-	GDCLASS(CollisionPolygon2DEditorPlugin, EditorPlugin);
+	OBJ_TYPE(CollisionPolygon2DEditorPlugin, EditorPlugin);
 
 	CollisionPolygon2DEditor *collision_polygon_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_canvas_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event) { return collision_polygon_editor->forward_gui_input(p_event); }
+	virtual bool forward_input_event(const InputEvent &p_event) { return collision_polygon_editor->forward_input_event(p_event); }
 
 	virtual String get_name() const { return "CollisionPolygon2D"; }
 	bool has_main_screen() const { return false; }

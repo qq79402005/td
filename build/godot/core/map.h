@@ -147,7 +147,7 @@ private:
 #ifdef GLOBALNIL_DISABLED
 			memdelete_allocator<Element, A>(_nil);
 #endif
-			//memdelete_allocator<Element,A>(_root);
+			//			memdelete_allocator<Element,A>(_root);
 		}
 	};
 
@@ -599,9 +599,9 @@ public:
 
 	const V &operator[](const K &p_key) const {
 
-		CRASH_COND(!_data._root);
+		ERR_FAIL_COND_V(!_data._root, *(V *)NULL); // crash on purpose
 		const Element *e = find(p_key);
-		CRASH_COND(!e);
+		ERR_FAIL_COND_V(!e, *(V *)NULL); // crash on purpose
 		return e->_value;
 	}
 	V &operator[](const K &p_key) {
@@ -613,7 +613,7 @@ public:
 		if (!e)
 			e = insert(p_key, V());
 
-		CRASH_COND(!e);
+		ERR_FAIL_COND_V(!e, *(V *)NULL); // crash on purpose
 		return e->_value;
 	}
 

@@ -87,8 +87,8 @@ public:
 
 	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_PIN; }
 
-	virtual bool setup(real_t p_step);
-	virtual void solve(real_t p_step);
+	virtual bool setup(float p_step);
+	virtual void solve(float p_step);
 
 
 	PinJoint2DSW(const Vector2& p_pos,Body2DSW* p_body_a,Body2DSW* p_body_b=NULL);
@@ -108,7 +108,7 @@ class PinJoint2DSW : public Joint2DSW {
 		Body2DSW *_arr[2];
 	};
 
-	Transform2D M;
+	Matrix32 M;
 	Vector2 rA, rB;
 	Vector2 anchor_A;
 	Vector2 anchor_B;
@@ -119,8 +119,8 @@ class PinJoint2DSW : public Joint2DSW {
 public:
 	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_PIN; }
 
-	virtual bool setup(real_t p_step);
-	virtual void solve(real_t p_step);
+	virtual bool setup(float p_step);
+	virtual void solve(float p_step);
 
 	void set_param(Physics2DServer::PinJointParam p_param, real_t p_value);
 	real_t get_param(Physics2DServer::PinJointParam p_param) const;
@@ -158,8 +158,8 @@ class GrooveJoint2DSW : public Joint2DSW {
 public:
 	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_GROOVE; }
 
-	virtual bool setup(real_t p_step);
-	virtual void solve(real_t p_step);
+	virtual bool setup(float p_step);
+	virtual void solve(float p_step);
 
 	GrooveJoint2DSW(const Vector2 &p_a_groove1, const Vector2 &p_a_groove2, const Vector2 &p_b_anchor, Body2DSW *p_body_a, Body2DSW *p_body_b);
 	~GrooveJoint2DSW();
@@ -192,8 +192,8 @@ class DampedSpringJoint2DSW : public Joint2DSW {
 public:
 	virtual Physics2DServer::JointType get_type() const { return Physics2DServer::JOINT_DAMPED_SPRING; }
 
-	virtual bool setup(real_t p_step);
-	virtual void solve(real_t p_step);
+	virtual bool setup(float p_step);
+	virtual void solve(float p_step);
 
 	void set_param(Physics2DServer::DampedStringParam p_param, real_t p_value);
 	real_t get_param(Physics2DServer::DampedStringParam p_param) const;

@@ -39,7 +39,7 @@
 
 class ResourcePreloaderEditor : public PanelContainer {
 
-	GDCLASS(ResourcePreloaderEditor, PanelContainer);
+	OBJ_TYPE(ResourcePreloaderEditor, PanelContainer);
 
 	Button *load;
 	Button *_delete;
@@ -70,7 +70,7 @@ class ResourcePreloaderEditor : public PanelContainer {
 
 protected:
 	void _notification(int p_what);
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 	static void _bind_methods();
 
 public:
@@ -82,7 +82,7 @@ public:
 
 class ResourcePreloaderEditorPlugin : public EditorPlugin {
 
-	GDCLASS(ResourcePreloaderEditorPlugin, EditorPlugin);
+	OBJ_TYPE(ResourcePreloaderEditorPlugin, EditorPlugin);
 
 	ResourcePreloaderEditor *preloader_editor;
 	EditorNode *editor;

@@ -35,8 +35,8 @@
 bool StreamPeerOpenSSL::_match_host_name(const char *name, const char *hostname) {
 
 	return Tool_Curl_cert_hostcheck(name, hostname) == CURL_HOST_MATCH;
-	//print_line("MATCH: "+String(name)+" vs "+String(hostname));
-	//return true;
+	//	print_line("MATCH: "+String(name)+" vs "+String(hostname));
+	//	return true;
 }
 
 Error StreamPeerOpenSSL::_match_common_name(const char *hostname, const X509 *server_cert) {
@@ -279,10 +279,10 @@ BIO_METHOD StreamPeerOpenSSL::_bio_method = {
 	_bio_destroy
 };
 
-Error StreamPeerOpenSSL::connect_to_stream(Ref<StreamPeer> p_base, bool p_validate_certs, const String &p_for_hostname) {
+Error StreamPeerOpenSSL::connect(Ref<StreamPeer> p_base, bool p_validate_certs, const String &p_for_hostname) {
 
 	if (connected)
-		disconnect_from_stream();
+		disconnect();
 
 	hostname = p_for_hostname;
 	status = STATUS_DISCONNECTED;
@@ -389,7 +389,7 @@ Error StreamPeerOpenSSL::connect_to_stream(Ref<StreamPeer> p_base, bool p_valida
 	return OK;
 }
 
-Error StreamPeerOpenSSL::accept_stream(Ref<StreamPeer> p_base) {
+Error StreamPeerOpenSSL::accept(Ref<StreamPeer> p_base) {
 
 	return ERR_UNAVAILABLE;
 }
@@ -428,7 +428,7 @@ Error StreamPeerOpenSSL::put_data(const uint8_t *p_data, int p_bytes) {
 		int ret = SSL_write(ssl, p_data, p_bytes);
 		if (ret <= 0) {
 			_print_error(ret);
-			disconnect_from_stream();
+			disconnect();
 			return ERR_CONNECTION_ERROR;
 		}
 		p_data += ret;
@@ -461,7 +461,7 @@ Error StreamPeerOpenSSL::get_data(uint8_t *p_buffer, int p_bytes) {
 		int ret = SSL_read(ssl, p_buffer, p_bytes);
 		if (ret <= 0) {
 			_print_error(ret);
-			disconnect_from_stream();
+			disconnect();
 			return ERR_CONNECTION_ERROR;
 		}
 		p_buffer += ret;
@@ -503,7 +503,7 @@ StreamPeerOpenSSL::StreamPeerOpenSSL() {
 	flags = 0;
 }
 
-void StreamPeerOpenSSL::disconnect_from_stream() {
+void StreamPeerOpenSSL::disconnect() {
 
 	if (!connected)
 		return;
@@ -523,7 +523,7 @@ StreamPeerOpenSSL::Status StreamPeerOpenSSL::get_status() const {
 }
 
 StreamPeerOpenSSL::~StreamPeerOpenSSL() {
-	disconnect_from_stream();
+	disconnect();
 }
 
 StreamPeerSSL *StreamPeerOpenSSL::_create_func() {
@@ -533,9 +533,9 @@ StreamPeerSSL *StreamPeerOpenSSL::_create_func() {
 
 Vector<X509 *> StreamPeerOpenSSL::certs;
 
-void StreamPeerOpenSSL::_load_certs(const PoolByteArray &p_array) {
+void StreamPeerOpenSSL::_load_certs(const ByteArray &p_array) {
 
-	PoolByteArray::Read r = p_array.read();
+	ByteArray::Read r = p_array.read();
 	BIO *mem = BIO_new(BIO_s_mem());
 	BIO_puts(mem, (const char *)r.ptr());
 	while (true) {
@@ -559,17 +559,17 @@ void StreamPeerOpenSSL::initialize_ssl() {
 	SSL_load_error_strings(); // Load SSL error strings
 	ERR_load_BIO_strings(); // Load BIO error strings
 	OpenSSL_add_all_algorithms(); // Load all available encryption algorithms
-	String certs_path = GLOBAL_DEF("network/ssl/certificates", "");
-	GlobalConfig::get_singleton()->set_custom_property_info("network/ssl/certificates", PropertyInfo(Variant::STRING, "network/ssl/certificates", PROPERTY_HINT_FILE, "*.crt"));
+	String certs_path = GLOBAL_DEF("ssl/certificates", "");
+	Globals::get_singleton()->set_custom_property_info("ssl/certificates", PropertyInfo(Variant::STRING, "ssl/certificates", PROPERTY_HINT_FILE, "*.crt"));
 	if (certs_path != "") {
 
 		FileAccess *f = FileAccess::open(certs_path, FileAccess::READ);
 		if (f) {
-			PoolByteArray arr;
+			ByteArray arr;
 			int flen = f->get_len();
 			arr.resize(flen + 1);
 			{
-				PoolByteArray::Write w = arr.write();
+				ByteArray::Write w = arr.write();
 				f->get_buffer(w.ptr(), flen);
 				w[flen] = 0; //end f string
 			}
@@ -580,8 +580,8 @@ void StreamPeerOpenSSL::initialize_ssl() {
 			print_line("Loaded certs from '" + certs_path + "':  " + itos(certs.size()));
 		}
 	}
-	String config_path = GLOBAL_DEF("network/ssl/config", "");
-	GlobalConfig::get_singleton()->set_custom_property_info("network/ssl/config", PropertyInfo(Variant::STRING, "network/ssl/config", PROPERTY_HINT_FILE, "*.cnf"));
+	String config_path = GLOBAL_DEF("ssl/config", "");
+	Globals::get_singleton()->set_custom_property_info("ssl/config", PropertyInfo(Variant::STRING, "ssl/config", PROPERTY_HINT_FILE, "*.cnf"));
 	if (config_path != "") {
 
 		Vector<uint8_t> data = FileAccess::get_file_as_array(config_path);

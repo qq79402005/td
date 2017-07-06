@@ -64,6 +64,10 @@
 #endif
 #endif
 
+#ifndef DEFAULT_ALIGNMENT
+#define DEFAULT_ALIGNMENT 1
+#endif
+
 //custom, gcc-safe offsetof, because gcc complains a lot.
 template <class T>
 T *_nullptr() {

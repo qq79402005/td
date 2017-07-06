@@ -160,7 +160,7 @@ Variant JavaScript::eval(const String &p_code, bool p_use_global_exec_context) {
 
 void JavaScript::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("eval", "code", "use_global_execution_context"), &JavaScript::eval, false);
+	ObjectTypeDB::bind_method(_MD("eval", "code", "use_global_execution_context"), &JavaScript::eval, false);
 }
 
 JavaScript::JavaScript() {

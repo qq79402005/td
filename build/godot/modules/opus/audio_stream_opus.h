@@ -41,7 +41,7 @@
 
 class AudioStreamPlaybackOpus : public AudioStreamPlayback {
 
-	GDCLASS(AudioStreamPlaybackOpus, AudioStreamPlayback)
+	OBJ_TYPE(AudioStreamPlaybackOpus, AudioStreamPlayback)
 
 	enum {
 		MIN_MIX = 1024
@@ -115,7 +115,7 @@ public:
 
 class AudioStreamOpus : public AudioStream {
 
-	GDCLASS(AudioStreamOpus, AudioStream)
+	OBJ_TYPE(AudioStreamOpus, AudioStream)
 
 	String file;
 

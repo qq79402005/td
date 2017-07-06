@@ -30,13 +30,12 @@
 #ifndef SURFACE_TOOL_H
 #define SURFACE_TOOL_H
 
+#include "mikktspace.h"
 #include "scene/resources/mesh.h"
-
-#include "thirdparty/misc/mikktspace.h"
 
 class SurfaceTool : public Reference {
 
-	GDCLASS(SurfaceTool, Reference);
+	OBJ_TYPE(SurfaceTool, Reference);
 
 public:
 	struct Vertex {
@@ -125,7 +124,7 @@ public:
 
 	void create_from(const Ref<Mesh> &p_existing, int p_surface);
 	void append_from(const Ref<Mesh> &p_existing, int p_surface, const Transform &p_xform);
-	Ref<ArrayMesh> commit(const Ref<ArrayMesh> &p_existing = Ref<ArrayMesh>());
+	Ref<Mesh> commit(const Ref<Mesh> &p_existing = Ref<Mesh>());
 
 	SurfaceTool();
 };

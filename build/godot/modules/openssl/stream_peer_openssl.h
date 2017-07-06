@@ -30,18 +30,16 @@
 #ifndef STREAM_PEER_OPEN_SSL_H
 #define STREAM_PEER_OPEN_SSL_H
 
-#include "global_config.h"
+#include "curl_hostcheck.h"
+#include "globals.h"
 #include "io/stream_peer_ssl.h"
 #include "os/file_access.h"
-
-#include "thirdparty/misc/curl_hostcheck.h"
+#include <stdio.h> // If you don't know what this is for stop reading now.
 
 #include <openssl/bio.h> // BIO objects for I/O
 #include <openssl/err.h> // Error reporting
 #include <openssl/ssl.h> // SSL and SSL_CTX for SSL connections
 #include <openssl/x509v3.h>
-
-#include <stdio.h>
 
 class StreamPeerOpenSSL : public StreamPeerSSL {
 private:
@@ -80,17 +78,17 @@ private:
 
 	static Vector<X509 *> certs;
 
-	static void _load_certs(const PoolByteArray &p_array);
+	static void _load_certs(const ByteArray &p_array);
 
 protected:
 	static void _bind_methods();
 
 public:
-	virtual Error accept_stream(Ref<StreamPeer> p_base);
-	virtual Error connect_to_stream(Ref<StreamPeer> p_base, bool p_validate_certs = false, const String &p_for_hostname = String());
+	virtual Error accept(Ref<StreamPeer> p_base);
+	virtual Error connect(Ref<StreamPeer> p_base, bool p_validate_certs = false, const String &p_for_hostname = String());
 	virtual Status get_status() const;
 
-	virtual void disconnect_from_stream();
+	virtual void disconnect();
 
 	virtual Error put_data(const uint8_t *p_data, int p_bytes);
 	virtual Error put_partial_data(const uint8_t *p_data, int p_bytes, int &r_sent);

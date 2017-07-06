@@ -33,15 +33,17 @@
 #include "drivers/alsa/audio_driver_alsa.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
 #include "drivers/unix/os_unix.h"
-#include "joypad_osx.h"
+#include "joystick_osx.h"
 #include "main/input_default.h"
 #include "os/input.h"
 #include "platform/osx/audio_driver_osx.h"
-#include "power_osx.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server_sw.h"
+#include "servers/audio/sample_manager_sw.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
 #include "servers/physics_server.h"
+#include "servers/spatial_sound/spatial_sound_server_sw.h"
+#include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual/visual_server_wrap_mt.h"
 #include "servers/visual_server.h"
@@ -56,12 +58,12 @@
 class OS_OSX : public OS_Unix {
 public:
 	bool force_quit;
-	//  rasterizer seems to no longer be given to visual server, its using GLES3 directly?
-	//Rasterizer *rasterizer;
+	Rasterizer *rasterizer;
 	VisualServer *visual_server;
 
 	List<String> args;
 	MainLoop *main_loop;
+	unsigned int event_id;
 
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
@@ -69,9 +71,13 @@ public:
 	IP_Unix *ip_unix;
 
 	AudioDriverOSX audio_driver_osx;
+	AudioServerSW *audio_server;
+	SampleManagerMallocSW *sample_manager;
+	SpatialSoundServerSW *spatial_sound_server;
+	SpatialSound2DServerSW *spatial_sound_2d_server;
 
 	InputDefault *input;
-	JoypadOSX *joypad_osx;
+	JoystickOSX *joystick_osx;
 
 	/* objc */
 
@@ -83,6 +89,7 @@ public:
 	//          pthread_key_t   current;
 	bool mouse_grab;
 	Point2 mouse_pos;
+	uint32_t last_id;
 
 	id delegate;
 	id window_delegate;
@@ -96,7 +103,6 @@ public:
 	CursorShape cursor_shape;
 	MouseMode mouse_mode;
 
-	String title;
 	bool minimized;
 	bool maximized;
 	bool zoomed;
@@ -108,16 +114,12 @@ public:
 	int current_screen;
 	Rect2 restore_rect;
 
-	power_osx *power_manager;
-
 	float _mouse_scale(float p_scale) {
 		if (display_scale > 1.0)
 			return p_scale;
 		else
 			return 1.0;
 	}
-
-	void _update_window();
 
 	float display_scale;
 
@@ -148,13 +150,13 @@ public:
 	virtual void set_mouse_grab(bool p_grab);
 	virtual bool is_mouse_grab_enabled() const;
 	virtual void warp_mouse_pos(const Point2 &p_to);
-	virtual Point2 get_mouse_position() const;
+	virtual Point2 get_mouse_pos() const;
 	virtual int get_mouse_button_state() const;
 	virtual void set_window_title(const String &p_title);
 
 	virtual Size2 get_window_size() const;
 
-	virtual void set_icon(const Ref<Image> &p_icon);
+	virtual void set_icon(const Image &p_icon);
 
 	virtual MainLoop *get_main_loop() const;
 
@@ -168,7 +170,7 @@ public:
 	virtual void swap_buffers();
 
 	Error shell_open(String p_uri);
-	void push_input(const Ref<InputEvent> &p_event);
+	void push_input(const InputEvent &p_event);
 
 	String get_locale() const;
 
@@ -202,13 +204,6 @@ public:
 	virtual bool is_window_maximized() const;
 	virtual void request_attention();
 	virtual String get_joy_guid(int p_device) const;
-
-	virtual void set_borderless_window(int p_borderless);
-	virtual bool get_borderless_window();
-
-	virtual PowerState get_power_state();
-	virtual int get_power_seconds_left();
-	virtual int get_power_percent_left();
 
 	void run();
 

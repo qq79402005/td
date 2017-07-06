@@ -34,7 +34,7 @@
 
 class TextureProgress : public Range {
 
-	GDCLASS(TextureProgress, Range);
+	OBJ_TYPE(TextureProgress, Range);
 
 	Ref<Texture> under;
 	Ref<Texture> progress;

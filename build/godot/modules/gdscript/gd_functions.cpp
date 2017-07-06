@@ -28,12 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "gd_functions.h"
-#include "class_db.h"
 #include "func_ref.h"
 #include "gd_script.h"
-#include "io/json.h"
 #include "io/marshalls.h"
 #include "math_funcs.h"
+#include "object_type_db.h"
 #include "os/os.h"
 #include "reference.h"
 #include "variant_parser.h"
@@ -90,7 +89,6 @@ const char *GDFunctions::get_func_name(Function p_func) {
 		"convert",
 		"typeof",
 		"type_exists",
-		"char",
 		"str",
 		"print",
 		"printt",
@@ -105,9 +103,6 @@ const char *GDFunctions::get_func_name(Function p_func) {
 		"load",
 		"inst2dict",
 		"dict2inst",
-		"validate_json",
-		"parse_json",
-		"to_json",
 		"hash",
 		"Color8",
 		"ColorN",
@@ -159,85 +154,85 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 		case MATH_SIN: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::sin((double)*p_args[0]);
+			r_ret = Math::sin(*p_args[0]);
 		} break;
 		case MATH_COS: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::cos((double)*p_args[0]);
+			r_ret = Math::cos(*p_args[0]);
 		} break;
 		case MATH_TAN: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::tan((double)*p_args[0]);
+			r_ret = Math::tan(*p_args[0]);
 		} break;
 		case MATH_SINH: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::sinh((double)*p_args[0]);
+			r_ret = Math::sinh(*p_args[0]);
 		} break;
 		case MATH_COSH: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::cosh((double)*p_args[0]);
+			r_ret = Math::cosh(*p_args[0]);
 		} break;
 		case MATH_TANH: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::tanh((double)*p_args[0]);
+			r_ret = Math::tanh(*p_args[0]);
 		} break;
 		case MATH_ASIN: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::asin((double)*p_args[0]);
+			r_ret = Math::asin(*p_args[0]);
 		} break;
 		case MATH_ACOS: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::acos((double)*p_args[0]);
+			r_ret = Math::acos(*p_args[0]);
 		} break;
 		case MATH_ATAN: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::atan((double)*p_args[0]);
+			r_ret = Math::atan(*p_args[0]);
 		} break;
 		case MATH_ATAN2: {
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::atan2((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::atan2(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_SQRT: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::sqrt((double)*p_args[0]);
+			r_ret = Math::sqrt(*p_args[0]);
 		} break;
 		case MATH_FMOD: {
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::fmod((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::fmod(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_FPOSMOD: {
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::fposmod((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::fposmod(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_FLOOR: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::floor((double)*p_args[0]);
+			r_ret = Math::floor(*p_args[0]);
 		} break;
 		case MATH_CEIL: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::ceil((double)*p_args[0]);
+			r_ret = Math::ceil(*p_args[0]);
 		} break;
 		case MATH_ROUND: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::round((double)*p_args[0]);
+			r_ret = Math::round(*p_args[0]);
 		} break;
 		case MATH_ABS: {
 			VALIDATE_ARG_COUNT(1);
@@ -247,7 +242,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 				r_ret = ABS(i);
 			} else if (p_args[0]->get_type() == Variant::REAL) {
 
-				double r = *p_args[0];
+				real_t r = *p_args[0];
 				r_ret = Math::abs(r);
 			} else {
 
@@ -279,58 +274,58 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::pow((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::pow(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_LOG: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::log((double)*p_args[0]);
+			r_ret = Math::log(*p_args[0]);
 		} break;
 		case MATH_EXP: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::exp((double)*p_args[0]);
+			r_ret = Math::exp(*p_args[0]);
 		} break;
 		case MATH_ISNAN: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::is_nan((double)*p_args[0]);
+			r_ret = Math::is_nan(*p_args[0]);
 		} break;
 		case MATH_ISINF: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::is_inf((double)*p_args[0]);
+			r_ret = Math::is_inf(*p_args[0]);
 		} break;
 		case MATH_EASE: {
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::ease((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::ease(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_DECIMALS: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::step_decimals((double)*p_args[0]);
+			r_ret = Math::step_decimals(*p_args[0]);
 		} break;
 		case MATH_STEPIFY: {
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::stepify((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::stepify(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_LERP: {
 			VALIDATE_ARG_COUNT(3);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
 			VALIDATE_ARG_NUM(2);
-			r_ret = Math::lerp((double)*p_args[0], (double)*p_args[1], (double)*p_args[2]);
+			r_ret = Math::lerp(*p_args[0], *p_args[1], *p_args[2]);
 		} break;
 		case MATH_DECTIME: {
 			VALIDATE_ARG_COUNT(3);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
 			VALIDATE_ARG_NUM(2);
-			r_ret = Math::dectime((double)*p_args[0], (double)*p_args[1], (double)*p_args[2]);
+			r_ret = Math::dectime(*p_args[0], *p_args[1], *p_args[2]);
 		} break;
 		case MATH_RANDOMIZE: {
 			Math::randomize();
@@ -346,19 +341,19 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 			VALIDATE_ARG_COUNT(2);
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
-			r_ret = Math::random((double)*p_args[0], (double)*p_args[1]);
+			r_ret = Math::random(*p_args[0], *p_args[1]);
 		} break;
 		case MATH_SEED: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			uint64_t seed = *p_args[0];
+			uint32_t seed = *p_args[0];
 			Math::seed(seed);
 			r_ret = Variant();
 		} break;
 		case MATH_RANDSEED: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			uint64_t seed = *p_args[0];
+			uint32_t seed = *p_args[0];
 			int ret = Math::rand_from_seed(&seed);
 			Array reta;
 			reta.push_back(ret);
@@ -369,22 +364,22 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 		case MATH_DEG2RAD: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::deg2rad((double)*p_args[0]);
+			r_ret = Math::deg2rad(*p_args[0]);
 		} break;
 		case MATH_RAD2DEG: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::rad2deg((double)*p_args[0]);
+			r_ret = Math::rad2deg(*p_args[0]);
 		} break;
 		case MATH_LINEAR2DB: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::linear2db((double)*p_args[0]);
+			r_ret = Math::linear2db(*p_args[0]);
 		} break;
 		case MATH_DB2LINEAR: {
 			VALIDATE_ARG_COUNT(1);
 			VALIDATE_ARG_NUM(0);
-			r_ret = Math::db2linear((double)*p_args[0]);
+			r_ret = Math::db2linear(*p_args[0]);
 		} break;
 		case LOGIC_MAX: {
 			VALIDATE_ARG_COUNT(2);
@@ -534,14 +529,8 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 		case TYPE_EXISTS: {
 
 			VALIDATE_ARG_COUNT(1);
-			r_ret = ClassDB::class_exists(*p_args[0]);
+			r_ret = ObjectTypeDB::type_exists(*p_args[0]);
 
-		} break;
-		case TEXT_CHAR: {
-			VALIDATE_ARG_COUNT(1);
-			VALIDATE_ARG_NUM(0);
-			CharType result[2] = { *p_args[0], 0 };
-			r_ret = String(result);
 		} break;
 		case TEXT_STR: {
 
@@ -663,7 +652,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 		case VAR_TO_BYTES: {
 			VALIDATE_ARG_COUNT(1);
 
-			PoolByteArray barr;
+			ByteArray barr;
 			int len;
 			Error err = encode_variant(*p_args[0], NULL, len);
 			if (err) {
@@ -676,31 +665,31 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 
 			barr.resize(len);
 			{
-				PoolByteArray::Write w = barr.write();
+				ByteArray::Write w = barr.write();
 				encode_variant(*p_args[0], w.ptr(), len);
 			}
 			r_ret = barr;
 		} break;
 		case BYTES_TO_VAR: {
 			VALIDATE_ARG_COUNT(1);
-			if (p_args[0]->get_type() != Variant::POOL_BYTE_ARRAY) {
+			if (p_args[0]->get_type() != Variant::RAW_ARRAY) {
 				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
-				r_error.expected = Variant::POOL_BYTE_ARRAY;
+				r_error.expected = Variant::RAW_ARRAY;
 				r_ret = Variant();
 				return;
 			}
 
-			PoolByteArray varr = *p_args[0];
+			ByteArray varr = *p_args[0];
 			Variant ret;
 			{
-				PoolByteArray::Read r = varr.read();
+				ByteArray::Read r = varr.read();
 				Error err = decode_variant(ret, r.ptr(), varr.size(), NULL);
 				if (err != OK) {
 					r_ret = RTR("Not enough bytes for decoding bytes, or invalid format.");
 					r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
 					r_error.argument = 0;
-					r_error.expected = Variant::POOL_BYTE_ARRAY;
+					r_error.expected = Variant::RAW_ARRAY;
 					return;
 				}
 			}
@@ -723,7 +712,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 
 					VALIDATE_ARG_NUM(0);
 					int count = *p_args[0];
-					Array arr;
+					Array arr(true);
 					if (count <= 0) {
 						r_ret = arr;
 						return;
@@ -749,7 +738,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 					int from = *p_args[0];
 					int to = *p_args[1];
 
-					Array arr;
+					Array arr(true);
 					if (from >= to) {
 						r_ret = arr;
 						return;
@@ -780,7 +769,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 						return;
 					}
 
-					Array arr;
+					Array arr(true);
 					if (from >= to && incr > 0) {
 						r_ret = arr;
 						return;
@@ -838,7 +827,6 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 			if (p_args[0]->get_type() != Variant::STRING) {
 				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
 				r_error.argument = 0;
-				r_error.expected = Variant::STRING;
 				r_ret = Variant();
 			} else {
 				r_ret = ResourceLoader::load(*p_args[0]);
@@ -904,7 +892,7 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 
 					NodePath cp(sname, Vector<StringName>(), false);
 
-					Dictionary d;
+					Dictionary d(true);
 					d["@subpath"] = cp;
 					d["@path"] = p->path;
 
@@ -1010,57 +998,6 @@ void GDFunctions::call(Function p_func, const Variant **p_args, int p_arg_count,
 				}
 			}
 
-		} break;
-		case VALIDATE_JSON: {
-
-			VALIDATE_ARG_COUNT(1);
-
-			if (p_args[0]->get_type() != Variant::STRING) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-				r_error.argument = 0;
-				r_error.expected = Variant::STRING;
-				r_ret = Variant();
-				return;
-			}
-
-			String errs;
-			int errl;
-
-			Error err = JSON::parse(*p_args[0], r_ret, errs, errl);
-
-			if (err != OK) {
-				r_ret = itos(errl) + ":" + errs;
-			} else {
-				r_ret = "";
-			}
-
-		} break;
-		case PARSE_JSON: {
-
-			VALIDATE_ARG_COUNT(1);
-
-			if (p_args[0]->get_type() != Variant::STRING) {
-				r_error.error = Variant::CallError::CALL_ERROR_INVALID_ARGUMENT;
-				r_error.argument = 0;
-				r_error.expected = Variant::STRING;
-				r_ret = Variant();
-				return;
-			}
-
-			String errs;
-			int errl;
-
-			Error err = JSON::parse(*p_args[0], r_ret, errs, errl);
-
-			if (err != OK) {
-				r_ret = Variant();
-			}
-
-		} break;
-		case TO_JSON: {
-			VALIDATE_ARG_COUNT(1);
-
-			r_ret = JSON::print(*p_args[0]);
 		} break;
 		case HASH: {
 
@@ -1207,7 +1144,6 @@ bool GDFunctions::is_deterministic(Function p_func) {
 		case TYPE_CONVERT:
 		case TYPE_OF:
 		case TYPE_EXISTS:
-		case TEXT_CHAR:
 		case TEXT_STR:
 		case COLOR8:
 			// enable for debug only, otherwise not desirable - case GEN_RANGE:
@@ -1475,13 +1411,6 @@ MethodInfo GDFunctions::get_info(Function p_func) {
 			return mi;
 
 		} break;
-		case TEXT_CHAR: {
-
-			MethodInfo mi("char", PropertyInfo(Variant::INT, "ascii"));
-			mi.return_val.type = Variant::STRING;
-			return mi;
-
-		} break;
 		case TEXT_STR: {
 
 			MethodInfo mi("str", PropertyInfo(Variant::NIL, "what"), PropertyInfo(Variant::NIL, "..."));
@@ -1538,13 +1467,13 @@ MethodInfo GDFunctions::get_info(Function p_func) {
 		} break;
 		case VAR_TO_BYTES: {
 			MethodInfo mi("var2bytes", PropertyInfo(Variant::NIL, "var"));
-			mi.return_val.type = Variant::POOL_BYTE_ARRAY;
+			mi.return_val.type = Variant::RAW_ARRAY;
 			return mi;
 
 		} break;
 		case BYTES_TO_VAR: {
 
-			MethodInfo mi("bytes2var:Variant", PropertyInfo(Variant::POOL_BYTE_ARRAY, "bytes"));
+			MethodInfo mi("bytes2var:Variant", PropertyInfo(Variant::RAW_ARRAY, "bytes"));
 			mi.return_val.type = Variant::NIL;
 			return mi;
 		} break;
@@ -1571,24 +1500,6 @@ MethodInfo GDFunctions::get_info(Function p_func) {
 
 			MethodInfo mi("dict2inst", PropertyInfo(Variant::DICTIONARY, "dict"));
 			mi.return_val.type = Variant::OBJECT;
-			return mi;
-		} break;
-		case VALIDATE_JSON: {
-
-			MethodInfo mi("validate_json:Variant", PropertyInfo(Variant::STRING, "json"));
-			mi.return_val.type = Variant::STRING;
-			return mi;
-		} break;
-		case PARSE_JSON: {
-
-			MethodInfo mi("parse_json:Variant", PropertyInfo(Variant::STRING, "json"));
-			mi.return_val.type = Variant::NIL;
-			return mi;
-		} break;
-		case TO_JSON: {
-
-			MethodInfo mi("to_json", PropertyInfo(Variant::NIL, "var:Variant"));
-			mi.return_val.type = Variant::STRING;
 			return mi;
 		} break;
 		case HASH: {

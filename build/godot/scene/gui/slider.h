@@ -34,7 +34,7 @@
 
 class Slider : public Range {
 
-	GDCLASS(Slider, Range);
+	OBJ_TYPE(Slider, Range);
 
 	struct Grab {
 		int pos;
@@ -48,7 +48,7 @@ class Slider : public Range {
 	float custom_step;
 
 protected:
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 	void _notification(int p_what);
 	static void _bind_methods();
 	bool ticks_on_borders;
@@ -70,7 +70,7 @@ public:
 
 class HSlider : public Slider {
 
-	GDCLASS(HSlider, Slider);
+	OBJ_TYPE(HSlider, Slider);
 
 public:
 	HSlider()
@@ -79,7 +79,7 @@ public:
 
 class VSlider : public Slider {
 
-	GDCLASS(VSlider, Slider);
+	OBJ_TYPE(VSlider, Slider);
 
 public:
 	VSlider()

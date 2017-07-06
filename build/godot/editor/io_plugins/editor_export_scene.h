@@ -30,16 +30,15 @@
 #ifndef EDITOR_EXPORT_SCENE_H
 #define EDITOR_EXPORT_SCENE_H
 
-#include "editor/editor_export.h"
+#include "editor/editor_import_export.h"
 
-#if 0
 class EditorSceneExportPlugin : public EditorExportPlugin {
-	GDCLASS( EditorSceneExportPlugin, EditorExportPlugin );
-public:
+	OBJ_TYPE(EditorSceneExportPlugin, EditorExportPlugin);
 
-	virtual Vector<uint8_t> custom_export(String& p_path,const Ref<EditorExportPlatform> &p_platform);
+public:
+	virtual Vector<uint8_t> custom_export(String &p_path, const Ref<EditorExportPlatform> &p_platform);
 
 	EditorSceneExportPlugin();
 };
-#endif
+
 #endif // EDITOR_EXPORT_SCENE_H

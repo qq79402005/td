@@ -41,7 +41,7 @@
 
 class XMLParser : public Reference {
 
-	GDCLASS(XMLParser, Reference);
+	OBJ_TYPE(XMLParser, Reference);
 
 public:
 	//! Enumeration of all supported source text file formats

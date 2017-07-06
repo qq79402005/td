@@ -28,10 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "animation_player_editor_plugin.h"
-
 #include "editor/animation_editor.h"
 #include "editor/editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
 #include "os/keyboard.h"
@@ -51,7 +50,7 @@ void AnimationPlayerEditor::_node_removed(Node *p_node) {
 	}
 }
 
-void AnimationPlayerEditor::_gui_input(Ref<InputEvent> p_event) {
+void AnimationPlayerEditor::_input_event(InputEvent p_event) {
 }
 
 void AnimationPlayerEditor::_notification(int p_what) {
@@ -76,31 +75,31 @@ void AnimationPlayerEditor::_notification(int p_what) {
 					}
 				}
 			}
-			frame->set_value(player->get_current_animation_pos());
+			frame->set_val(player->get_current_animation_pos());
 			key_editor->set_anim_pos(player->get_current_animation_pos());
 			EditorNode::get_singleton()->get_property_editor()->refresh();
 
 		} else if (last_active) {
 			//need the last frame after it stopped
 
-			frame->set_value(player->get_current_animation_pos());
+			frame->set_val(player->get_current_animation_pos());
 		}
 
 		last_active = player->is_playing();
-		//seek->set_val(player->get_position());
+		//seek->set_val(player->get_pos());
 		updating = false;
 	}
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
-		//editor->connect("hide_animation_player_editors",this,"_hide_anim_editors");
+		//		editor->connect("hide_animation_player_editors",this,"_hide_anim_editors");
 		add_anim->set_icon(get_icon("New", "EditorIcons"));
 		rename_anim->set_icon(get_icon("Rename", "EditorIcons"));
 		duplicate_anim->set_icon(get_icon("Duplicate", "EditorIcons"));
 		autoplay->set_icon(get_icon("AutoPlay", "EditorIcons"));
 		load_anim->set_icon(get_icon("Folder", "EditorIcons"));
 		save_anim->set_icon(get_icon("Save", "EditorIcons"));
-		save_anim->get_popup()->connect("id_pressed", this, "_animation_save_menu");
+		save_anim->get_popup()->connect("item_pressed", this, "_animation_save_menu");
 		remove_anim->set_icon(get_icon("Remove", "EditorIcons"));
 
 		blend_anim->set_icon(get_icon("Blend", "EditorIcons"));
@@ -114,9 +113,11 @@ void AnimationPlayerEditor::_notification(int p_what) {
 		resource_edit_anim->set_icon(get_icon("EditResource", "EditorIcons"));
 		pin->set_icon(get_icon("Pin", "EditorIcons"));
 		tool_anim->set_icon(get_icon("Tools", "EditorIcons"));
-		tool_anim->get_popup()->connect("id_pressed", this, "_animation_tool_menu");
+		tool_anim->get_popup()->connect("item_pressed", this, "_animation_tool_menu");
 
 		blend_editor.next->connect("item_selected", this, "_blend_editor_next_changed");
+
+		nodename->set_icon(get_icon("AnimationPlayer", "EditorIcons"));
 
 		/*
 		anim_editor_load->set_normal_texture( get_icon("AnimGet","EditorIcons"));
@@ -254,10 +255,6 @@ void AnimationPlayerEditor::_play_bw_from_pressed() {
 }
 void AnimationPlayerEditor::_stop_pressed() {
 
-	if (!player) {
-		return;
-	}
-
 	player->stop(false);
 	play->set_pressed(false);
 	stop->set_pressed(true);
@@ -365,14 +362,12 @@ void AnimationPlayerEditor::_animation_load() {
 void AnimationPlayerEditor::_animation_save_in_path(const Ref<Resource> &p_resource, const String &p_path) {
 
 	int flg = 0;
-	if (EditorSettings::get_singleton()->get("filesystem/on_save/compress_binary_resources"))
+	if (EditorSettings::get_singleton()->get("on_save/compress_binary_resources"))
 		flg |= ResourceSaver::FLAG_COMPRESS;
-	/*
-	if (EditorSettings::get_singleton()->get("filesystem/on_save/save_paths_as_relative"))
-		flg |= ResourceSaver::FLAG_RELATIVE_PATHS;
-	*/
+	//if (EditorSettings::get_singleton()->get("on_save/save_paths_as_relative"))
+	//	flg |= ResourceSaver::FLAG_RELATIVE_PATHS;
 
-	String path = GlobalConfig::get_singleton()->localize_path(p_path);
+	String path = Globals::get_singleton()->localize_path(p_path);
 	Error err = ResourceSaver::save(path, p_resource, flg | ResourceSaver::FLAG_REPLACE_SUBRESOURCE_PATHS);
 
 	if (err != OK) {
@@ -380,7 +375,7 @@ void AnimationPlayerEditor::_animation_save_in_path(const Ref<Resource> &p_resou
 		accept->popup_centered_minsize();
 		return;
 	}
-	//EditorFileSystem::get_singleton()->update_file(path,p_resource->get_type());
+	//	EditorFileSystem::get_singleton()->update_file(path,p_resource->get_type());
 
 	((Resource *)p_resource.ptr())->set_path(path);
 	editor->emit_signal("resource_saved", p_resource);
@@ -411,7 +406,7 @@ void AnimationPlayerEditor::_animation_save_as(const Ref<Resource> &p_resource) 
 	if (p_resource->get_path() != "") {
 		file->set_current_path(p_resource->get_path());
 		if (extensions.size()) {
-			String ext = p_resource->get_path().get_extension().to_lower();
+			String ext = p_resource->get_path().extension().to_lower();
 			if (extensions.find(ext) == NULL) {
 				file->set_current_path(p_resource->get_path().replacen("." + ext, "." + extensions.front()->get()));
 			}
@@ -420,11 +415,7 @@ void AnimationPlayerEditor::_animation_save_as(const Ref<Resource> &p_resource) 
 
 		String existing;
 		if (extensions.size()) {
-			if (p_resource->get_name() != "") {
-				existing = p_resource->get_name() + "." + extensions.front()->get().to_lower();
-			} else {
-				existing = "new_" + p_resource->get_class().to_lower() + "." + extensions.front()->get().to_lower();
-			}
+			existing = "new_" + p_resource->get_type().to_lower() + "." + extensions.front()->get().to_lower();
 		}
 		file->set_current_path(existing);
 	}
@@ -640,8 +631,8 @@ Dictionary AnimationPlayerEditor::get_state() const {
 
 	Dictionary d;
 
-	d["visible"] = is_visible_in_tree();
-	if (EditorNode::get_singleton()->get_edited_scene() && is_visible_in_tree() && player) {
+	d["visible"] = is_visible();
+	if (EditorNode::get_singleton()->get_edited_scene() && is_visible() && player) {
 		d["player"] = EditorNode::get_singleton()->get_edited_scene()->get_path_to(player);
 		d["animation"] = player->get_current_animation();
 	}
@@ -662,7 +653,7 @@ void AnimationPlayerEditor::set_state(const Dictionary &p_state) {
 			show();
 			set_process(true);
 			ensure_visibility();
-			//EditorNode::get_singleton()->animation_panel_make_visible(true);
+			//			EditorNode::get_singleton()->animation_panel_make_visible(true);
 
 			if (p_state.has("animation")) {
 				String anim = p_state["animation"];
@@ -707,7 +698,7 @@ void AnimationPlayerEditor::_dialog_action(String p_file) {
 
 			Ref<Resource> res = ResourceLoader::load(p_file, "Animation");
 			ERR_FAIL_COND(res.is_null());
-			ERR_FAIL_COND(!res->is_class("Animation"));
+			ERR_FAIL_COND(!res->is_type("Animation"));
 			if (p_file.find_last("/") != -1) {
 
 				p_file = p_file.substr(p_file.find_last("/") + 1, p_file.length());
@@ -749,7 +740,7 @@ void AnimationPlayerEditor::_dialog_action(String p_file) {
 
 void AnimationPlayerEditor::_scale_changed(const String &p_scale) {
 
-	player->set_speed_scale(p_scale.to_double());
+	player->set_speed(p_scale.to_double());
 }
 
 void AnimationPlayerEditor::_update_animation() {
@@ -770,7 +761,7 @@ void AnimationPlayerEditor::_update_animation() {
 		stop->set_pressed(true);
 	}
 
-	scale->set_text(String::num(player->get_speed_scale(), 2));
+	scale->set_text(String::num(player->get_speed(), 2));
 	String current = player->get_current_animation();
 
 	for (int i = 0; i < animation->get_item_count(); i++) {
@@ -792,6 +783,10 @@ void AnimationPlayerEditor::_update_player() {
 		player->get_animation_list(&animlist);
 
 	animation->clear();
+	if (player)
+		nodename->set_text(player->get_name());
+	else
+		nodename->set_text("<empty>");
 
 	add_anim->set_disabled(player == NULL);
 	load_anim->set_disabled(player == NULL);
@@ -864,7 +859,7 @@ void AnimationPlayerEditor::edit(AnimationPlayer *p_player) {
 	} else {
 		key_editor->show_select_node_warning(true);
 
-		//hide();
+		//		hide();
 	}
 }
 
@@ -957,17 +952,17 @@ void AnimationPlayerEditor::_seek_value_changed(float p_value, bool p_set) {
 
 void AnimationPlayerEditor::_animation_player_changed(Object *p_pl) {
 
-	if (player == p_pl && is_visible_in_tree()) {
+	if (player == p_pl && is_visible()) {
 
 		_update_player();
-		if (blend_editor.dialog->is_visible_in_tree())
+		if (blend_editor.dialog->is_visible())
 			_animation_blend(); //update
 	}
 }
 
 void AnimationPlayerEditor::_list_changed() {
 
-	if (is_visible_in_tree())
+	if (is_visible())
 		_update_player();
 }
 #if 0
@@ -1051,7 +1046,7 @@ void AnimationPlayerEditor::_animation_key_editor_anim_step_changed(float p_len)
 
 void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos, bool p_drag) {
 
-	if (!is_visible_in_tree())
+	if (!is_visible())
 		return;
 	if (!player)
 		return;
@@ -1060,7 +1055,7 @@ void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos, bool p_drag)
 		return;
 
 	updating = true;
-	frame->set_value(p_pos);
+	frame->set_val(p_pos);
 	updating = false;
 	_seek_value_changed(p_pos, !p_drag);
 
@@ -1078,7 +1073,7 @@ void AnimationPlayerEditor::_hide_anim_editors() {
 	key_editor->set_animation(Ref<Animation>());
 	key_editor->set_root(NULL);
 	key_editor->show_select_node_warning(true);
-	//editor->animation_editor_make_visible(false);
+	//		editor->animation_editor_make_visible(false);
 }
 
 void AnimationPlayerEditor::_animation_tool_menu(int p_option) {
@@ -1164,15 +1159,14 @@ void AnimationPlayerEditor::_animation_save_menu(int p_option) {
 	}
 }
 
-void AnimationPlayerEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
+void AnimationPlayerEditor::_unhandled_key_input(const InputEvent &p_ev) {
 
-	Ref<InputEventKey> k = p_ev;
-	if (is_visible_in_tree() && k.is_valid() && k->is_pressed() && !k->is_echo() && !k->get_alt() && !k->get_control() && !k->get_metakey()) {
+	if (is_visible() && p_ev.type == InputEvent::KEY && p_ev.key.pressed && !p_ev.key.echo && !p_ev.key.mod.alt && !p_ev.key.mod.control && !p_ev.key.mod.meta) {
 
-		switch (k->get_scancode()) {
+		switch (p_ev.key.scancode) {
 
 			case KEY_A: {
-				if (!k->get_shift())
+				if (!p_ev.key.mod.shift)
 					_play_bw_from_pressed();
 				else
 					_play_bw_pressed();
@@ -1181,7 +1175,7 @@ void AnimationPlayerEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
 				_stop_pressed();
 			} break;
 			case KEY_D: {
-				if (!k->get_shift())
+				if (!p_ev.key.mod.shift)
 					_play_from_pressed();
 				else
 					_play_pressed();
@@ -1192,43 +1186,43 @@ void AnimationPlayerEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
 
 void AnimationPlayerEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_gui_input"), &AnimationPlayerEditor::_gui_input);
-	ClassDB::bind_method(D_METHOD("_node_removed"), &AnimationPlayerEditor::_node_removed);
-	ClassDB::bind_method(D_METHOD("_play_pressed"), &AnimationPlayerEditor::_play_pressed);
-	ClassDB::bind_method(D_METHOD("_play_from_pressed"), &AnimationPlayerEditor::_play_from_pressed);
-	ClassDB::bind_method(D_METHOD("_play_bw_pressed"), &AnimationPlayerEditor::_play_bw_pressed);
-	ClassDB::bind_method(D_METHOD("_play_bw_from_pressed"), &AnimationPlayerEditor::_play_bw_from_pressed);
-	ClassDB::bind_method(D_METHOD("_stop_pressed"), &AnimationPlayerEditor::_stop_pressed);
-	ClassDB::bind_method(D_METHOD("_autoplay_pressed"), &AnimationPlayerEditor::_autoplay_pressed);
-	ClassDB::bind_method(D_METHOD("_pause_pressed"), &AnimationPlayerEditor::_pause_pressed);
-	ClassDB::bind_method(D_METHOD("_animation_selected"), &AnimationPlayerEditor::_animation_selected);
-	ClassDB::bind_method(D_METHOD("_animation_name_edited"), &AnimationPlayerEditor::_animation_name_edited);
-	ClassDB::bind_method(D_METHOD("_animation_new"), &AnimationPlayerEditor::_animation_new);
-	ClassDB::bind_method(D_METHOD("_animation_rename"), &AnimationPlayerEditor::_animation_rename);
-	ClassDB::bind_method(D_METHOD("_animation_load"), &AnimationPlayerEditor::_animation_load);
-	ClassDB::bind_method(D_METHOD("_animation_remove"), &AnimationPlayerEditor::_animation_remove);
-	ClassDB::bind_method(D_METHOD("_animation_remove_confirmed"), &AnimationPlayerEditor::_animation_remove_confirmed);
-	ClassDB::bind_method(D_METHOD("_animation_blend"), &AnimationPlayerEditor::_animation_blend);
-	ClassDB::bind_method(D_METHOD("_animation_edit"), &AnimationPlayerEditor::_animation_edit);
-	ClassDB::bind_method(D_METHOD("_animation_resource_edit"), &AnimationPlayerEditor::_animation_resource_edit);
-	ClassDB::bind_method(D_METHOD("_dialog_action"), &AnimationPlayerEditor::_dialog_action);
-	ClassDB::bind_method(D_METHOD("_seek_value_changed"), &AnimationPlayerEditor::_seek_value_changed, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("_animation_player_changed"), &AnimationPlayerEditor::_animation_player_changed);
-	ClassDB::bind_method(D_METHOD("_blend_edited"), &AnimationPlayerEditor::_blend_edited);
-	//ClassDB::bind_method(D_METHOD("_seek_frame_changed"),&AnimationPlayerEditor::_seek_frame_changed);
-	ClassDB::bind_method(D_METHOD("_scale_changed"), &AnimationPlayerEditor::_scale_changed);
-	//ClassDB::bind_method(D_METHOD("_editor_store_all"),&AnimationPlayerEditor::_editor_store_all);
-	//ClassDB::bind_method(D_METHOD("_editor_load_all"),&AnimationPlayerEditor::_editor_load_all);
-	ClassDB::bind_method(D_METHOD("_list_changed"), &AnimationPlayerEditor::_list_changed);
-	ClassDB::bind_method(D_METHOD("_animation_key_editor_seek"), &AnimationPlayerEditor::_animation_key_editor_seek);
-	ClassDB::bind_method(D_METHOD("_animation_key_editor_anim_len_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_len_changed);
-	ClassDB::bind_method(D_METHOD("_animation_key_editor_anim_step_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_step_changed);
-	ClassDB::bind_method(D_METHOD("_hide_anim_editors"), &AnimationPlayerEditor::_hide_anim_editors);
-	ClassDB::bind_method(D_METHOD("_animation_duplicate"), &AnimationPlayerEditor::_animation_duplicate);
-	ClassDB::bind_method(D_METHOD("_blend_editor_next_changed"), &AnimationPlayerEditor::_blend_editor_next_changed);
-	ClassDB::bind_method(D_METHOD("_unhandled_key_input"), &AnimationPlayerEditor::_unhandled_key_input);
-	ClassDB::bind_method(D_METHOD("_animation_tool_menu"), &AnimationPlayerEditor::_animation_tool_menu);
-	ClassDB::bind_method(D_METHOD("_animation_save_menu"), &AnimationPlayerEditor::_animation_save_menu);
+	ObjectTypeDB::bind_method(_MD("_input_event"), &AnimationPlayerEditor::_input_event);
+	ObjectTypeDB::bind_method(_MD("_node_removed"), &AnimationPlayerEditor::_node_removed);
+	ObjectTypeDB::bind_method(_MD("_play_pressed"), &AnimationPlayerEditor::_play_pressed);
+	ObjectTypeDB::bind_method(_MD("_play_from_pressed"), &AnimationPlayerEditor::_play_from_pressed);
+	ObjectTypeDB::bind_method(_MD("_play_bw_pressed"), &AnimationPlayerEditor::_play_bw_pressed);
+	ObjectTypeDB::bind_method(_MD("_play_bw_from_pressed"), &AnimationPlayerEditor::_play_bw_from_pressed);
+	ObjectTypeDB::bind_method(_MD("_stop_pressed"), &AnimationPlayerEditor::_stop_pressed);
+	ObjectTypeDB::bind_method(_MD("_autoplay_pressed"), &AnimationPlayerEditor::_autoplay_pressed);
+	ObjectTypeDB::bind_method(_MD("_pause_pressed"), &AnimationPlayerEditor::_pause_pressed);
+	ObjectTypeDB::bind_method(_MD("_animation_selected"), &AnimationPlayerEditor::_animation_selected);
+	ObjectTypeDB::bind_method(_MD("_animation_name_edited"), &AnimationPlayerEditor::_animation_name_edited);
+	ObjectTypeDB::bind_method(_MD("_animation_new"), &AnimationPlayerEditor::_animation_new);
+	ObjectTypeDB::bind_method(_MD("_animation_rename"), &AnimationPlayerEditor::_animation_rename);
+	ObjectTypeDB::bind_method(_MD("_animation_load"), &AnimationPlayerEditor::_animation_load);
+	ObjectTypeDB::bind_method(_MD("_animation_remove"), &AnimationPlayerEditor::_animation_remove);
+	ObjectTypeDB::bind_method(_MD("_animation_remove_confirmed"), &AnimationPlayerEditor::_animation_remove_confirmed);
+	ObjectTypeDB::bind_method(_MD("_animation_blend"), &AnimationPlayerEditor::_animation_blend);
+	ObjectTypeDB::bind_method(_MD("_animation_edit"), &AnimationPlayerEditor::_animation_edit);
+	ObjectTypeDB::bind_method(_MD("_animation_resource_edit"), &AnimationPlayerEditor::_animation_resource_edit);
+	ObjectTypeDB::bind_method(_MD("_dialog_action"), &AnimationPlayerEditor::_dialog_action);
+	ObjectTypeDB::bind_method(_MD("_seek_value_changed"), &AnimationPlayerEditor::_seek_value_changed, DEFVAL(true));
+	ObjectTypeDB::bind_method(_MD("_animation_player_changed"), &AnimationPlayerEditor::_animation_player_changed);
+	ObjectTypeDB::bind_method(_MD("_blend_edited"), &AnimationPlayerEditor::_blend_edited);
+	//	ObjectTypeDB::bind_method(_MD("_seek_frame_changed"),&AnimationPlayerEditor::_seek_frame_changed);
+	ObjectTypeDB::bind_method(_MD("_scale_changed"), &AnimationPlayerEditor::_scale_changed);
+	//ObjectTypeDB::bind_method(_MD("_editor_store_all"),&AnimationPlayerEditor::_editor_store_all);
+	///jectTypeDB::bind_method(_MD("_editor_load_all"),&AnimationPlayerEditor::_editor_load_all);
+	ObjectTypeDB::bind_method(_MD("_list_changed"), &AnimationPlayerEditor::_list_changed);
+	ObjectTypeDB::bind_method(_MD("_animation_key_editor_seek"), &AnimationPlayerEditor::_animation_key_editor_seek);
+	ObjectTypeDB::bind_method(_MD("_animation_key_editor_anim_len_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_len_changed);
+	ObjectTypeDB::bind_method(_MD("_animation_key_editor_anim_step_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_step_changed);
+	ObjectTypeDB::bind_method(_MD("_hide_anim_editors"), &AnimationPlayerEditor::_hide_anim_editors);
+	ObjectTypeDB::bind_method(_MD("_animation_duplicate"), &AnimationPlayerEditor::_animation_duplicate);
+	ObjectTypeDB::bind_method(_MD("_blend_editor_next_changed"), &AnimationPlayerEditor::_blend_editor_next_changed);
+	ObjectTypeDB::bind_method(_MD("_unhandled_key_input"), &AnimationPlayerEditor::_unhandled_key_input);
+	ObjectTypeDB::bind_method(_MD("_animation_tool_menu"), &AnimationPlayerEditor::_animation_tool_menu);
+	ObjectTypeDB::bind_method(_MD("_animation_save_menu"), &AnimationPlayerEditor::_animation_save_menu);
 }
 
 AnimationPlayerEditor *AnimationPlayerEditor::singleton = NULL;
@@ -1366,6 +1360,8 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 	//tool_anim->get_popup()->add_item("Edit Anim Resource",TOOL_PASTE_ANIM);
 	hb->add_child(tool_anim);
 
+	nodename = memnew(Button);
+	hb->add_child(nodename);
 	pin = memnew(ToolButton);
 	pin->set_toggle_mode(true);
 	hb->add_child(pin);
@@ -1381,17 +1377,18 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 	name_dialog->set_title(TTR("Create New Animation"));
 	name_dialog->set_hide_on_ok(false);
 	add_child(name_dialog);
-	VBoxContainer *vb = memnew(VBoxContainer);
-	name_dialog->add_child(vb);
+	name = memnew(LineEdit);
+	name_dialog->add_child(name);
+	name->set_pos(Point2(18, 30));
+	name->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 10);
+	name_dialog->register_text_enter(name);
 
 	l = memnew(Label);
 	l->set_text(TTR("Animation Name:"));
-	vb->add_child(l);
-	name_title = l;
+	l->set_pos(Point2(10, 10));
 
-	name = memnew(LineEdit);
-	vb->add_child(name);
-	name_dialog->register_text_enter(name);
+	name_dialog->add_child(l);
+	name_title = l;
 
 	error_dialog = memnew(ConfirmationDialog);
 	error_dialog->get_ok()->set_text(TTR("Close"));
@@ -1407,7 +1404,7 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor) {
 	blend_editor.dialog->set_hide_on_ok(true);
 	VBoxContainer *blend_vb = memnew(VBoxContainer);
 	blend_editor.dialog->add_child(blend_vb);
-	//blend_editor.dialog->set_child_rect(blend_vb);
+	blend_editor.dialog->set_child_rect(blend_vb);
 	blend_editor.tree = memnew(Tree);
 	blend_editor.tree->set_columns(2);
 	blend_vb->add_margin_child(TTR("Blend Times:"), blend_editor.tree, true);
@@ -1466,7 +1463,7 @@ void AnimationPlayerEditorPlugin::edit(Object *p_object) {
 
 bool AnimationPlayerEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_class("AnimationPlayer");
+	return p_object->is_type("AnimationPlayer");
 }
 
 void AnimationPlayerEditorPlugin::make_visible(bool p_visible) {
@@ -1476,11 +1473,11 @@ void AnimationPlayerEditorPlugin::make_visible(bool p_visible) {
 		editor->make_bottom_panel_item_visible(anim_editor);
 		anim_editor->set_process(true);
 		anim_editor->ensure_visibility();
-		//editor->animation_panel_make_visible(true);
+		//		editor->animation_panel_make_visible(true);
 	} else {
 
-		//anim_editor->hide();
-		//anim_editor->set_idle_process(false);
+		//		anim_editor->hide();
+		//		anim_editor->set_idle_process(false);
 	}
 }
 

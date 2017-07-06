@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "audio_stream_resampled.h"
-#include "global_config.h"
+#include "globals.h"
 
 #if 0
 int AudioStreamResampled::get_channel_count() const {

@@ -35,7 +35,7 @@
 
 class CollisionShape : public Spatial {
 
-	GDCLASS(CollisionShape, Spatial);
+	OBJ_TYPE(CollisionShape, Spatial);
 	OBJ_CATEGORY("3D Physics Nodes");
 
 	Ref<Shape> shape;

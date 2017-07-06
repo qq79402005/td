@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -31,7 +30,7 @@
 
 #ifdef MINIZIP_ENABLED
 
-#include "core/global_config.h"
+#include "core/globals.h"
 #include "io/resource_loader.h"
 #include "io/resource_saver.h"
 #include "os/dir_access.h"
@@ -91,10 +90,10 @@ MainLoop *test() {
 	ResourceSaver::save("test_data/rock.xml", texture);
 
 	print_line("localize paths");
-	print_line(GlobalConfig::get_singleton()->localize_path("algo.xml"));
-	print_line(GlobalConfig::get_singleton()->localize_path("c:\\windows\\algo.xml"));
-	print_line(GlobalConfig::get_singleton()->localize_path(GlobalConfig::get_singleton()->get_resource_path() + "/something/something.xml"));
-	print_line(GlobalConfig::get_singleton()->localize_path("somedir/algo.xml"));
+	print_line(Globals::get_singleton()->localize_path("algo.xml"));
+	print_line(Globals::get_singleton()->localize_path("c:\\windows\\algo.xml"));
+	print_line(Globals::get_singleton()->localize_path(Globals::get_singleton()->get_resource_path() + "/something/something.xml"));
+	print_line(Globals::get_singleton()->localize_path("somedir/algo.xml"));
 
 	{
 

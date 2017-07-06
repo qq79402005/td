@@ -30,23 +30,7 @@
 
 /*
 Adapted to Godot from the Bullet library.
-*/
-
-/*
-Bullet Continuous Collision Detection and Physics Library
-ConeTwistJointSW is Copyright (c) 2007 Starbreeze Studios
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-
-Written by: Marcus Hennix
+See corresponding header file for licensing info.
 */
 
 #include "cone_twist_joint_sw.h"
@@ -100,7 +84,6 @@ ConeTwistJointSW::ConeTwistJointSW(BodySW *rbA, BodySW *rbB, const Transform &rb
 	m_biasFactor = 0.3f;
 	m_relaxationFactor = 1.0f;
 
-	m_angularOnly = false;
 	m_solveTwistLimit = false;
 	m_solveSwingLimit = false;
 
@@ -110,7 +93,7 @@ ConeTwistJointSW::ConeTwistJointSW(BodySW *rbA, BodySW *rbB, const Transform &rb
 	m_appliedImpulse = 0;
 }
 
-bool ConeTwistJointSW::setup(real_t p_step) {
+bool ConeTwistJointSW::setup(float p_step) {
 	m_appliedImpulse = real_t(0.);
 
 	//set bias, sign, clear accumulator
@@ -137,10 +120,10 @@ bool ConeTwistJointSW::setup(real_t p_step) {
 
 		for (int i = 0; i < 3; i++) {
 			memnew_placement(&m_jac[i], JacobianEntrySW(
-												A->get_principal_inertia_axes().transposed(),
-												B->get_principal_inertia_axes().transposed(),
-												pivotAInW - A->get_transform().origin - A->get_center_of_mass(),
-												pivotBInW - B->get_transform().origin - B->get_center_of_mass(),
+												A->get_transform().basis.transposed(),
+												B->get_transform().basis.transposed(),
+												pivotAInW - A->get_transform().origin,
+												pivotBInW - B->get_transform().origin,
 												normal[i],
 												A->get_inv_inertia(),
 												A->get_inv_mass(),
@@ -164,7 +147,7 @@ bool ConeTwistJointSW::setup(real_t p_step) {
 	// Get Frame into world space
 	if (m_swingSpan1 >= real_t(0.05f)) {
 		b1Axis2 = A->get_transform().basis.xform(this->m_rbAFrame.basis.get_axis(1));
-		//swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
+		//		swing1  = btAtan2Fast( b2Axis1.dot(b1Axis2),b2Axis1.dot(b1Axis1) );
 		swx = b2Axis1.dot(b1Axis1);
 		swy = b2Axis1.dot(b1Axis2);
 		swing1 = atan2fast(swy, swx);
@@ -175,7 +158,7 @@ bool ConeTwistJointSW::setup(real_t p_step) {
 
 	if (m_swingSpan2 >= real_t(0.05f)) {
 		b1Axis3 = A->get_transform().basis.xform(this->m_rbAFrame.basis.get_axis(2));
-		//swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
+		//		swing2 = btAtan2Fast( b2Axis1.dot(b1Axis3),b2Axis1.dot(b1Axis1) );
 		swx = b2Axis1.dot(b1Axis1);
 		swy = b2Axis1.dot(b1Axis3);
 		swing2 = atan2fast(swy, swx);
@@ -308,7 +291,7 @@ void ConeTwistJointSW::solve(real_t timeStep) {
 	}
 }
 
-void ConeTwistJointSW::set_param(PhysicsServer::ConeTwistJointParam p_param, real_t p_value) {
+void ConeTwistJointSW::set_param(PhysicsServer::ConeTwistJointParam p_param, float p_value) {
 
 	switch (p_param) {
 		case PhysicsServer::CONE_TWIST_JOINT_SWING_SPAN: {
@@ -335,7 +318,7 @@ void ConeTwistJointSW::set_param(PhysicsServer::ConeTwistJointParam p_param, rea
 	}
 }
 
-real_t ConeTwistJointSW::get_param(PhysicsServer::ConeTwistJointParam p_param) const {
+float ConeTwistJointSW::get_param(PhysicsServer::ConeTwistJointParam p_param) const {
 
 	switch (p_param) {
 		case PhysicsServer::CONE_TWIST_JOINT_SWING_SPAN: {

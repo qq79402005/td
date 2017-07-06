@@ -45,7 +45,7 @@ Size2 MarginContainer::get_minimum_size() const {
 			continue;
 		if (c->is_set_as_toplevel())
 			continue;
-		if (!c->is_visible())
+		if (c->is_hidden())
 			continue;
 
 		Size2 s = c->get_combined_minimum_size();

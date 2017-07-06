@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "audio_driver_opensl.h"
-
 #include <string.h>
 
 #define MAX_NUMBER_INTERFACES 3
@@ -102,7 +101,7 @@ void AudioDriverOpenSL::_buffer_callbacks(
 
 	AudioDriverOpenSL *ad = (AudioDriverOpenSL *)pContext;
 
-	//ad->_buffer_callback(queueItf,eventFlags,pBuffer,bufferSize,dataUsed);
+	//	ad->_buffer_callback(queueItf,eventFlags,pBuffer,bufferSize,dataUsed);
 	ad->_buffer_callback(queueItf);
 }
 
@@ -257,8 +256,8 @@ void AudioDriverOpenSL::start() {
 	ERR_FAIL_COND(res != SL_RESULT_SUCCESS);
 
 	SLDataLocator_AndroidSimpleBufferQueue loc_bufq = { SL_DATALOCATOR_ANDROIDSIMPLEBUFFERQUEUE, BUFFER_COUNT };
-	//bufferQueue.locatorType = SL_DATALOCATOR_BUFFERQUEUE;
-	//bufferQueue.numBuffers = BUFFER_COUNT; /* Four buffers in our buffer queue */
+	//	bufferQueue.locatorType = SL_DATALOCATOR_BUFFERQUEUE;
+	//	bufferQueue.numBuffers = BUFFER_COUNT; /* Four buffers in our buffer queue */
 	/* Setup the format of the content in the buffer queue */
 	pcm.formatType = SL_DATAFORMAT_PCM;
 	pcm.numChannels = 2;
@@ -280,7 +279,7 @@ void AudioDriverOpenSL::start() {
 	audioSink.pLocator = (void *)&locator_outputmix;
 	audioSink.pFormat = NULL;
 	/* Initialize the context for Buffer queue callbacks */
-	//cntxt.pDataBase = (void*)&pcmData;
+	//	cntxt.pDataBase = (void*)&pcmData;
 	//cntxt.pData = cntxt.pDataBase;
 	//cntxt.size = sizeof(pcmData);
 	/* Set arrays required[] and iidArray[] for SEEK interface
@@ -354,9 +353,9 @@ int AudioDriverOpenSL::get_mix_rate() const {
 	return 44100;
 }
 
-AudioDriver::SpeakerMode AudioDriverOpenSL::get_speaker_mode() const {
+AudioDriverSW::OutputFormat AudioDriverOpenSL::get_output_format() const {
 
-	return SPEAKER_MODE_STEREO;
+	return OUTPUT_STEREO;
 }
 
 void AudioDriverOpenSL::lock() {

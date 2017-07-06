@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -40,7 +39,7 @@
 
 class TestPhysicsMainLoop : public MainLoop {
 
-	GDCLASS(TestPhysicsMainLoop, MainLoop);
+	OBJ_TYPE(TestPhysicsMainLoop, MainLoop);
 
 	enum {
 		LINK_COUNT = 20,
@@ -80,7 +79,7 @@ class TestPhysicsMainLoop : public MainLoop {
 protected:
 	static void _bind_methods() {
 
-		ClassDB::bind_method("body_changed_transform", &TestPhysicsMainLoop::body_changed_transform);
+		ObjectTypeDB::bind_method("body_changed_transform", &TestPhysicsMainLoop::body_changed_transform);
 	}
 
 	RID create_body(PhysicsServer::ShapeType p_shape, PhysicsServer::BodyMode p_body, const Transform p_location, bool p_active_default = true, const Transform &p_shape_xform = Transform()) {
@@ -135,6 +134,10 @@ protected:
 
 		/* SPHERE SHAPE */
 		RID sphere_mesh = vs->make_sphere_mesh(10, 20, 0.5);
+		RID sphere_material = vs->fixed_material_create();
+		//vs->material_set_flag( sphere_material, VisualServer::MATERIAL_FLAG_WIREFRAME, true );
+		vs->fixed_material_set_param(sphere_material, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(0.7, 0.8, 3.0));
+		vs->mesh_surface_set_material(sphere_mesh, 0, sphere_material);
 		type_mesh_map[PhysicsServer::SHAPE_SPHERE] = sphere_mesh;
 
 		RID sphere_shape = ps->shape_create(PhysicsServer::SHAPE_SPHERE);
@@ -143,10 +146,13 @@ protected:
 
 		/* BOX SHAPE */
 
-		PoolVector<Plane> box_planes = Geometry::build_box_planes(Vector3(0.5, 0.5, 0.5));
+		DVector<Plane> box_planes = Geometry::build_box_planes(Vector3(0.5, 0.5, 0.5));
+		RID box_material = vs->fixed_material_create();
+		vs->fixed_material_set_param(box_material, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(1.0, 0.2, 0.2));
 		RID box_mesh = vs->mesh_create();
 		Geometry::MeshData box_data = Geometry::build_convex_mesh(box_planes);
 		vs->mesh_add_surface_from_mesh_data(box_mesh, box_data);
+		vs->mesh_surface_set_material(box_mesh, 0, box_material);
 		type_mesh_map[PhysicsServer::SHAPE_BOX] = box_mesh;
 
 		RID box_shape = ps->shape_create(PhysicsServer::SHAPE_BOX);
@@ -155,12 +161,14 @@ protected:
 
 		/* CAPSULE SHAPE */
 
-		PoolVector<Plane> capsule_planes = Geometry::build_capsule_planes(0.5, 0.7, 12, Vector3::AXIS_Z);
+		DVector<Plane> capsule_planes = Geometry::build_capsule_planes(0.5, 0.7, 12, Vector3::AXIS_Z);
+		RID capsule_material = vs->fixed_material_create();
+		vs->fixed_material_set_param(capsule_material, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(0.3, 0.4, 1.0));
 
 		RID capsule_mesh = vs->mesh_create();
 		Geometry::MeshData capsule_data = Geometry::build_convex_mesh(capsule_planes);
 		vs->mesh_add_surface_from_mesh_data(capsule_mesh, capsule_data);
-
+		vs->mesh_surface_set_material(capsule_mesh, 0, capsule_material);
 		type_mesh_map[PhysicsServer::SHAPE_CAPSULE] = capsule_mesh;
 
 		RID capsule_shape = ps->shape_create(PhysicsServer::SHAPE_CAPSULE);
@@ -172,13 +180,15 @@ protected:
 
 		/* CONVEX SHAPE */
 
-		PoolVector<Plane> convex_planes = Geometry::build_cylinder_planes(0.5, 0.7, 5, Vector3::AXIS_Z);
+		DVector<Plane> convex_planes = Geometry::build_cylinder_planes(0.5, 0.7, 5, Vector3::AXIS_Z);
+		RID convex_material = vs->fixed_material_create();
+		vs->fixed_material_set_param(convex_material, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(0.8, 0.2, 0.9));
 
 		RID convex_mesh = vs->mesh_create();
 		Geometry::MeshData convex_data = Geometry::build_convex_mesh(convex_planes);
 		QuickHull::build(convex_data.vertices, convex_data);
 		vs->mesh_add_surface_from_mesh_data(convex_mesh, convex_data);
-
+		vs->mesh_surface_set_material(convex_mesh, 0, convex_material);
 		type_mesh_map[PhysicsServer::SHAPE_CONVEX_POLYGON] = convex_mesh;
 
 		RID convex_shape = ps->shape_create(PhysicsServer::SHAPE_CONVEX_POLYGON);
@@ -207,8 +217,11 @@ protected:
 		d.resize(VS::ARRAY_MAX);
 		d[VS::ARRAY_VERTEX] = p_faces;
 		d[VS::ARRAY_NORMAL] = normals;
-		vs->mesh_add_surface_from_arrays(trimesh_mesh, VS::PRIMITIVE_TRIANGLES, d);
+		vs->mesh_add_surface(trimesh_mesh, VS::PRIMITIVE_TRIANGLES, d);
+		RID trimesh_mat = vs->fixed_material_create();
+		vs->fixed_material_set_param(trimesh_mat, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(1.0, 0.5, 0.8));
 		//vs->material_set_flag( trimesh_mat, VisualServer::MATERIAL_FLAG_UNSHADED,true);
+		vs->mesh_surface_set_material(trimesh_mesh, 0, trimesh_mat);
 
 		RID triins = vs->instance_create2(trimesh_mesh, scenario);
 
@@ -263,19 +276,18 @@ protected:
 	}
 
 public:
-	virtual void input_event(const Ref<InputEvent> &p_event) {
+	virtual void input_event(const InputEvent &p_event) {
 
-		Ref<InputEventMouseMotion> mm = p_event;
-		if (mm.is_valid() && mm->get_button_mask() & 4) {
+		if (p_event.type == InputEvent::MOUSE_MOTION && p_event.mouse_motion.button_mask & 4) {
 
-			ofs_y -= mm->get_relative().y / 200.0;
-			ofs_x += mm->get_relative().x / 200.0;
+			ofs_y -= p_event.mouse_motion.relative_y / 200.0;
+			ofs_x += p_event.mouse_motion.relative_x / 200.0;
 		}
 
-		if (mm.is_valid() && mm->get_button_mask() & 1) {
+		if (p_event.type == InputEvent::MOUSE_MOTION && p_event.mouse_motion.button_mask & 1) {
 
-			float y = -mm->get_relative().y / 20.0;
-			float x = mm->get_relative().x / 20.0;
+			float y = -p_event.mouse_motion.relative_y / 20.0;
+			float x = p_event.mouse_motion.relative_x / 20.0;
 
 			if (mover.is_valid()) {
 
@@ -286,6 +298,19 @@ public:
 				ps->body_set_state(mover, PhysicsServer::BODY_STATE_TRANSFORM, t);
 			}
 		}
+
+		if (p_event.type == InputEvent::JOYSTICK_MOTION) {
+
+			if (p_event.joy_motion.axis == 0) {
+
+				joy_direction.x = p_event.joy_motion.axis_value;
+			};
+
+			if (p_event.joy_motion.axis == 1) {
+
+				joy_direction.y = p_event.joy_motion.axis_value;
+			};
+		};
 	}
 
 	virtual void request_quit() {
@@ -316,26 +341,22 @@ public:
 		/* CAMERA */
 
 		camera = vs->camera_create();
-
 		RID viewport = vs->viewport_create();
-		Size2i screen_size = OS::get_singleton()->get_window_size();
-		vs->viewport_set_size(viewport, screen_size.x, screen_size.y);
-		vs->viewport_attach_to_screen(viewport, Rect2(Vector2(), screen_size));
-		vs->viewport_set_active(viewport, true);
 		vs->viewport_attach_camera(viewport, camera);
+		vs->viewport_attach_to_screen(viewport);
 		vs->viewport_set_scenario(viewport, scenario);
 
 		vs->camera_set_perspective(camera, 60, 0.1, 40.0);
-		vs->camera_set_transform(camera, Transform(Basis(), Vector3(0, 9, 12)));
+		vs->camera_set_transform(camera, Transform(Matrix3(), Vector3(0, 9, 12)));
 		//vs->scenario_set_debug(scenario,VS::SCENARIO_DEBUG_WIREFRAME);
 
 		Transform gxf;
 		gxf.basis.scale(Vector3(1.4, 0.4, 1.4));
 		gxf.origin = Vector3(-2, 1, -2);
 		make_grid(5, 5, 2.5, 1, gxf);
-		//create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,gxf);
+		//	create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,gxf);
 		//create_static_plane( Plane( Vector3(0,1,0), -2) );
-		//test_joint();
+		//		test_joint();
 		test_fall();
 		//test_joint();
 
@@ -414,7 +435,7 @@ public:
 
 
 		RID tribody = ps->body_create( PhysicsServer::BODY_MODE_STATIC, trimesh_shape);
-		Transform tritrans = Transform( Basis(), Vector3(0,0,-2) );
+		Transform tritrans = Transform( Matrix3(), Vector3(0,0,-2) );
 		ps->body_set_state( tribody, PhysicsServer::BODY_STATE_TRANSFORM, tritrans );
 		vs->instance_set_transform( triins, tritrans );
 		RID trimesh_material = vs->fixed_material_create();
@@ -424,7 +445,7 @@ public:
 	}
 	virtual bool iteration(float p_time) {
 
-		if (mover.is_valid()) {
+		if (mover) {
 			static float joy_speed = 10;
 			PhysicsServer *ps = PhysicsServer::get_singleton();
 			Transform t = ps->body_get_state(mover, PhysicsServer::BODY_STATE_TRANSFORM);
@@ -448,7 +469,7 @@ public:
 #if 0
 		PhysicsServer * ps = PhysicsServer::get_singleton();
 
-		mover = create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,Transform(Basis(),Vector3(0,0,-24)));
+		mover = create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,Transform(Matrix3(),Vector3(0,0,-24)));
 		RID b = create_body(PhysicsServer::SHAPE_CAPSULE,PhysicsServer::BODY_MODE_RIGID,Transform());
 
 		ps->joint_create_double_pin(b,Vector3(0,0,1.0),mover,Vector3(0,0,0));
@@ -479,17 +500,17 @@ public:
 		PhysicsServer * ps = PhysicsServer::get_singleton();
 
 
-		mover = create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,Transform(Basis(),Vector3(0,0,-24)));
+		mover = create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_STATIC,Transform(Matrix3(),Vector3(0,0,-24)));
 		RID b = create_body(PhysicsServer::SHAPE_BOX,PhysicsServer::BODY_MODE_RIGID,Transform());
 
-		ps->joint_create_double_hinge(b,Transform(Basis(),Vector3(1,1,1.0)),mover,Transform(Basis(),Vector3(0,0,0)));
+		ps->joint_create_double_hinge(b,Transform(Matrix3(),Vector3(1,1,1.0)),mover,Transform(Matrix3(),Vector3(0,0,0)));
 		ps->body_add_collision_exception(mover,b);
 
 /*
 		for(int i=0;i<20;i++) {
 
 			RID c = create_body(PhysicsServer::SHAPE_CAPSULE,PhysicsServer::BODY_MODE_RIGID,Transform());
-			ps->joint_create_double_hinge(b,Transform(Basis(),Vector3(0,0,-0.7)),c,Transform(Basis(),Vector3(0,0,0.7)));
+			ps->joint_create_double_hinge(b,Transform(Matrix3(),Vector3(0,0,-0.7)),c,Transform(Matrix3(),Vector3(0,0,0.7)));
 			ps->body_add_collision_exception(c,b);
 			b=c;
 		}
@@ -504,11 +525,15 @@ public:
 		VisualServer *vs = VisualServer::get_singleton();
 		PhysicsServer *ps = PhysicsServer::get_singleton();
 
-		PoolVector<Plane> capsule_planes = Geometry::build_capsule_planes(0.5, 1, 12, 5, Vector3::AXIS_Y);
+		DVector<Plane> capsule_planes = Geometry::build_capsule_planes(0.5, 1, 12, 5, Vector3::AXIS_Y);
+		RID capsule_material = vs->fixed_material_create();
+
+		vs->fixed_material_set_param(capsule_material, VisualServer::FIXED_MATERIAL_PARAM_DIFFUSE, Color(1, 1, 1));
 
 		RID capsule_mesh = vs->mesh_create();
 		Geometry::MeshData capsule_data = Geometry::build_convex_mesh(capsule_planes);
 		vs->mesh_add_surface_from_mesh_data(capsule_mesh, capsule_data);
+		vs->mesh_surface_set_material(capsule_mesh, 0, capsule_material);
 		type_mesh_map[PhysicsServer::SHAPE_CAPSULE] = capsule_mesh;
 
 		RID capsule_shape = ps->shape_create(PhysicsServer::SHAPE_CAPSULE);
@@ -528,7 +553,7 @@ public:
 
 		ps->body_set_force_integration_callback(character, this, "body_changed_transform", mesh_instance);
 
-		ps->body_set_state(character, PhysicsServer::BODY_STATE_TRANSFORM, Transform(Basis(), Vector3(-2, 5, -2)));
+		ps->body_set_state(character, PhysicsServer::BODY_STATE_TRANSFORM, Transform(Matrix3(), Vector3(-2, 5, -2)));
 		bodies.push_back(character);
 	}
 
@@ -555,7 +580,7 @@ public:
 			//t.basis.rotate(Vector3(0,-1,0),Math_PI/4*i);
 			//t.basis.rotate(Vector3(-1,0,0),Math_PI/4*i);
 
-			create_body(type, PhysicsServer::BODY_MODE_RIGID, t);
+			RID b = create_body(type, PhysicsServer::BODY_MODE_RIGID, t);
 			//RID b = create_body(type,i==0?PhysicsServer::BODY_MODE_STATIC:PhysicsServer::BODY_MODE_RIGID,t);
 		}
 
@@ -571,8 +596,8 @@ public:
 
 	void test_activate() {
 
-		create_body(PhysicsServer::SHAPE_BOX, PhysicsServer::BODY_MODE_RIGID, Transform(Basis(), Vector3(0, 2, 0)), true);
-		//create_body(PhysicsServer::SHAPE_SPHERE,PhysicsServer::BODY_MODE_RIGID,Transform(Basis(),Vector3(0,6,0)),true);
+		create_body(PhysicsServer::SHAPE_BOX, PhysicsServer::BODY_MODE_RIGID, Transform(Matrix3(), Vector3(0, 2, 0)), true);
+		//create_body(PhysicsServer::SHAPE_SPHERE,PhysicsServer::BODY_MODE_RIGID,Transform(Matrix3(),Vector3(0,6,0)),true);
 		create_static_plane(Plane(Vector3(0, 1, 0), -1));
 	}
 

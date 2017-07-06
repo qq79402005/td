@@ -28,10 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_data.h"
-
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/resource_loader.h"
 #include "os/dir_access.h"
 #include "os/file_access.h"
@@ -502,10 +501,8 @@ void EditorData::remove_scene(int p_idx) {
 
 bool EditorData::_find_updated_instances(Node *p_root, Node *p_node, Set<String> &checked_paths) {
 
-	/*
-	if (p_root!=p_node && p_node->get_owner()!=p_root && !p_root->is_editable_instance(p_node->get_owner()))
-		return false;
-	*/
+	//	if (p_root!=p_node && p_node->get_owner()!=p_root && !p_root->is_editable_instance(p_node->get_owner()))
+	//		return false;
 
 	Ref<SceneState> ss;
 
@@ -561,7 +558,7 @@ bool EditorData::check_and_update_scene(int p_idx) {
 		Error err = pscene->pack(edited_scene[p_idx].root);
 		ERR_FAIL_COND_V(err != OK, false);
 		ep.step(TTR("Updating scene.."), 1);
-		Node *new_scene = pscene->instance(PackedScene::GEN_EDIT_STATE_MAIN);
+		Node *new_scene = pscene->instance(true);
 		ERR_FAIL_COND_V(!new_scene, false);
 
 		//transfer selection
@@ -640,7 +637,7 @@ String EditorData::get_scene_type(int p_idx) const {
 	ERR_FAIL_INDEX_V(p_idx, edited_scene.size(), String());
 	if (!edited_scene[p_idx].root)
 		return "";
-	return edited_scene[p_idx].root->get_class();
+	return edited_scene[p_idx].root->get_type();
 }
 void EditorData::move_edited_scene_to_index(int p_idx) {
 
@@ -675,12 +672,7 @@ String EditorData::get_scene_title(int p_idx) const {
 		return "[empty]";
 	if (edited_scene[p_idx].root->get_filename() == "")
 		return "[unsaved]";
-	bool show_ext = EDITOR_DEF("interface/scene_tabs/show_extension", false);
-	String name = edited_scene[p_idx].root->get_filename().get_file();
-	if (!show_ext) {
-		name = name.get_basename();
-	}
-	return name;
+	return edited_scene[p_idx].root->get_filename().get_file();
 }
 
 String EditorData::get_scene_path(int p_idx) const {
@@ -733,6 +725,23 @@ Dictionary EditorData::restore_edited_scene_state(EditorSelection *p_selection, 
 	return es.custom_state;
 }
 
+void EditorData::set_edited_scene_import_metadata(Ref<ResourceImportMetadata> p_mdata) {
+
+	ERR_FAIL_INDEX(current_edited_scene, edited_scene.size());
+	edited_scene[current_edited_scene].medatata = p_mdata;
+}
+
+Ref<ResourceImportMetadata> EditorData::get_edited_scene_import_metadata(int idx) const {
+
+	ERR_FAIL_INDEX_V(current_edited_scene, edited_scene.size(), Ref<ResourceImportMetadata>());
+	if (idx < 0) {
+		return edited_scene[current_edited_scene].medatata;
+	} else {
+		ERR_FAIL_INDEX_V(idx, edited_scene.size(), Ref<ResourceImportMetadata>());
+		return edited_scene[idx].medatata;
+	}
+}
+
 void EditorData::clear_edited_scenes() {
 
 	for (int i = 0; i < edited_scene.size(); i++) {
@@ -759,7 +768,7 @@ EditorData::EditorData() {
 
 	current_edited_scene = -1;
 
-	//load_imported_scenes_from_globals();
+	//	load_imported_scenes_from_globals();
 }
 
 ///////////
@@ -795,7 +804,7 @@ void EditorSelection::add_node(Node *p_node) {
 	}
 	selection[p_node] = meta;
 
-	p_node->connect("tree_exited", this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
+	p_node->connect("exit_tree", this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
 
 	//emit_signal("selection_changed");
 }
@@ -813,7 +822,7 @@ void EditorSelection::remove_node(Node *p_node) {
 	if (meta)
 		memdelete(meta);
 	selection.erase(p_node);
-	p_node->disconnect("tree_exited", this, "_node_removed");
+	p_node->disconnect("exit_tree", this, "_node_removed");
 	//emit_signal("selection_changed");
 }
 bool EditorSelection::is_selected(Node *p_node) const {
@@ -821,7 +830,7 @@ bool EditorSelection::is_selected(Node *p_node) const {
 	return selection.has(p_node);
 }
 
-Array EditorSelection::_get_transformable_selected_nodes() {
+Array EditorSelection::_get_selected_nodes() {
 
 	Array ret;
 
@@ -833,26 +842,13 @@ Array EditorSelection::_get_transformable_selected_nodes() {
 	return ret;
 }
 
-Array EditorSelection::_get_selected_nodes() {
-
-	Array ret;
-
-	for (Map<Node *, Object *>::Element *E = selection.front(); E; E = E->next()) {
-
-		ret.push_back(E->key());
-	}
-
-	return ret;
-}
-
 void EditorSelection::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_node_removed"), &EditorSelection::_node_removed);
-	ClassDB::bind_method(D_METHOD("clear"), &EditorSelection::clear);
-	ClassDB::bind_method(D_METHOD("add_node", "node:Node"), &EditorSelection::add_node);
-	ClassDB::bind_method(D_METHOD("remove_node", "node:Node"), &EditorSelection::remove_node);
-	ClassDB::bind_method(D_METHOD("get_selected_nodes"), &EditorSelection::_get_selected_nodes);
-	ClassDB::bind_method(D_METHOD("get_transformable_selected_nodes"), &EditorSelection::_get_transformable_selected_nodes);
+	ObjectTypeDB::bind_method(_MD("_node_removed"), &EditorSelection::_node_removed);
+	ObjectTypeDB::bind_method(_MD("clear"), &EditorSelection::clear);
+	ObjectTypeDB::bind_method(_MD("add_node", "node:Node"), &EditorSelection::add_node);
+	ObjectTypeDB::bind_method(_MD("remove_node", "node:Node"), &EditorSelection::remove_node);
+	ObjectTypeDB::bind_method(_MD("get_selected_nodes"), &EditorSelection::_get_selected_nodes);
 	ADD_SIGNAL(MethodInfo("selection_changed"));
 }
 

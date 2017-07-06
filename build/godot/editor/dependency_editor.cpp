@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "dependency_editor.h"
-
 #include "editor_node.h"
 #include "io/resource_loader.h"
 #include "os/file_access.h"
@@ -237,9 +236,9 @@ void DependencyEditor::edit(const String &p_path) {
 
 void DependencyEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_searched"), &DependencyEditor::_searched);
-	ClassDB::bind_method(D_METHOD("_load_pressed"), &DependencyEditor::_load_pressed);
-	ClassDB::bind_method(D_METHOD("_fix_all"), &DependencyEditor::_fix_all);
+	ObjectTypeDB::bind_method(_MD("_searched"), &DependencyEditor::_searched);
+	ObjectTypeDB::bind_method(_MD("_load_pressed"), &DependencyEditor::_load_pressed);
+	ObjectTypeDB::bind_method(_MD("_fix_all"), &DependencyEditor::_fix_all);
 }
 
 DependencyEditor::DependencyEditor() {
@@ -247,6 +246,7 @@ DependencyEditor::DependencyEditor() {
 	VBoxContainer *vb = memnew(VBoxContainer);
 	vb->set_name(TTR("Dependencies"));
 	add_child(vb);
+	set_child_rect(vb);
 
 	tree = memnew(Tree);
 	tree->set_columns(2);
@@ -333,6 +333,7 @@ DependencyEditorOwners::DependencyEditorOwners() {
 
 	owners = memnew(ItemList);
 	add_child(owners);
+	set_child_rect(owners);
 }
 
 ///////////////////////
@@ -426,6 +427,7 @@ DependencyRemoveDialog::DependencyRemoveDialog() {
 
 	VBoxContainer *vb = memnew(VBoxContainer);
 	add_child(vb);
+	set_child_rect(vb);
 
 	text = memnew(Label);
 	vb->add_child(text);
@@ -483,6 +485,7 @@ DependencyErrorDialog::DependencyErrorDialog() {
 
 	VBoxContainer *vb = memnew(VBoxContainer);
 	add_child(vb);
+	set_child_rect(vb);
 
 	files = memnew(Tree);
 	files->set_hide_root(true);
@@ -634,15 +637,15 @@ void OrphanResourcesDialog::_button_pressed(Object *p_item, int p_column, int p_
 
 void OrphanResourcesDialog::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_delete_confirm"), &OrphanResourcesDialog::_delete_confirm);
-	ClassDB::bind_method(D_METHOD("_button_pressed"), &OrphanResourcesDialog::_button_pressed);
+	ObjectTypeDB::bind_method(_MD("_delete_confirm"), &OrphanResourcesDialog::_delete_confirm);
+	ObjectTypeDB::bind_method(_MD("_button_pressed"), &OrphanResourcesDialog::_button_pressed);
 }
 
 OrphanResourcesDialog::OrphanResourcesDialog() {
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	add_child(vbc);
-
+	set_child_rect(vbc);
 	files = memnew(Tree);
 	files->set_columns(2);
 	files->set_column_titles_visible(true);

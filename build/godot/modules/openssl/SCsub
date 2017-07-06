@@ -648,9 +648,6 @@ if (env['builtin_openssl'] != 'no'):
         "crypto/bn/bn_asm.c",
     ]
 
-    if "platform" in env and env["platform"] == "uwp":
-        thirdparty_sources += ['uwp.cpp']
-
     thirdparty_sources = [thirdparty_dir + file for file in thirdparty_sources]
 
     env_openssl.add_source_files(env.modules_sources, thirdparty_sources)
@@ -671,26 +668,12 @@ if (env['builtin_openssl'] != 'no'):
     # Workaround for compilation error with GCC/Clang when -Werror is too greedy (GH-4517)
     import os
     import methods
-    if not (os.name == "nt" and os.getenv("VCINSTALLDIR")):  # not Windows and not MSVC
+    if not (os.name == "nt" and os.getenv("VSINSTALLDIR") != None):  # not Windows and not MSVC
         env_openssl.Append(CFLAGS=["-Wno-error=implicit-function-declaration"])
 
 
 # Module sources
 env_openssl.add_source_files(env.modules_sources, "*.cpp")
-
-
-# Other thirdparty dependencies
-thirdparty_misc_dir = "#thirdparty/misc/"
-thirdparty_misc_sources = [
-	"curl_hostcheck.c",
-]
-thirdparty_misc_sources = [thirdparty_misc_dir + file for file in thirdparty_misc_sources]
-env_openssl.add_source_files(env.modules_sources, thirdparty_misc_sources)
-
-
-# platform/uwp need to know openssl is available, pass to main env
-if "platform" in env and env["platform"] == "uwp":
-    env.Append(CPPPATH=[thirdparty_dir])
-    env.Append(CPPFLAGS=['-DOPENSSL_ENABLED'])
+env_openssl.add_source_files(env.modules_sources, "*.c")
 
 Export('env')

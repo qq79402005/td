@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "item_list.h"
-#include "global_config.h"
+#include "globals.h"
 #include "os/os.h"
 
 void ItemList::add_item(const String &p_item, const Ref<Texture> &p_texture, bool p_selectable) {
@@ -286,7 +286,8 @@ void ItemList::move_item(int p_item, int p_to_pos) {
 
 	if (current < 0) {
 		//do none
-	} else if (p_item == current) {
+	}
+	if (p_item == current) {
 		current = p_to_pos;
 	} else if (p_to_pos > p_item && current > p_item && current < p_to_pos) {
 		current--;
@@ -409,17 +410,14 @@ Size2 ItemList::Item::get_icon_size() const {
 	return icon_region.size;
 }
 
-void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
+void ItemList::_input_event(const InputEvent &p_event) {
 
-	Ref<InputEventMouseMotion> mm = p_event;
-	if (defer_select_single >= 0 && mm.is_valid()) {
+	if (defer_select_single >= 0 && p_event.type == InputEvent::MOUSE_MOTION) {
 		defer_select_single = -1;
 		return;
 	}
 
-	Ref<InputEventMouseButton> mb = p_event;
-
-	if (defer_select_single >= 0 && mb.is_valid() && mb->get_button_index() == BUTTON_LEFT && !mb->is_pressed()) {
+	if (defer_select_single >= 0 && p_event.type == InputEvent::MOUSE_BUTTON && p_event.mouse_button.button_index == BUTTON_LEFT && !p_event.mouse_button.pressed) {
 
 		select(defer_select_single, true);
 
@@ -428,13 +426,15 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 		return;
 	}
 
-	if (mb.is_valid() && (mb->get_button_index() == BUTTON_LEFT || (allow_rmb_select && mb->get_button_index() == BUTTON_RIGHT)) && mb->is_pressed()) {
+	if (p_event.type == InputEvent::MOUSE_BUTTON && (p_event.mouse_button.button_index == BUTTON_LEFT || (allow_rmb_select && p_event.mouse_button.button_index == BUTTON_RIGHT)) && p_event.mouse_button.pressed) {
+
+		const InputEventMouseButton &mb = p_event.mouse_button;
 
 		search_string = ""; //any mousepress cancels
-		Vector2 pos(mb->get_position().x, mb->get_position().y);
+		Vector2 pos(mb.x, mb.y);
 		Ref<StyleBox> bg = get_stylebox("bg");
 		pos -= bg->get_offset();
-		pos.y += scroll_bar->get_value();
+		pos.y += scroll_bar->get_val();
 
 		int closest = -1;
 
@@ -455,11 +455,11 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 			int i = closest;
 
-			if (select_mode == SELECT_MULTI && items[i].selected && mb->get_command()) {
+			if (select_mode == SELECT_MULTI && items[i].selected && mb.mod.command) {
 				unselect(i);
 				emit_signal("multi_selected", i, false);
 
-			} else if (select_mode == SELECT_MULTI && mb->get_shift() && current >= 0 && current < items.size() && current != i) {
+			} else if (select_mode == SELECT_MULTI && mb.mod.shift && current >= 0 && current < items.size() && current != i) {
 
 				int from = current;
 				int to = i;
@@ -473,24 +473,24 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 						emit_signal("multi_selected", i, true);
 				}
 
-				if (mb->get_button_index() == BUTTON_RIGHT) {
+				if (p_event.mouse_button.button_index == BUTTON_RIGHT) {
 
-					emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
+					emit_signal("item_rmb_selected", i, Vector2(mb.x, mb.y));
 				}
 			} else {
 
-				if (!mb->is_doubleclick() && !mb->get_command() && select_mode == SELECT_MULTI && items[i].selectable && !items[i].disabled && items[i].selected && mb->get_button_index() == BUTTON_LEFT) {
+				if (!mb.doubleclick && !mb.mod.command && select_mode == SELECT_MULTI && items[i].selectable && !items[i].disabled && items[i].selected && p_event.mouse_button.button_index == BUTTON_LEFT) {
 					defer_select_single = i;
 					return;
 				}
 
-				if (items[i].selected && mb->get_button_index() == BUTTON_RIGHT) {
+				if (items[i].selected && p_event.mouse_button.button_index == BUTTON_RIGHT) {
 
-					emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
+					emit_signal("item_rmb_selected", i, Vector2(mb.x, mb.y));
 				} else {
 					bool selected = !items[i].selected;
 
-					select(i, select_mode == SELECT_SINGLE || !mb->get_command());
+					select(i, select_mode == SELECT_SINGLE || !mb.mod.command);
 
 					if (selected) {
 						if (select_mode == SELECT_SINGLE) {
@@ -499,10 +499,10 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 							emit_signal("multi_selected", i, true);
 					}
 
-					if (mb->get_button_index() == BUTTON_RIGHT) {
+					if (p_event.mouse_button.button_index == BUTTON_RIGHT) {
 
-						emit_signal("item_rmb_selected", i, Vector2(mb->get_position().x, mb->get_position().y));
-					} else if (/*select_mode==SELECT_SINGLE &&*/ mb->is_doubleclick()) {
+						emit_signal("item_rmb_selected", i, Vector2(mb.x, mb.y));
+					} else if (/*select_mode==SELECT_SINGLE &&*/ mb.doubleclick) {
 
 						emit_signal("item_activated", i);
 					}
@@ -517,24 +517,24 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 			}
 		}
 	}
-	if (mb.is_valid() && mb->get_button_index() == BUTTON_WHEEL_UP && mb->is_pressed()) {
+	if (p_event.type == InputEvent::MOUSE_BUTTON && p_event.mouse_button.button_index == BUTTON_WHEEL_UP && p_event.mouse_button.pressed) {
 
-		scroll_bar->set_value(scroll_bar->get_value() - scroll_bar->get_page() * mb->get_factor() / 8);
+		scroll_bar->set_val(scroll_bar->get_val() - scroll_bar->get_page() / 8);
 	}
-	if (mb.is_valid() && mb->get_button_index() == BUTTON_WHEEL_DOWN && mb->is_pressed()) {
+	if (p_event.type == InputEvent::MOUSE_BUTTON && p_event.mouse_button.button_index == BUTTON_WHEEL_DOWN && p_event.mouse_button.pressed) {
 
-		scroll_bar->set_value(scroll_bar->get_value() + scroll_bar->get_page() * mb->get_factor() / 8);
+		scroll_bar->set_val(scroll_bar->get_val() + scroll_bar->get_page() / 8);
 	}
 
-	if (p_event->is_pressed() && items.size() > 0) {
-		if (p_event->is_action("ui_up")) {
+	if (p_event.is_pressed() && items.size() > 0) {
+		if (p_event.is_action("ui_up")) {
 
 			if (search_string != "") {
 
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < int(Globals::get_singleton()->get("gui/incr_search_max_interval_msec")) * 2) {
 
 					for (int i = current - 1; i >= 0; i--) {
 
@@ -562,14 +562,14 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				}
 				accept_event();
 			}
-		} else if (p_event->is_action("ui_down")) {
+		} else if (p_event.is_action("ui_down")) {
 
 			if (search_string != "") {
 
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
 
-				if (diff < int(GlobalConfig::get_singleton()->get("gui/timers/incremental_search_max_interval_msec")) * 2) {
+				if (diff < int(Globals::get_singleton()->get("gui/incr_search_max_interval_msec")) * 2) {
 
 					for (int i = current + 1; i < items.size(); i++) {
 
@@ -596,7 +596,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				}
 				accept_event();
 			}
-		} else if (p_event->is_action("ui_page_up")) {
+		} else if (p_event.is_action("ui_page_up")) {
 
 			search_string = ""; //any mousepress cancels
 
@@ -611,7 +611,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 					break;
 				}
 			}
-		} else if (p_event->is_action("ui_page_down")) {
+		} else if (p_event.is_action("ui_page_down")) {
 
 			search_string = ""; //any mousepress cancels
 
@@ -627,7 +627,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 					break;
 				}
 			}
-		} else if (p_event->is_action("ui_left")) {
+		} else if (p_event.is_action("ui_left")) {
 
 			search_string = ""; //any mousepress cancels
 
@@ -639,7 +639,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				}
 				accept_event();
 			}
-		} else if (p_event->is_action("ui_right")) {
+		} else if (p_event.is_action("ui_right")) {
 
 			search_string = ""; //any mousepress cancels
 
@@ -651,9 +651,9 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 				}
 				accept_event();
 			}
-		} else if (p_event->is_action("ui_cancel")) {
+		} else if (p_event.is_action("ui_cancel")) {
 			search_string = "";
-		} else if (p_event->is_action("ui_select")) {
+		} else if (p_event.is_action("ui_select")) {
 
 			if (select_mode == SELECT_MULTI && current >= 0 && current < items.size()) {
 				if (items[current].selectable && !items[current].disabled && !items[current].selected) {
@@ -664,28 +664,26 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 					emit_signal("multi_selected", current, false);
 				}
 			}
-		} else if (p_event->is_action("ui_accept")) {
+		} else if (p_event.is_action("ui_accept")) {
 			search_string = ""; //any mousepress cance
 
 			if (current >= 0 && current < items.size()) {
 				emit_signal("item_activated", current);
 			}
-		} else {
+		} else if (p_event.type == InputEvent::KEY) {
 
-			Ref<InputEventKey> k = p_event;
-
-			if (k.is_valid() && k->get_unicode()) {
+			if (p_event.key.unicode) {
 
 				uint64_t now = OS::get_singleton()->get_ticks_msec();
 				uint64_t diff = now - search_time_msec;
-				uint64_t max_interval = uint64_t(GLOBAL_DEF("gui/timers/incremental_search_max_interval_msec", 2000));
+				uint64_t max_interval = uint64_t(GLOBAL_DEF("gui/incr_search_max_interval_msec", 2000));
 				search_time_msec = now;
 
 				if (diff > max_interval) {
 					search_string = "";
 				}
 
-				search_string += String::chr(k->get_unicode());
+				search_string += String::chr(p_event.key.unicode);
 				for (int i = 0; i < items.size(); i++) {
 					if (items[i].text.begins_with(search_string)) {
 						set_current(i);
@@ -733,6 +731,7 @@ void ItemList::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_DRAW) {
 
+		VS::get_singleton()->canvas_item_set_clip(get_canvas_item(), true);
 		Ref<StyleBox> bg = get_stylebox("bg");
 
 		int mw = scroll_bar->get_minimum_size().x;
@@ -745,7 +744,7 @@ void ItemList::_notification(int p_what) {
 
 		float page = size.height - bg->get_minimum_size().height;
 		int width = size.width - bg->get_minimum_size().width;
-		if (scroll_bar->is_visible()) {
+		if (!scroll_bar->is_hidden()) {
 			width -= mw + bg->get_margin(MARGIN_RIGHT);
 		}
 		scroll_bar->set_page(page);
@@ -857,7 +856,7 @@ void ItemList::_notification(int p_what) {
 					items[i].rect_cache = items[i].min_rect_cache;
 					if (same_column_width)
 						items[i].rect_cache.size.x = max_column_width;
-					items[i].rect_cache.position = ofs;
+					items[i].rect_cache.pos = ofs;
 					max_h = MAX(max_h, items[i].rect_cache.size.y);
 					ofs.x += items[i].rect_cache.size.x + hseparation;
 					//print_line("item "+itos(i)+" ofs "+rtos(items[i].rect_cache.size.x));
@@ -887,7 +886,7 @@ void ItemList::_notification(int p_what) {
 					scroll_bar->set_max(max);
 					//print_line("max: "+rtos(max)+" page "+rtos(page));
 					if (max <= page) {
-						scroll_bar->set_value(0);
+						scroll_bar->set_val(0);
 						scroll_bar->hide();
 					} else {
 						scroll_bar->show();
@@ -903,22 +902,22 @@ void ItemList::_notification(int p_what) {
 		if (ensure_selected_visible && current >= 0 && current <= items.size()) {
 
 			Rect2 r = items[current].rect_cache;
-			int from = scroll_bar->get_value();
+			int from = scroll_bar->get_val();
 			int to = from + scroll_bar->get_page();
 
-			if (r.position.y < from) {
-				scroll_bar->set_value(r.position.y);
-			} else if (r.position.y + r.size.y > to) {
-				scroll_bar->set_value(r.position.y + r.size.y - (to - from));
+			if (r.pos.y < from) {
+				scroll_bar->set_val(r.pos.y);
+			} else if (r.pos.y + r.size.y > to) {
+				scroll_bar->set_val(r.pos.y + r.size.y - (to - from));
 			}
 		}
 
 		ensure_selected_visible = false;
 
 		Vector2 base_ofs = bg->get_offset();
-		base_ofs.y -= int(scroll_bar->get_value());
+		base_ofs.y -= int(scroll_bar->get_val());
 
-		Rect2 clip(Point2(), size - bg->get_minimum_size() + Vector2(0, scroll_bar->get_value()));
+		Rect2 clip(Point2(), size - bg->get_minimum_size() + Vector2(0, scroll_bar->get_val()));
 
 		for (int i = 0; i < items.size(); i++) {
 
@@ -928,29 +927,26 @@ void ItemList::_notification(int p_what) {
 				continue;
 
 			if (current_columns == 1) {
-				rcache.size.width = width - rcache.position.x;
+				rcache.size.width = width - rcache.pos.x;
 			}
+
+			Rect2 r = rcache;
+			r.pos += base_ofs;
+
+			// Use stylebox to dimension potential bg color, even if not selected
+			r.pos.x -= sbsel->get_margin(MARGIN_LEFT);
+			r.size.x += sbsel->get_margin(MARGIN_LEFT) + sbsel->get_margin(MARGIN_RIGHT);
+			r.pos.y -= sbsel->get_margin(MARGIN_TOP);
+			r.size.y += sbsel->get_margin(MARGIN_TOP) + sbsel->get_margin(MARGIN_BOTTOM);
 
 			if (items[i].selected) {
-				Rect2 r = rcache;
-				r.position += base_ofs;
-
-				// Use stylebox to dimension potential bg color
-				r.position.x -= sbsel->get_margin(MARGIN_LEFT);
-				r.size.x += sbsel->get_margin(MARGIN_LEFT) + sbsel->get_margin(MARGIN_RIGHT);
-				r.position.y -= sbsel->get_margin(MARGIN_TOP);
-				r.size.y += sbsel->get_margin(MARGIN_TOP) + sbsel->get_margin(MARGIN_BOTTOM);
 				draw_style_box(sbsel, r);
 			}
-
 			if (items[i].custom_bg.a > 0.001) {
-
-				Rect2 r = rcache;
-				r.position += base_ofs;
-
-				// Size rect to make the align the temperature colors
-				r.position.y -= vseparation / 2;
-				r.size.y += vseparation;
+				r.pos.x += 2;
+				r.size.x -= 4;
+				r.pos.y += 2;
+				r.size.y -= 4;
 				draw_rect(r, items[i].custom_bg);
 			}
 
@@ -968,7 +964,7 @@ void ItemList::_notification(int p_what) {
 
 				Vector2 icon_ofs;
 
-				Point2 pos = items[i].rect_cache.position + icon_ofs + base_ofs;
+				Point2 pos = items[i].rect_cache.pos + icon_ofs + base_ofs;
 
 				if (icon_mode == ICON_MODE_TOP) {
 
@@ -988,7 +984,7 @@ void ItemList::_notification(int p_what) {
 
 				if (fixed_icon_size.x > 0 && fixed_icon_size.y > 0) {
 					Rect2 adj = _adjust_to_max_size(items[i].get_icon_size() * icon_scale, icon_size);
-					draw_rect.position += adj.position;
+					draw_rect.pos += adj.pos;
 					draw_rect.size = adj.size;
 				}
 
@@ -1004,7 +1000,7 @@ void ItemList::_notification(int p_what) {
 
 			if (items[i].tag_icon.is_valid()) {
 
-				draw_texture(items[i].tag_icon, items[i].rect_cache.position + base_ofs);
+				draw_texture(items[i].tag_icon, items[i].rect_cache.pos + base_ofs);
 			}
 
 			if (items[i].text != "") {
@@ -1049,7 +1045,7 @@ void ItemList::_notification(int p_what) {
 					text_ofs.y += font->get_ascent();
 					text_ofs = text_ofs.floor();
 					text_ofs += base_ofs;
-					text_ofs += items[i].rect_cache.position;
+					text_ofs += items[i].rect_cache.pos;
 
 					for (int j = 0; j < ss; j++) {
 
@@ -1077,7 +1073,7 @@ void ItemList::_notification(int p_what) {
 					text_ofs.y += font->get_ascent();
 					text_ofs = text_ofs.floor();
 					text_ofs += base_ofs;
-					text_ofs += items[i].rect_cache.position;
+					text_ofs += items[i].rect_cache.pos;
 
 					draw_string(font, text_ofs, items[i].text, modulate, max_len + 1);
 				}
@@ -1086,7 +1082,7 @@ void ItemList::_notification(int p_what) {
 			if (select_mode == SELECT_MULTI && i == current) {
 
 				Rect2 r = rcache;
-				r.position += base_ofs;
+				r.pos += base_ofs;
 				draw_style_box(cursor, r);
 			}
 		}
@@ -1106,7 +1102,7 @@ int ItemList::get_item_at_pos(const Point2 &p_pos, bool p_exact) const {
 	Vector2 pos = p_pos;
 	Ref<StyleBox> bg = get_stylebox("bg");
 	pos -= bg->get_offset();
-	pos.y += scroll_bar->get_value();
+	pos.y += scroll_bar->get_val();
 
 	int closest = -1;
 	int closest_dist = 0x7FFFFFFF;
@@ -1131,20 +1127,6 @@ int ItemList::get_item_at_pos(const Point2 &p_pos, bool p_exact) const {
 	}
 
 	return closest;
-}
-
-bool ItemList::is_pos_at_end_of_items(const Point2 &p_pos) const {
-
-	if (items.empty())
-		return true;
-
-	Vector2 pos = p_pos;
-	Ref<StyleBox> bg = get_stylebox("bg");
-	pos -= bg->get_offset();
-	pos.y += scroll_bar->get_value();
-
-	Rect2 endrect = items[items.size() - 1].rect_cache;
-	return (pos.y > endrect.position.y + endrect.size.y);
 }
 
 String ItemList::get_tooltip(const Point2 &p_pos) const {
@@ -1223,130 +1205,84 @@ Vector<int> ItemList::get_selected_items() {
 	return selected;
 }
 
-void ItemList::_set_items(const Array &p_items) {
-
-	ERR_FAIL_COND(p_items.size() % 3);
-	clear();
-
-	for (int i = 0; i < p_items.size(); i += 3) {
-
-		String text = p_items[i + 0];
-		Ref<Texture> icon = p_items[i + 1];
-		bool disabled = p_items[i + 2];
-
-		int idx = get_item_count();
-		add_item(text, icon);
-		set_item_disabled(idx, disabled);
-	}
-}
-
-Array ItemList::_get_items() const {
-
-	Array items;
-	for (int i = 0; i < get_item_count(); i++) {
-
-		items.push_back(get_item_text(i));
-		items.push_back(get_item_icon(i));
-		items.push_back(is_item_disabled(i));
-	}
-
-	return items;
-}
-
 void ItemList::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("add_item", "text", "icon:Texture", "selectable"), &ItemList::add_item, DEFVAL(Variant()), DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("add_icon_item", "icon:Texture", "selectable"), &ItemList::add_icon_item, DEFVAL(true));
+	ObjectTypeDB::bind_method(_MD("add_item", "text", "icon:Texture", "selectable"), &ItemList::add_item, DEFVAL(Variant()), DEFVAL(true));
+	ObjectTypeDB::bind_method(_MD("add_icon_item", "icon:Texture", "selectable"), &ItemList::add_icon_item, DEFVAL(true));
 
-	ClassDB::bind_method(D_METHOD("set_item_text", "idx", "text"), &ItemList::set_item_text);
-	ClassDB::bind_method(D_METHOD("get_item_text", "idx"), &ItemList::get_item_text);
+	ObjectTypeDB::bind_method(_MD("set_item_text", "idx", "text"), &ItemList::set_item_text);
+	ObjectTypeDB::bind_method(_MD("get_item_text", "idx"), &ItemList::get_item_text);
 
-	ClassDB::bind_method(D_METHOD("set_item_icon", "idx", "icon:Texture"), &ItemList::set_item_icon);
-	ClassDB::bind_method(D_METHOD("get_item_icon:Texture", "idx"), &ItemList::get_item_icon);
+	ObjectTypeDB::bind_method(_MD("set_item_icon", "idx", "icon:Texture"), &ItemList::set_item_icon);
+	ObjectTypeDB::bind_method(_MD("get_item_icon:Texture", "idx"), &ItemList::get_item_icon);
 
-	ClassDB::bind_method(D_METHOD("set_item_icon_region", "idx", "rect"), &ItemList::set_item_icon_region);
-	ClassDB::bind_method(D_METHOD("get_item_icon_region", "idx"), &ItemList::get_item_icon_region);
+	ObjectTypeDB::bind_method(_MD("set_item_icon_region", "idx", "rect"), &ItemList::set_item_icon_region);
+	ObjectTypeDB::bind_method(_MD("get_item_icon_region", "idx"), &ItemList::get_item_icon_region);
 
-	ClassDB::bind_method(D_METHOD("set_item_selectable", "idx", "selectable"), &ItemList::set_item_selectable);
-	ClassDB::bind_method(D_METHOD("is_item_selectable", "idx"), &ItemList::is_item_selectable);
+	ObjectTypeDB::bind_method(_MD("set_item_selectable", "idx", "selectable"), &ItemList::set_item_selectable);
+	ObjectTypeDB::bind_method(_MD("is_item_selectable", "idx"), &ItemList::is_item_selectable);
 
-	ClassDB::bind_method(D_METHOD("set_item_disabled", "idx", "disabled"), &ItemList::set_item_disabled);
-	ClassDB::bind_method(D_METHOD("is_item_disabled", "idx"), &ItemList::is_item_disabled);
+	ObjectTypeDB::bind_method(_MD("set_item_disabled", "idx", "disabled"), &ItemList::set_item_disabled);
+	ObjectTypeDB::bind_method(_MD("is_item_disabled", "idx"), &ItemList::is_item_disabled);
 
-	ClassDB::bind_method(D_METHOD("set_item_metadata", "idx", "metadata"), &ItemList::set_item_metadata);
-	ClassDB::bind_method(D_METHOD("get_item_metadata", "idx"), &ItemList::get_item_metadata);
+	ObjectTypeDB::bind_method(_MD("set_item_metadata", "idx", "metadata"), &ItemList::set_item_metadata);
+	ObjectTypeDB::bind_method(_MD("get_item_metadata", "idx"), &ItemList::get_item_metadata);
 
-	ClassDB::bind_method(D_METHOD("set_item_custom_bg_color", "idx", "custom_bg_color"), &ItemList::set_item_custom_bg_color);
-	ClassDB::bind_method(D_METHOD("get_item_custom_bg_color", "idx"), &ItemList::get_item_custom_bg_color);
+	ObjectTypeDB::bind_method(_MD("set_item_custom_bg_color", "idx", "custom_bg_color"), &ItemList::set_item_custom_bg_color);
+	ObjectTypeDB::bind_method(_MD("get_item_custom_bg_color", "idx"), &ItemList::get_item_custom_bg_color);
 
-	ClassDB::bind_method(D_METHOD("set_item_tooltip_enabled", "idx", "enable"), &ItemList::set_item_tooltip_enabled);
-	ClassDB::bind_method(D_METHOD("is_item_tooltip_enabled", "idx"), &ItemList::is_item_tooltip_enabled);
+	ObjectTypeDB::bind_method(_MD("set_item_tooltip_enabled", "idx", "enable"), &ItemList::set_item_tooltip_enabled);
+	ObjectTypeDB::bind_method(_MD("is_item_tooltip_enabled", "idx"), &ItemList::is_item_tooltip_enabled);
 
-	ClassDB::bind_method(D_METHOD("set_item_tooltip", "idx", "tooltip"), &ItemList::set_item_tooltip);
-	ClassDB::bind_method(D_METHOD("get_item_tooltip", "idx"), &ItemList::get_item_tooltip);
+	ObjectTypeDB::bind_method(_MD("set_item_tooltip", "idx", "tooltip"), &ItemList::set_item_tooltip);
+	ObjectTypeDB::bind_method(_MD("get_item_tooltip", "idx"), &ItemList::get_item_tooltip);
 
-	ClassDB::bind_method(D_METHOD("select", "idx", "single"), &ItemList::select, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("unselect", "idx"), &ItemList::unselect);
-	ClassDB::bind_method(D_METHOD("is_selected", "idx"), &ItemList::is_selected);
-	ClassDB::bind_method(D_METHOD("get_selected_items"), &ItemList::get_selected_items);
+	ObjectTypeDB::bind_method(_MD("select", "idx", "single"), &ItemList::select, DEFVAL(true));
+	ObjectTypeDB::bind_method(_MD("unselect", "idx"), &ItemList::unselect);
+	ObjectTypeDB::bind_method(_MD("is_selected", "idx"), &ItemList::is_selected);
+	ObjectTypeDB::bind_method(_MD("get_selected_items"), &ItemList::get_selected_items);
 
-	ClassDB::bind_method(D_METHOD("get_item_count"), &ItemList::get_item_count);
-	ClassDB::bind_method(D_METHOD("remove_item", "idx"), &ItemList::remove_item);
+	ObjectTypeDB::bind_method(_MD("get_item_count"), &ItemList::get_item_count);
+	ObjectTypeDB::bind_method(_MD("remove_item", "idx"), &ItemList::remove_item);
 
-	ClassDB::bind_method(D_METHOD("clear"), &ItemList::clear);
-	ClassDB::bind_method(D_METHOD("sort_items_by_text"), &ItemList::sort_items_by_text);
+	ObjectTypeDB::bind_method(_MD("clear"), &ItemList::clear);
+	ObjectTypeDB::bind_method(_MD("sort_items_by_text"), &ItemList::sort_items_by_text);
 
-	ClassDB::bind_method(D_METHOD("set_fixed_column_width", "width"), &ItemList::set_fixed_column_width);
-	ClassDB::bind_method(D_METHOD("get_fixed_column_width"), &ItemList::get_fixed_column_width);
+	ObjectTypeDB::bind_method(_MD("set_fixed_column_width", "width"), &ItemList::set_fixed_column_width);
+	ObjectTypeDB::bind_method(_MD("get_fixed_column_width"), &ItemList::get_fixed_column_width);
 
-	ClassDB::bind_method(D_METHOD("set_same_column_width", "enable"), &ItemList::set_same_column_width);
-	ClassDB::bind_method(D_METHOD("is_same_column_width"), &ItemList::is_same_column_width);
+	ObjectTypeDB::bind_method(_MD("set_same_column_width", "enable"), &ItemList::set_same_column_width);
+	ObjectTypeDB::bind_method(_MD("is_same_column_width"), &ItemList::is_same_column_width);
 
-	ClassDB::bind_method(D_METHOD("set_max_text_lines", "lines"), &ItemList::set_max_text_lines);
-	ClassDB::bind_method(D_METHOD("get_max_text_lines"), &ItemList::get_max_text_lines);
+	ObjectTypeDB::bind_method(_MD("set_max_text_lines", "lines"), &ItemList::set_max_text_lines);
+	ObjectTypeDB::bind_method(_MD("get_max_text_lines"), &ItemList::get_max_text_lines);
 
-	ClassDB::bind_method(D_METHOD("set_max_columns", "amount"), &ItemList::set_max_columns);
-	ClassDB::bind_method(D_METHOD("get_max_columns"), &ItemList::get_max_columns);
+	ObjectTypeDB::bind_method(_MD("set_max_columns", "amount"), &ItemList::set_max_columns);
+	ObjectTypeDB::bind_method(_MD("get_max_columns"), &ItemList::get_max_columns);
 
-	ClassDB::bind_method(D_METHOD("set_select_mode", "mode"), &ItemList::set_select_mode);
-	ClassDB::bind_method(D_METHOD("get_select_mode"), &ItemList::get_select_mode);
+	ObjectTypeDB::bind_method(_MD("set_select_mode", "mode"), &ItemList::set_select_mode);
+	ObjectTypeDB::bind_method(_MD("get_select_mode"), &ItemList::get_select_mode);
 
-	ClassDB::bind_method(D_METHOD("set_icon_mode", "mode"), &ItemList::set_icon_mode);
-	ClassDB::bind_method(D_METHOD("get_icon_mode"), &ItemList::get_icon_mode);
+	ObjectTypeDB::bind_method(_MD("set_icon_mode", "mode"), &ItemList::set_icon_mode);
+	ObjectTypeDB::bind_method(_MD("get_icon_mode"), &ItemList::get_icon_mode);
 
-	ClassDB::bind_method(D_METHOD("set_fixed_icon_size", "size"), &ItemList::set_fixed_icon_size);
-	ClassDB::bind_method(D_METHOD("get_fixed_icon_size"), &ItemList::get_fixed_icon_size);
+	ObjectTypeDB::bind_method(_MD("set_fixed_icon_size", "size"), &ItemList::set_fixed_icon_size);
+	ObjectTypeDB::bind_method(_MD("get_fixed_icon_size"), &ItemList::get_fixed_icon_size);
 
-	ClassDB::bind_method(D_METHOD("set_icon_scale", "scale"), &ItemList::set_icon_scale);
-	ClassDB::bind_method(D_METHOD("get_icon_scale"), &ItemList::get_icon_scale);
+	ObjectTypeDB::bind_method(_MD("set_icon_scale", "scale"), &ItemList::set_icon_scale);
+	ObjectTypeDB::bind_method(_MD("get_icon_scale"), &ItemList::get_icon_scale);
 
-	ClassDB::bind_method(D_METHOD("set_allow_rmb_select", "allow"), &ItemList::set_allow_rmb_select);
-	ClassDB::bind_method(D_METHOD("get_allow_rmb_select"), &ItemList::get_allow_rmb_select);
+	ObjectTypeDB::bind_method(_MD("set_allow_rmb_select", "allow"), &ItemList::set_allow_rmb_select);
+	ObjectTypeDB::bind_method(_MD("get_allow_rmb_select"), &ItemList::get_allow_rmb_select);
 
-	ClassDB::bind_method(D_METHOD("get_item_at_pos", "pos", "exact"), &ItemList::get_item_at_pos, DEFVAL(false));
+	ObjectTypeDB::bind_method(_MD("get_item_at_pos", "pos", "exact"), &ItemList::get_item_at_pos, DEFVAL(false));
 
-	ClassDB::bind_method(D_METHOD("ensure_current_is_visible"), &ItemList::ensure_current_is_visible);
+	ObjectTypeDB::bind_method(_MD("ensure_current_is_visible"), &ItemList::ensure_current_is_visible);
 
-	ClassDB::bind_method(D_METHOD("get_v_scroll"), &ItemList::get_v_scroll);
+	ObjectTypeDB::bind_method(_MD("get_v_scroll"), &ItemList::get_v_scroll);
 
-	ClassDB::bind_method(D_METHOD("_scroll_changed"), &ItemList::_scroll_changed);
-	ClassDB::bind_method(D_METHOD("_gui_input"), &ItemList::_gui_input);
-
-	ClassDB::bind_method(D_METHOD("_set_items"), &ItemList::_set_items);
-	ClassDB::bind_method(D_METHOD("_get_items"), &ItemList::_get_items);
-
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "items", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_items", "_get_items");
-
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "select_mode", PROPERTY_HINT_ENUM, "Single,Multi"), "set_select_mode", "get_select_mode");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "allow_rmb_select"), "set_allow_rmb_select", "get_allow_rmb_select");
-	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_text_lines"), "set_max_text_lines", "get_max_text_lines");
-	ADD_GROUP("Columns", "");
-	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "max_columns"), "set_max_columns", "get_max_columns");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "same_column_width"), "set_same_column_width", "is_same_column_width");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "fixed_column_width"), "set_fixed_column_width", "get_fixed_column_width");
-	ADD_GROUP("Icon", "");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "icon_mode", PROPERTY_HINT_ENUM, "Top,Left"), "set_icon_mode", "get_icon_mode");
-	ADD_PROPERTYNO(PropertyInfo(Variant::REAL, "icon_scale"), "set_icon_scale", "get_icon_scale");
+	ObjectTypeDB::bind_method(_MD("_scroll_changed"), &ItemList::_scroll_changed);
+	ObjectTypeDB::bind_method(_MD("_input_event"), &ItemList::_input_event);
 
 	BIND_CONSTANT(ICON_MODE_TOP);
 	BIND_CONSTANT(ICON_MODE_LEFT);
@@ -1357,8 +1293,6 @@ void ItemList::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("item_rmb_selected", PropertyInfo(Variant::INT, "index"), PropertyInfo(Variant::VECTOR2, "atpos")));
 	ADD_SIGNAL(MethodInfo("multi_selected", PropertyInfo(Variant::INT, "index"), PropertyInfo(Variant::BOOL, "selected")));
 	ADD_SIGNAL(MethodInfo("item_activated", PropertyInfo(Variant::INT, "index")));
-
-	GLOBAL_DEF("gui/timers/incremental_search_max_interval_msec", 2000);
 }
 
 ItemList::ItemList() {
@@ -1387,7 +1321,6 @@ ItemList::ItemList() {
 	allow_rmb_select = false;
 
 	icon_scale = 1.0f;
-	set_clip_contents(true);
 }
 
 ItemList::~ItemList() {

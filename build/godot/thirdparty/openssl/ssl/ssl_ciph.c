@@ -1932,27 +1932,17 @@ SSL_COMP *ssl3_comp_find(STACK_OF(SSL_COMP) *sk, int n)
 }
 
 #ifdef OPENSSL_NO_COMP
-STACK_OF(SSL_COMP) *SSL_COMP_get_compression_methods(void)
+void *SSL_COMP_get_compression_methods(void)
 {
     return NULL;
 }
 
-STACK_OF(SSL_COMP) *SSL_COMP_set0_compression_methods(STACK_OF(SSL_COMP)
-                                                      *meths)
-{
-    return NULL;
-}
-
-void SSL_COMP_free_compression_methods(void)
-{
-}
-
-int SSL_COMP_add_compression_method(int id, COMP_METHOD *cm)
+int SSL_COMP_add_compression_method(int id, void *cm)
 {
     return 1;
 }
 
-const char *SSL_COMP_get_name(const COMP_METHOD *comp)
+const char *SSL_COMP_get_name(const void *comp)
 {
     return NULL;
 }
@@ -2001,19 +1991,13 @@ int SSL_COMP_add_compression_method(int id, COMP_METHOD *cm)
     if (id < 193 || id > 255) {
         SSLerr(SSL_F_SSL_COMP_ADD_COMPRESSION_METHOD,
                SSL_R_COMPRESSION_ID_NOT_WITHIN_PRIVATE_RANGE);
-        return 1;
+        return 0;
     }
 
     MemCheck_off();
     comp = (SSL_COMP *)OPENSSL_malloc(sizeof(SSL_COMP));
-    if (comp == NULL) {
-        MemCheck_on();
-        SSLerr(SSL_F_SSL_COMP_ADD_COMPRESSION_METHOD, ERR_R_MALLOC_FAILURE);
-        return 1;
-    }
     comp->id = id;
     comp->method = cm;
-    comp->name = cm->name;
     load_builtin_compressions();
     if (ssl_comp_methods && sk_SSL_COMP_find(ssl_comp_methods, comp) >= 0) {
         OPENSSL_free(comp);

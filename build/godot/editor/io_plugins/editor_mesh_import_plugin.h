@@ -30,7 +30,6 @@
 #ifndef EDITOR_MESH_IMPORT_PLUGIN_H
 #define EDITOR_MESH_IMPORT_PLUGIN_H
 
-#if 0
 #include "editor/editor_import_export.h"
 #include "scene/resources/font.h"
 
@@ -39,22 +38,18 @@ class EditorMeshImportDialog;
 
 class EditorMeshImportPlugin : public EditorImportPlugin {
 
-	GDCLASS(EditorMeshImportPlugin,EditorImportPlugin);
+	OBJ_TYPE(EditorMeshImportPlugin, EditorImportPlugin);
 
 	EditorMeshImportDialog *dialog;
 
-
 public:
-
 	virtual String get_name() const;
 	virtual String get_visible_name() const;
-	virtual void import_dialog(const String& p_from="");
-	virtual Error import(const String& p_path, const Ref<ResourceImportMetadata>& p_from);
-	void import_from_drop(const Vector<String>& p_drop, const String &p_dest_path);
+	virtual void import_dialog(const String &p_from = "");
+	virtual Error import(const String &p_path, const Ref<ResourceImportMetadata> &p_from);
+	void import_from_drop(const Vector<String> &p_drop, const String &p_dest_path);
 
-
-	EditorMeshImportPlugin(EditorNode* p_editor);
+	EditorMeshImportPlugin(EditorNode *p_editor);
 };
 
-#endif
 #endif // EDITOR_MESH_IMPORT_PLUGIN_H

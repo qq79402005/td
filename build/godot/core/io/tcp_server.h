@@ -36,7 +36,7 @@
 
 class TCP_Server : public Reference {
 
-	GDCLASS(TCP_Server, Reference);
+	OBJ_TYPE(TCP_Server, Reference);
 
 protected:
 	static TCP_Server *(*_create)();

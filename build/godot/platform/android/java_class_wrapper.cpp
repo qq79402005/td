@@ -546,7 +546,7 @@ JavaObject::~JavaObject() {
 
 void JavaClassWrapper::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("wrap:JavaClass", "name"), &JavaClassWrapper::wrap);
+	ObjectTypeDB::bind_method(_MD("wrap:JavaClass", "name"), &JavaClassWrapper::wrap);
 }
 
 bool JavaClassWrapper::_get_type_sig(JNIEnv *env, jobject obj, uint32_t &sig, String &strsig) {
@@ -1196,7 +1196,7 @@ Ref<JavaClass> JavaClassWrapper::wrap(const String &p_class) {
 		env->DeleteLocalRef(return_type);
 
 		//args[i] = _jobject_to_variant(env, obj);
-		//print_line("\targ"+itos(i)+": "+Variant::get_type_name(args[i].get_type()));
+		//		print_line("\targ"+itos(i)+": "+Variant::get_type_name(args[i].get_type()));
 	};
 
 	env->DeleteLocalRef(methods);

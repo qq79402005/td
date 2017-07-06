@@ -34,7 +34,6 @@ int ScriptServer::_language_count = 0;
 
 bool ScriptServer::scripting_enabled = true;
 bool ScriptServer::reload_scripts_on_save = false;
-ScriptEditRequestFunction ScriptServer::edit_request_func = NULL;
 
 void Script::_notification(int p_what) {
 
@@ -47,13 +46,13 @@ void Script::_notification(int p_what) {
 
 void Script::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("can_instance"), &Script::can_instance);
-	//ClassDB::bind_method(D_METHOD("instance_create","base_object"),&Script::instance_create);
-	ClassDB::bind_method(D_METHOD("instance_has", "base_object"), &Script::instance_has);
-	ClassDB::bind_method(D_METHOD("has_source_code"), &Script::has_source_code);
-	ClassDB::bind_method(D_METHOD("get_source_code"), &Script::get_source_code);
-	ClassDB::bind_method(D_METHOD("set_source_code", "source"), &Script::set_source_code);
-	ClassDB::bind_method(D_METHOD("reload", "keep_state"), &Script::reload, DEFVAL(false));
+	ObjectTypeDB::bind_method(_MD("can_instance"), &Script::can_instance);
+	//ObjectTypeDB::bind_method(_MD("instance_create","base_object"),&Script::instance_create);
+	ObjectTypeDB::bind_method(_MD("instance_has", "base_object"), &Script::instance_has);
+	ObjectTypeDB::bind_method(_MD("has_source_code"), &Script::has_source_code);
+	ObjectTypeDB::bind_method(_MD("get_source_code"), &Script::get_source_code);
+	ObjectTypeDB::bind_method(_MD("set_source_code", "source"), &Script::set_source_code);
+	ObjectTypeDB::bind_method(_MD("reload", "keep_state"), &Script::reload, DEFVAL(false));
 }
 
 void ScriptServer::set_scripting_enabled(bool p_enabled) {

@@ -5,8 +5,7 @@
 /*                           GODOT ENGINE                                */
 /*                    http://www.godotengine.org                         */
 /*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2016 Juan Linietsky, Ariel Manzur.                 */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,11 +27,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "test_math.h"
-
 #include "camera_matrix.h"
 #include "math_funcs.h"
 #include "matrix3.h"
-#include "os/file_access.h"
 #include "os/keyboard.h"
 #include "os/os.h"
 #include "print_string.h"
@@ -47,362 +44,6 @@
 #include "method_ptrcall.h"
 
 namespace TestMath {
-
-class GetClassAndNamespace {
-
-	String code;
-	int idx;
-	int line;
-	String error_str;
-	bool error;
-	Variant value;
-
-	String class_name;
-
-	enum Token {
-		TK_BRACKET_OPEN,
-		TK_BRACKET_CLOSE,
-		TK_CURLY_BRACKET_OPEN,
-		TK_CURLY_BRACKET_CLOSE,
-		TK_PERIOD,
-		TK_COLON,
-		TK_COMMA,
-		TK_SYMBOL,
-		TK_IDENTIFIER,
-		TK_STRING,
-		TK_NUMBER,
-		TK_EOF,
-		TK_ERROR
-	};
-
-	Token get_token() {
-
-		while (true) {
-			switch (code[idx]) {
-
-				case '\n': {
-
-					line++;
-					idx++;
-					break;
-				};
-				case 0: {
-					return TK_EOF;
-
-				} break;
-				case '{': {
-
-					idx++;
-					return TK_CURLY_BRACKET_OPEN;
-				};
-				case '}': {
-
-					idx++;
-					return TK_CURLY_BRACKET_CLOSE;
-				};
-				case '[': {
-
-					idx++;
-					return TK_BRACKET_OPEN;
-				};
-				case ']': {
-
-					idx++;
-					return TK_BRACKET_CLOSE;
-				};
-				case ':': {
-
-					idx++;
-					return TK_COLON;
-				};
-				case ',': {
-
-					idx++;
-					return TK_COMMA;
-				};
-				case '.': {
-
-					idx++;
-					return TK_PERIOD;
-				};
-				case '#': {
-					//compiler directive
-					while (code[idx] != '\n' && code[idx] != 0) {
-						idx++;
-					}
-					continue;
-				} break;
-				case '/': {
-
-					switch (code[idx + 1]) {
-						case '*': { // block comment
-
-							idx += 2;
-							while (true) {
-								if (code[idx] == 0) {
-									error_str = "Unterminated comment";
-									error = true;
-									return TK_ERROR;
-								} else if (code[idx] == '*' && code[idx + 1] == '/') {
-
-									idx += 2;
-									break;
-								} else if (code[idx] == '\n') {
-									line++;
-								}
-
-								idx++;
-							}
-
-						} break;
-						case '/': { // line comment skip
-
-							while (code[idx] != '\n' && code[idx] != 0) {
-								idx++;
-							}
-
-						} break;
-						default: {
-							value = "/";
-							idx++;
-							return TK_SYMBOL;
-						}
-					}
-
-					continue; // a comment
-				} break;
-				case '\'':
-				case '"': {
-
-					CharType begin_str = code[idx];
-					idx++;
-					String tk_string = String();
-					while (true) {
-						if (code[idx] == 0) {
-							error_str = "Unterminated String";
-							error = true;
-							return TK_ERROR;
-						} else if (code[idx] == begin_str) {
-							idx++;
-							break;
-						} else if (code[idx] == '\\') {
-							//escaped characters...
-							idx++;
-							CharType next = code[idx];
-							if (next == 0) {
-								error_str = "Unterminated String";
-								error = true;
-								return TK_ERROR;
-							}
-							CharType res = 0;
-
-							switch (next) {
-
-								case 'b': res = 8; break;
-								case 't': res = 9; break;
-								case 'n': res = 10; break;
-								case 'f': res = 12; break;
-								case 'r':
-									res = 13;
-									break;
-								/* too much, not needed for now
-								case 'u': {
-									//hexnumbarh - oct is deprecated
-
-
-									for(int j=0;j<4;j++) {
-										CharType c = code[idx+j+1];
-										if (c==0) {
-											r_err_str="Unterminated String";
-											return ERR_PARSE_ERROR;
-										}
-										if (!((c>='0' && c<='9') || (c>='a' && c<='f') || (c>='A' && c<='F'))) {
-
-											r_err_str="Malformed hex constant in string";
-											return ERR_PARSE_ERROR;
-										}
-										CharType v;
-										if (c>='0' && c<='9') {
-											v=c-'0';
-										} else if (c>='a' && c<='f') {
-											v=c-'a';
-											v+=10;
-										} else if (c>='A' && c<='F') {
-											v=c-'A';
-											v+=10;
-										} else {
-											ERR_PRINT("BUG");
-											v=0;
-										}
-
-										res<<=4;
-										res|=v;
-
-
-									}
-									idx+=4; //will add at the end anyway
-
-
-								} break;*/
-								case '\"': res = '\"'; break;
-								case '\\':
-									res = '\\';
-									break;
-								//case '/': res='/'; break;
-								default: {
-									res = next;
-									//r_err_str="Invalid escape sequence";
-									//return ERR_PARSE_ERROR;
-								} break;
-							}
-
-							tk_string += res;
-
-						} else {
-							if (code[idx] == '\n')
-								line++;
-							tk_string += code[idx];
-						}
-						idx++;
-					}
-
-					value = tk_string;
-
-					return TK_STRING;
-
-				} break;
-				default: {
-
-					if (code[idx] <= 32) {
-						idx++;
-						break;
-					}
-
-					if ((code[idx] >= 33 && code[idx] <= 47) || (code[idx] >= 58 && code[idx] <= 64) || (code[idx] >= 91 && code[idx] <= 96) || (code[idx] >= 123 && code[idx] <= 127)) {
-						value = String::chr(code[idx]);
-						idx++;
-						return TK_SYMBOL;
-					}
-
-					if (code[idx] == '-' || (code[idx] >= '0' && code[idx] <= '9')) {
-						//a number
-						const CharType *rptr;
-						double number = String::to_double(&code[idx], &rptr);
-						idx += (rptr - &code[idx]);
-						value = number;
-						return TK_NUMBER;
-
-					} else if ((code[idx] >= 'A' && code[idx] <= 'Z') || (code[idx] >= 'a' && code[idx] <= 'z') || code[idx] > 127) {
-
-						String id;
-
-						while ((code[idx] >= 'A' && code[idx] <= 'Z') || (code[idx] >= 'a' && code[idx] <= 'z') || code[idx] > 127) {
-
-							id += code[idx];
-							idx++;
-						}
-
-						value = id;
-						return TK_IDENTIFIER;
-					} else {
-						error_str = "Unexpected character.";
-						error = true;
-						return TK_ERROR;
-					}
-				}
-			}
-		}
-	}
-
-public:
-	Error parse(const String &p_code, const String &p_known_class_name = String()) {
-
-		code = p_code;
-		idx = 0;
-		line = 0;
-		error_str = String();
-		error = false;
-		value = Variant();
-		class_name = String();
-
-		bool use_next_class = false;
-		Token tk = get_token();
-
-		Map<int, String> namespace_stack;
-		int curly_stack = 0;
-
-		while (!error || tk != TK_EOF) {
-
-			if (tk == TK_BRACKET_OPEN) {
-				tk = get_token();
-				if (tk == TK_IDENTIFIER && String(value) == "ScriptClass") {
-					if (get_token() == TK_BRACKET_CLOSE) {
-						use_next_class = true;
-					}
-				}
-			} else if (tk == TK_IDENTIFIER && String(value) == "class") {
-				tk = get_token();
-				if (tk == TK_IDENTIFIER) {
-					String name = value;
-					if (use_next_class || p_known_class_name == name) {
-						for (Map<int, String>::Element *E = namespace_stack.front(); E; E = E->next()) {
-							class_name += E->get() + ".";
-						}
-						class_name += String(value);
-						break;
-					}
-				}
-
-			} else if (tk == TK_IDENTIFIER && String(value) == "namespace") {
-				String name;
-				int at_level = curly_stack;
-				while (true) {
-					tk = get_token();
-					if (tk == TK_IDENTIFIER) {
-						name += String(value);
-					}
-
-					tk = get_token();
-					if (tk == TK_PERIOD) {
-						name += ".";
-					} else if (tk == TK_CURLY_BRACKET_OPEN) {
-						curly_stack++;
-						break;
-					} else {
-						break; //whathever else
-					}
-				}
-
-				if (name != String()) {
-					namespace_stack[at_level] = name;
-				}
-
-			} else if (tk == TK_CURLY_BRACKET_OPEN) {
-				curly_stack++;
-			} else if (tk == TK_CURLY_BRACKET_CLOSE) {
-				curly_stack--;
-				if (namespace_stack.has(curly_stack)) {
-					namespace_stack.erase(curly_stack);
-				}
-			}
-
-			tk = get_token();
-		}
-
-		if (error)
-			return ERR_PARSE_ERROR;
-
-		return OK;
-	}
-
-	String get_error() {
-		return error_str;
-	}
-
-	String get_class() {
-		return class_name;
-	}
-};
 
 void test_vec(Plane p_vec) {
 
@@ -462,128 +103,14 @@ uint32_t ihash3(uint32_t a) {
 
 MainLoop *test() {
 
-	{
-		float r = 1;
-		float g = 0.5;
-		float b = 0.1;
-
-		const float pow2to9 = 512.0f;
-		const float B = 15.0f;
-		//const float Emax = 31.0f;
-		const float N = 9.0f;
-
-		float sharedexp = 65408.000f; //(( pow2to9  - 1.0f)/ pow2to9)*powf( 2.0f, 31.0f - 15.0f);
-
-		float cRed = MAX(0.0f, MIN(sharedexp, r));
-		float cGreen = MAX(0.0f, MIN(sharedexp, g));
-		float cBlue = MAX(0.0f, MIN(sharedexp, b));
-
-		float cMax = MAX(cRed, MAX(cGreen, cBlue));
-
-		// expp = MAX(-B - 1, log2(maxc)) + 1 + B
-
-		float expp = MAX(-B - 1.0f, floor(Math::log(cMax) / Math_LN2)) + 1.0f + B;
-
-		float sMax = (float)floor((cMax / Math::pow(2.0f, expp - B - N)) + 0.5f);
-
-		float exps = expp + 1.0f;
-
-		if (0.0 <= sMax && sMax < pow2to9) {
-			exps = expp;
-		}
-
-		float sRed = Math::floor((cRed / pow(2.0f, exps - B - N)) + 0.5f);
-		float sGreen = Math::floor((cGreen / pow(2.0f, exps - B - N)) + 0.5f);
-		float sBlue = Math::floor((cBlue / pow(2.0f, exps - B - N)) + 0.5f);
-
-		print_line("R: " + rtos(sRed) + " G: " + rtos(sGreen) + " B: " + rtos(sBlue) + " EXP: " + rtos(exps));
-
-		uint32_t rgbe = (Math::fast_ftoi(sRed) & 0x1FF) | ((Math::fast_ftoi(sGreen) & 0x1FF) << 9) | ((Math::fast_ftoi(sBlue) & 0x1FF) << 18) | ((Math::fast_ftoi(exps) & 0x1F) << 27);
-
-		float rb = rgbe & 0x1ff;
-		float gb = (rgbe >> 9) & 0x1ff;
-		float bb = (rgbe >> 18) & 0x1ff;
-		float eb = (rgbe >> 27);
-		float mb = Math::pow(2, eb - 15.0 - 9.0);
-		;
-		float rd = rb * mb;
-		float gd = gb * mb;
-		float bd = bb * mb;
-
-		print_line("RGBE: " + Color(rd, gd, bd));
-
-		return NULL;
-	}
-
-	print_line("Dvectors: " + itos(MemoryPool::allocs_used));
-	print_line("Mem used: " + itos(MemoryPool::total_memory));
-	print_line("MAx mem used: " + itos(MemoryPool::max_memory));
-
-	PoolVector<int> ints;
-	ints.resize(20);
-
-	{
-		PoolVector<int>::Write w;
-		w = ints.write();
-		for (int i = 0; i < ints.size(); i++) {
-			w[i] = i;
-		}
-	}
-
-	PoolVector<int> posho = ints;
-
-	{
-		PoolVector<int>::Read r = posho.read();
-		for (int i = 0; i < posho.size(); i++) {
-			print_line(itos(i) + " : " + itos(r[i]));
-		}
-	}
-
-	print_line("later Dvectors: " + itos(MemoryPool::allocs_used));
-	print_line("later Mem used: " + itos(MemoryPool::total_memory));
-	print_line("Mlater Ax mem used: " + itos(MemoryPool::max_memory));
-
-	return NULL;
-
-	List<String> cmdlargs = OS::get_singleton()->get_cmdline_args();
-
-	if (cmdlargs.empty()) {
-		//try editor!
-		return NULL;
-	}
-
-	String test = cmdlargs.back()->get();
-
-	FileAccess *fa = FileAccess::open(test, FileAccess::READ);
-
-	if (!fa) {
-		ERR_EXPLAIN("Could not open file: " + test);
-		ERR_FAIL_V(NULL);
-	}
-
-	Vector<uint8_t> buf;
-	int flen = fa->get_len();
-	buf.resize(fa->get_len() + 1);
-	fa->get_buffer(&buf[0], flen);
-	buf[flen] = 0;
-
-	String code;
-	code.parse_utf8((const char *)&buf[0]);
-
-	GetClassAndNamespace getclass;
-	if (getclass.parse(code)) {
-		print_line("Parse error: " + getclass.get_error());
-	} else {
-		print_line("Found class: " + getclass.get_class());
-	}
-
+	print_line(itos(Math::step_decimals(0.0001)));
 	return NULL;
 
 	{
 
-		Vector<int> hashes;
+		Vector<int32_t> hashes;
 		List<StringName> tl;
-		ClassDB::get_class_list(&tl);
+		ObjectTypeDB::get_type_list(&tl);
 
 		for (List<StringName>::Element *E = tl.front(); E; E = E->next()) {
 
@@ -625,7 +152,7 @@ MainLoop *test() {
 	}
 	{
 
-		//print_line("NUM: "+itos(237641278346127));
+		//	print_line("NUM: "+itos(237641278346127));
 		print_line("NUM: " + itos(-128));
 		return NULL;
 	}
@@ -636,26 +163,26 @@ MainLoop *test() {
 		float a = 0.3;
 
 		//Quat q(v,a);
-		Basis m(v, a);
+		Matrix3 m(v, a);
 
 		Vector3 v2(7, 3, 1);
 		v2.normalize();
 		float a2 = 0.8;
 
 		//Quat q(v,a);
-		Basis m2(v2, a2);
+		Matrix3 m2(v2, a2);
 
 		Quat q = m;
 		Quat q2 = m2;
 
-		Basis m3 = m.inverse() * m2;
+		Matrix3 m3 = m.inverse() * m2;
 		Quat q3 = (q.inverse() * q2); //.normalized();
 
 		print_line(Quat(m3));
 		print_line(q3);
 
 		print_line("before v: " + v + " a: " + rtos(a));
-		q.get_axis_angle(v, a);
+		q.get_axis_and_angle(v, a);
 		print_line("after v: " + v + " a: " + rtos(a));
 	}
 
@@ -669,11 +196,11 @@ MainLoop *test() {
 	print_line(ret);
 
 	return NULL;
-	Basis m3;
+	Matrix3 m3;
 	m3.rotate(Vector3(1, 0, 0), 0.2);
 	m3.rotate(Vector3(0, 1, 0), 1.77);
 	m3.rotate(Vector3(0, 0, 1), 212);
-	Basis m32;
+	Matrix3 m32;
 	m32.set_euler(m3.get_euler());
 	print_line("ELEULEEEEEEEEEEEEEEEEEER: " + m3.get_euler() + " vs " + m32.get_euler());
 
@@ -755,8 +282,8 @@ MainLoop *test() {
 	print_line(String("res://..").simplify_path());
 
 
-	PoolVector<uint8_t> a;
-	PoolVector<uint8_t> b;
+	DVector<uint8_t> a;
+	DVector<uint8_t> b;
 
 	a.resize(20);
 	b=a;
@@ -804,11 +331,11 @@ MainLoop *test() {
 	print_line(Variant(a));
 
 
-	Transform2D mat2_1;
+	Matrix32 mat2_1;
 	mat2_1.rotate(0.5);
-	Transform2D mat2_2;
+	Matrix32 mat2_2;
 	mat2_2.translate(Vector2(1,2));
-	Transform2D mat2_3 = mat2_1 * mat2_2;
+	Matrix32 mat2_3 = mat2_1 * mat2_2;
 	mat2_3.affine_invert();
 
 	print_line(mat2_3.elements[0]);

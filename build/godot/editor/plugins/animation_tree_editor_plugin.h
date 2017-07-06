@@ -43,7 +43,7 @@
 
 class AnimationTreeEditor : public Control {
 
-	GDCLASS(AnimationTreeEditor, Control);
+	OBJ_TYPE(AnimationTreeEditor, Control);
 
 	static const char *_node_type_names[];
 
@@ -155,7 +155,7 @@ class AnimationTreeEditor : public Control {
 
 protected:
 	void _notification(int p_what);
-	void _gui_input(Ref<InputEvent> p_event);
+	void _input_event(InputEvent p_event);
 	static void _bind_methods();
 
 public:
@@ -166,7 +166,7 @@ public:
 
 class AnimationTreeEditorPlugin : public EditorPlugin {
 
-	GDCLASS(AnimationTreeEditorPlugin, EditorPlugin);
+	OBJ_TYPE(AnimationTreeEditorPlugin, EditorPlugin);
 
 	AnimationTreeEditor *anim_tree_editor;
 	EditorNode *editor;

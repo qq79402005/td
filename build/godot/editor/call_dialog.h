@@ -40,16 +40,13 @@
 	@author Juan Linietsky <reduzio@gmail.com>
 */
 
-#if 0
-
 class CallDialogParams;
 
 class CallDialog : public Popup {
 
-	GDCLASS( CallDialog, Popup );
+	OBJ_TYPE(CallDialog, Popup);
 
-
-	Label* method_label;
+	Label *method_label;
 	Tree *tree;
 	Button *call;
 	Button *cancel;
@@ -64,7 +61,6 @@ class CallDialog : public Popup {
 
 	Vector<MethodInfo> methods;
 
-
 	void _item_selected();
 	void _update_method_list();
 	void _call();
@@ -73,14 +69,12 @@ class CallDialog : public Popup {
 protected:
 	static void _bind_methods();
 	void _notification(int p_what);
-public:
 
-	void set_object(Object *p_object,StringName p_selected="");
+public:
+	void set_object(Object *p_object, StringName p_selected = "");
 
 	CallDialog();
 	~CallDialog();
-
 };
 
-#endif
 #endif

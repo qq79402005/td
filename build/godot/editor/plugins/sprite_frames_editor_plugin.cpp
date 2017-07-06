@@ -30,11 +30,11 @@
 #include "sprite_frames_editor_plugin.h"
 
 #include "editor/editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/resource_loader.h"
 #include "scene/3d/sprite_3d.h"
 
-void SpriteFramesEditor::_gui_input(Ref<InputEvent> p_event) {
+void SpriteFramesEditor::_input_event(InputEvent p_event) {
 }
 
 void SpriteFramesEditor::_notification(int p_what) {
@@ -51,14 +51,14 @@ void SpriteFramesEditor::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_READY) {
 
-		//NodePath("/root")->connect("node_removed", this,"_node_removed",Vector<Variant>(),true);
+		//		NodePath("/root")->connect("node_removed", this,"_node_removed",Vector<Variant>(),true);
 	}
 
 	if (p_what == NOTIFICATION_DRAW) {
 	}
 }
 
-void SpriteFramesEditor::_file_load_request(const PoolVector<String> &p_path, int p_at_pos) {
+void SpriteFramesEditor::_file_load_request(const DVector<String> &p_path, int p_at_pos) {
 
 	ERR_FAIL_COND(!frames->has_animation(edited_anim));
 
@@ -555,7 +555,7 @@ void SpriteFramesEditor::_update_library(bool p_skip_selector) {
 			tree->select(tree->get_item_count() - 1);
 	}
 
-	anim_speed->set_value(frames->get_animation_speed(edited_anim));
+	anim_speed->set_val(frames->get_animation_speed(edited_anim));
 	anim_loop->set_pressed(frames->get_animation_loop(edited_anim));
 
 	updating = false;
@@ -641,7 +641,7 @@ bool SpriteFramesEditor::can_drop_data_fw(const Point2 &p_point, const Variant &
 			String file = files[0];
 			String ftype = EditorFileSystem::get_singleton()->get_file_type(file);
 
-			if (!ClassDB::is_parent_class(ftype, "Texture")) {
+			if (!ObjectTypeDB::is_type(ftype, "Texture")) {
 				return false;
 			}
 		}
@@ -681,7 +681,7 @@ void SpriteFramesEditor::drop_data_fw(const Point2 &p_point, const Variant &p_da
 
 	if (String(d["type"]) == "files") {
 
-		PoolVector<String> files = d["files"];
+		DVector<String> files = d["files"];
 
 		_file_load_request(files, at_pos);
 	}
@@ -689,27 +689,27 @@ void SpriteFramesEditor::drop_data_fw(const Point2 &p_point, const Variant &p_da
 
 void SpriteFramesEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_gui_input"), &SpriteFramesEditor::_gui_input);
-	ClassDB::bind_method(D_METHOD("_load_pressed"), &SpriteFramesEditor::_load_pressed);
-	ClassDB::bind_method(D_METHOD("_empty_pressed"), &SpriteFramesEditor::_empty_pressed);
-	ClassDB::bind_method(D_METHOD("_empty2_pressed"), &SpriteFramesEditor::_empty2_pressed);
-	ClassDB::bind_method(D_METHOD("_item_edited"), &SpriteFramesEditor::_item_edited);
-	ClassDB::bind_method(D_METHOD("_delete_pressed"), &SpriteFramesEditor::_delete_pressed);
-	ClassDB::bind_method(D_METHOD("_paste_pressed"), &SpriteFramesEditor::_paste_pressed);
-	ClassDB::bind_method(D_METHOD("_delete_confirm_pressed"), &SpriteFramesEditor::_delete_confirm_pressed);
-	ClassDB::bind_method(D_METHOD("_file_load_request", "files", "atpos"), &SpriteFramesEditor::_file_load_request, DEFVAL(-1));
-	ClassDB::bind_method(D_METHOD("_update_library", "skipsel"), &SpriteFramesEditor::_update_library, DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("_up_pressed"), &SpriteFramesEditor::_up_pressed);
-	ClassDB::bind_method(D_METHOD("_down_pressed"), &SpriteFramesEditor::_down_pressed);
-	ClassDB::bind_method(D_METHOD("_animation_select"), &SpriteFramesEditor::_animation_select);
-	ClassDB::bind_method(D_METHOD("_animation_name_edited"), &SpriteFramesEditor::_animation_name_edited);
-	ClassDB::bind_method(D_METHOD("_animation_add"), &SpriteFramesEditor::_animation_add);
-	ClassDB::bind_method(D_METHOD("_animation_remove"), &SpriteFramesEditor::_animation_remove);
-	ClassDB::bind_method(D_METHOD("_animation_loop_changed"), &SpriteFramesEditor::_animation_loop_changed);
-	ClassDB::bind_method(D_METHOD("_animation_fps_changed"), &SpriteFramesEditor::_animation_fps_changed);
-	ClassDB::bind_method(D_METHOD("get_drag_data_fw"), &SpriteFramesEditor::get_drag_data_fw);
-	ClassDB::bind_method(D_METHOD("can_drop_data_fw"), &SpriteFramesEditor::can_drop_data_fw);
-	ClassDB::bind_method(D_METHOD("drop_data_fw"), &SpriteFramesEditor::drop_data_fw);
+	ObjectTypeDB::bind_method(_MD("_input_event"), &SpriteFramesEditor::_input_event);
+	ObjectTypeDB::bind_method(_MD("_load_pressed"), &SpriteFramesEditor::_load_pressed);
+	ObjectTypeDB::bind_method(_MD("_empty_pressed"), &SpriteFramesEditor::_empty_pressed);
+	ObjectTypeDB::bind_method(_MD("_empty2_pressed"), &SpriteFramesEditor::_empty2_pressed);
+	ObjectTypeDB::bind_method(_MD("_item_edited"), &SpriteFramesEditor::_item_edited);
+	ObjectTypeDB::bind_method(_MD("_delete_pressed"), &SpriteFramesEditor::_delete_pressed);
+	ObjectTypeDB::bind_method(_MD("_paste_pressed"), &SpriteFramesEditor::_paste_pressed);
+	ObjectTypeDB::bind_method(_MD("_delete_confirm_pressed"), &SpriteFramesEditor::_delete_confirm_pressed);
+	ObjectTypeDB::bind_method(_MD("_file_load_request", "files", "atpos"), &SpriteFramesEditor::_file_load_request, DEFVAL(-1));
+	ObjectTypeDB::bind_method(_MD("_update_library", "skipsel"), &SpriteFramesEditor::_update_library, DEFVAL(false));
+	ObjectTypeDB::bind_method(_MD("_up_pressed"), &SpriteFramesEditor::_up_pressed);
+	ObjectTypeDB::bind_method(_MD("_down_pressed"), &SpriteFramesEditor::_down_pressed);
+	ObjectTypeDB::bind_method(_MD("_animation_select"), &SpriteFramesEditor::_animation_select);
+	ObjectTypeDB::bind_method(_MD("_animation_name_edited"), &SpriteFramesEditor::_animation_name_edited);
+	ObjectTypeDB::bind_method(_MD("_animation_add"), &SpriteFramesEditor::_animation_add);
+	ObjectTypeDB::bind_method(_MD("_animation_remove"), &SpriteFramesEditor::_animation_remove);
+	ObjectTypeDB::bind_method(_MD("_animation_loop_changed"), &SpriteFramesEditor::_animation_loop_changed);
+	ObjectTypeDB::bind_method(_MD("_animation_fps_changed"), &SpriteFramesEditor::_animation_fps_changed);
+	ObjectTypeDB::bind_method(_MD("get_drag_data_fw"), &SpriteFramesEditor::get_drag_data_fw);
+	ObjectTypeDB::bind_method(_MD("can_drop_data_fw"), &SpriteFramesEditor::can_drop_data_fw);
+	ObjectTypeDB::bind_method(_MD("drop_data_fw"), &SpriteFramesEditor::drop_data_fw);
 }
 
 SpriteFramesEditor::SpriteFramesEditor() {
@@ -851,7 +851,7 @@ void SpriteFramesEditorPlugin::edit(Object *p_object) {
 
 bool SpriteFramesEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_class("SpriteFrames");
+	return p_object->is_type("SpriteFrames");
 }
 
 void SpriteFramesEditorPlugin::make_visible(bool p_visible) {
@@ -859,14 +859,14 @@ void SpriteFramesEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
 		button->show();
 		editor->make_bottom_panel_item_visible(frames_editor);
-		//frames_editor->set_process(true);
+		//		frames_editor->set_process(true);
 	} else {
 
 		button->hide();
-		if (frames_editor->is_visible_in_tree())
+		if (frames_editor->is_visible())
 			editor->hide_bottom_panel();
 
-		//frames_editor->set_process(false);
+		//		frames_editor->set_process(false);
 	}
 }
 

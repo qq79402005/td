@@ -369,7 +369,7 @@ FileAccessCompressed::FileAccessCompressed() {
 	f = NULL;
 	magic = "GCMP";
 	block_size = 16384;
-	cmode = Compression::MODE_ZSTD;
+	cmode = Compression::MODE_DEFLATE;
 	writing = false;
 	write_ptr = 0;
 	write_buffer_size = 0;

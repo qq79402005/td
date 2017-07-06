@@ -61,9 +61,6 @@ public:
 	StringName _iter_next;
 	StringName _iter_get;
 	StringName get_rid;
-#ifdef TOOLS_ENABLED
-	StringName _sections_unfolded;
-#endif
 };
 
 #endif // SCENE_STRING_NAMES_H

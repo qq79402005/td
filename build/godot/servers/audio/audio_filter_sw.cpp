@@ -58,7 +58,7 @@ void AudioFilterSW::prepare_coefficients(Coeffs *p_coeffs) {
 
 	double final_cutoff = (cutoff > sr_limit) ? sr_limit : cutoff;
 	if (final_cutoff < 1) //avoid crapness
-		final_cutoff = 1; //don't allow less than this
+		final_cutoff = 1; //dont allow less than this
 
 	double omega = 2.0 * Math_PI * final_cutoff / sampling_rate;
 
@@ -137,9 +137,9 @@ void AudioFilterSW::prepare_coefficients(Coeffs *p_coeffs) {
 			//this one is extra tricky
 			double hicutoff = resonance;
 			double centercutoff = (cutoff + resonance) / 2.0;
-			double bandwidth = (Math::log(centercutoff) - Math::log(hicutoff)) / Math::log((double)2);
+			double bandwidth = (Math::log(centercutoff) - Math::log(hicutoff)) / Math::log(2);
 			omega = 2.0 * Math_PI * centercutoff / sampling_rate;
-			alpha = Math::sin(omega) * Math::sinh(Math::log((double)2) / 2 * bandwidth * omega / Math::sin(omega));
+			alpha = Math::sin(omega) * Math::sinh(Math::log(2) / 2 * bandwidth * omega / Math::sin(omega));
 			a0 = 1 + alpha;
 
 			p_coeffs->b0 = alpha;

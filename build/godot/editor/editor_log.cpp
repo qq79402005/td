@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_log.h"
-
 #include "editor_node.h"
 #include "scene/gui/center_container.h"
 #include "version.h"
@@ -46,10 +45,8 @@ void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_f
 		err_str = String(p_file) + ":" + itos(p_line) + " - " + String(p_error);
 	}
 
-	/*
-	if (!self->is_visible_in_tree())
-		self->emit_signal("show_request");
-	*/
+	//	if (!self->is_visible())
+	//		self->emit_signal("show_request");
 
 	err_str = " " + err_str;
 	self->log->add_newline();
@@ -71,10 +68,6 @@ void EditorLog::_error_handler(void *p_self, const char *p_func, const char *p_f
 
 			icon = self->get_icon("ScriptError", "EditorIcons");
 		} break;
-		case ERR_HANDLER_SHADER: {
-
-			icon = self->get_icon("Shader", "EditorIcons");
-		} break;
 	}
 
 	self->add_message(err_str, true);
@@ -86,9 +79,6 @@ void EditorLog::_notification(int p_what) {
 
 		log->add_color_override("default_color", get_color("font_color", "Tree"));
 		//button->set_icon(get_icon("Console","EditorIcons"));
-	}
-	if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
-		_override_logger_styles();
 	}
 
 	/*if (p_what==NOTIFICATION_DRAW) {
@@ -125,7 +115,7 @@ void EditorLog::add_message(const String &p_msg, bool p_error) {
 
 	log->add_newline();
 	log->add_text(p_msg);
-	//button->set_text(p_msg);
+	//	button->set_text(p_msg);
 
 	if (p_error)
 		log->pop();
@@ -154,9 +144,9 @@ void EditorLog::_undo_redo_cbk(void *p_self, const String &p_name) {
 
 void EditorLog::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_clear_request"), &EditorLog::_clear_request);
-	ClassDB::bind_method("_override_logger_styles", &EditorLog::_override_logger_styles);
-	//ClassDB::bind_method(D_METHOD("_dragged"),&EditorLog::_dragged );
+	ObjectTypeDB::bind_method(_MD("_clear_request"), &EditorLog::_clear_request);
+
+	//ObjectTypeDB::bind_method(_MD("_dragged"),&EditorLog::_dragged );
 	ADD_SIGNAL(MethodInfo("clear_request"));
 }
 
@@ -187,10 +177,10 @@ EditorLog::EditorLog() {
 	ec->set_custom_minimum_size(Size2(0, 180));
 	ec->set_v_size_flags(SIZE_EXPAND_FILL);
 
-	pc = memnew(PanelContainer);
+	PanelContainer *pc = memnew(PanelContainer);
+	pc->add_style_override("panel", get_stylebox("normal", "TextEdit"));
 	ec->add_child(pc);
 	pc->set_area_as_parent_rect();
-	pc->connect("tree_entered", this, "_override_logger_styles");
 
 	log = memnew(RichTextLabel);
 	log->set_scroll_follow(true);
@@ -212,11 +202,6 @@ EditorLog::EditorLog() {
 void EditorLog::deinit() {
 
 	remove_error_handler(&eh);
-}
-
-void EditorLog::_override_logger_styles() {
-
-	pc->add_style_override("panel", get_stylebox("normal", "TextEdit"));
 }
 
 EditorLog::~EditorLog() {

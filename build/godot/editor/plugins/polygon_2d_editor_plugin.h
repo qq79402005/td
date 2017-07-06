@@ -43,7 +43,7 @@ class CanvasItemEditor;
 
 class Polygon2DEditor : public HBoxContainer {
 
-	GDCLASS(Polygon2DEditor, HBoxContainer);
+	OBJ_TYPE(Polygon2DEditor, HBoxContainer);
 
 	UndoRedo *undo_redo;
 	enum Mode {
@@ -78,11 +78,11 @@ class Polygon2DEditor : public HBoxContainer {
 	HScrollBar *uv_hscroll;
 	VScrollBar *uv_vscroll;
 	MenuButton *uv_menu;
-	TextureRect *uv_icon_zoom;
+	TextureFrame *uv_icon_zoom;
 
 	Vector2 uv_draw_ofs;
 	float uv_draw_zoom;
-	PoolVector<Vector2> uv_prev;
+	DVector<Vector2> uv_prev;
 	int uv_drag_index;
 	bool uv_drag;
 	UVMode uv_move_current;
@@ -113,7 +113,7 @@ class Polygon2DEditor : public HBoxContainer {
 	Vector2 snap_step;
 
 	void _uv_scroll_changed(float);
-	void _uv_input(const Ref<InputEvent> &p_input);
+	void _uv_input(const InputEvent &p_input);
 	void _uv_draw();
 	void _uv_mode(int p_mode);
 	void _wip_close();
@@ -135,20 +135,20 @@ protected:
 	Vector2 snap_point(Vector2 p_target) const;
 
 public:
-	bool forward_gui_input(const Ref<InputEvent> &p_event);
+	bool forward_input_event(const InputEvent &p_event);
 	void edit(Node *p_collision_polygon);
 	Polygon2DEditor(EditorNode *p_editor);
 };
 
 class Polygon2DEditorPlugin : public EditorPlugin {
 
-	GDCLASS(Polygon2DEditorPlugin, EditorPlugin);
+	OBJ_TYPE(Polygon2DEditorPlugin, EditorPlugin);
 
 	Polygon2DEditor *collision_polygon_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_canvas_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event) { return collision_polygon_editor->forward_gui_input(p_event); }
+	virtual bool forward_input_event(const InputEvent &p_event) { return collision_polygon_editor->forward_input_event(p_event); }
 
 	virtual String get_name() const { return "Polygon2D"; }
 	bool has_main_screen() const { return false; }

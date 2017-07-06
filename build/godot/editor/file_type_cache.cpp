@@ -28,8 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "file_type_cache.h"
-
-#include "global_config.h"
+#include "globals.h"
 #include "os/file_access.h"
 
 FileTypeCache *FileTypeCache::singleton = NULL;
@@ -55,7 +54,7 @@ void FileTypeCache::set_file_type(const String &p_path, const String &p_type) {
 void FileTypeCache::load() {
 
 	GLOBAL_LOCK_FUNCTION
-	String project = GlobalConfig::get_singleton()->get_resource_path();
+	String project = Globals::get_singleton()->get_resource_path();
 	FileAccess *f = FileAccess::open(project + "/file_type_cache.cch", FileAccess::READ);
 
 	if (!f) {
@@ -80,7 +79,7 @@ void FileTypeCache::load() {
 void FileTypeCache::save() {
 
 	GLOBAL_LOCK_FUNCTION
-	String project = GlobalConfig::get_singleton()->get_resource_path();
+	String project = Globals::get_singleton()->get_resource_path();
 	FileAccess *f = FileAccess::open(project + "/file_type_cache.cch", FileAccess::WRITE);
 	if (!f) {
 

@@ -150,7 +150,8 @@ unzFile ZipArchive::get_file_handle(String p_file) const {
 	unzFile pkg = unzOpen2(packages[file.package].filename.utf8().get_data(), &io);
 	ERR_FAIL_COND_V(!pkg, NULL);
 	int unz_err = unzGoToFilePos(pkg, &file.file_pos);
-	if (unz_err != UNZ_OK || unzOpenCurrentFile(pkg) != UNZ_OK) {
+	ERR_FAIL_COND_V(unz_err != UNZ_OK, NULL);
+	if (unzOpenCurrentFile(pkg) != UNZ_OK) {
 
 		unzClose(pkg);
 		ERR_FAIL_V(NULL);
@@ -162,7 +163,7 @@ unzFile ZipArchive::get_file_handle(String p_file) const {
 bool ZipArchive::try_open_pack(const String &p_name) {
 
 	//printf("opening zip pack %ls, %i, %i\n", p_name.c_str(), p_name.extension().nocasecmp_to("zip"), p_name.extension().nocasecmp_to("pcz"));
-	if (p_name.get_extension().nocasecmp_to("zip") != 0 && p_name.get_extension().nocasecmp_to("pcz") != 0)
+	if (p_name.extension().nocasecmp_to("zip") != 0 && p_name.extension().nocasecmp_to("pcz") != 0)
 		return false;
 
 	zlib_filefunc_def io;

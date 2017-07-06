@@ -29,7 +29,7 @@
 /*************************************************************************/
 #import "gl_view.h"
 
-#include "core/global_config.h"
+#include "core/globals.h"
 #include "core/os/keyboard.h"
 #include "os_iphone.h"
 #include "servers/audio_server.h"
@@ -77,7 +77,7 @@ void _hide_keyboard() {
 };
 
 bool _play_video(String p_path, float p_volume, String p_audio_track, String p_subtitle_track) {
-	p_path = GlobalConfig::get_singleton()->globalize_path(p_path);
+	p_path = Globals::get_singleton()->globalize_path(p_path);
 
 	NSString *file_path = [[[NSString alloc] initWithUTF8String:p_path.utf8().get_data()] autorelease];
 
@@ -270,7 +270,7 @@ static void clear_touches() {
 			nil];
 
 	// Create our EAGLContext, and if successful make it current and create our framebuffer.
-	context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
+	context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
 
 	if (!context || ![EAGLContext setCurrentContext:context] || ![self createFramebuffer]) {
 		[self release];
@@ -321,7 +321,7 @@ static void clear_touches() {
 	glBindFramebufferOES(GL_FRAMEBUFFER_OES, viewFramebuffer);
 	glBindRenderbufferOES(GL_RENDERBUFFER_OES, viewRenderbuffer);
 	// This call associates the storage for the current render buffer with the EAGLDrawable (our CAEAGLLayer)
-	// allowing us to draw into a buffer that will later be rendered to screen wherever the layer is (which corresponds with our view).
+	// allowing us to draw into a buffer that will later be rendered to screen whereever the layer is (which corresponds with our view).
 	[context renderbufferStorage:GL_RENDERBUFFER_OES fromDrawable:(id<EAGLDrawable>)self.layer];
 	glFramebufferRenderbufferOES(GL_FRAMEBUFFER_OES, GL_COLOR_ATTACHMENT0_OES, GL_RENDERBUFFER_OES, viewRenderbuffer);
 
@@ -369,6 +369,7 @@ static void clear_touches() {
 - (void)startAnimation {
 	if (active)
 		return;
+
 	active = TRUE;
 	printf("start animation!\n");
 	if (useCADisplayLink) {
@@ -394,6 +395,7 @@ static void clear_touches() {
 - (void)stopAnimation {
 	if (!active)
 		return;
+
 	active = FALSE;
 	printf("******** stop animation!\n");
 
@@ -427,8 +429,8 @@ static void clear_touches() {
 		[displayLink setPaused:YES];
 
 		// Process all input events
-		while (CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, TRUE) == kCFRunLoopRunHandledSource)
-			;
+		while (CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, TRUE) == kCFRunLoopRunHandledSource) {
+		}
 
 		// We are good to go, resume the CADisplayLink
 		[displayLink setPaused:NO];
@@ -489,6 +491,7 @@ static void clear_touches() {
 			UITouch *touch = [tlist objectAtIndex:i];
 			if (touch.phase != UITouchPhaseMoved)
 				continue;
+
 			int tid = get_touch_id(touch);
 			ERR_FAIL_COND(tid == -1);
 			int first = get_first_id(touch);
@@ -508,6 +511,7 @@ static void clear_touches() {
 			UITouch *touch = [tlist objectAtIndex:i];
 			if (touch.phase != UITouchPhaseEnded)
 				continue;
+
 			int tid = get_touch_id(touch);
 			ERR_FAIL_COND(tid == -1);
 			int rem = remove_touch(touch);
@@ -540,6 +544,7 @@ static void clear_touches() {
 - (void)deleteBackward {
 	if (keyboard_text.length())
 		keyboard_text.erase(keyboard_text.length() - 1, 1);
+
 	OSIPhone::get_singleton()->key(KEY_BACKSPACE, true);
 };
 
@@ -612,13 +617,13 @@ static void clear_touches() {
 	return self;
 }
 
-//- (BOOL)automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers {
-//	return YES;
-//}
+// -(BOOL)automaticallyForwardAppearanceAndRotationMethodsToChildViewControllers {
+//     return YES;
+// }
 
-//- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation{
-//	return YES;
-//}
+// - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation{
+//     return YES;
+// }
 
 // Stop animating and release resources when they are no longer needed.
 - (void)dealloc {
@@ -634,7 +639,9 @@ static void clear_touches() {
 	[super dealloc];
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
+- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
+						change:(NSDictionary *)change
+					   context:(void *)context {
 
 	if (object == _instance.avPlayerItem && [keyPath isEqualToString:@"status"]) {
 		if (_instance.avPlayerItem.status == AVPlayerStatusFailed || _instance.avPlayer.status == AVPlayerStatusFailed) {

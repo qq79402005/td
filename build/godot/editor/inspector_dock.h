@@ -38,7 +38,7 @@
 #if 0
 class InspectorDock : public VBoxContainer
 {
-	GDCLASS(InspectorDock,VBoxContainer);
+	OBJ_TYPE(InspectorDock,VBoxContainer);
 
 	PropertyEditor *property_editor;
 

@@ -148,19 +148,14 @@ OSStatus AudioDriverIphone::output_callback(void *inRefCon,
 
 void AudioDriverIphone::start() {
 	active = true;
-	// Resume audio
-	//	iOS audio-thread stoped if it is interrupted cause by an incoming phone call
-	//	Use AudioOutputUnitStart to re-create audio-thread
-	OSStatus result = AudioOutputUnitStart(audio_unit);
-	ERR_FAIL_COND(result != noErr);
 };
 
 int AudioDriverIphone::get_mix_rate() const {
 	return 44100;
 };
 
-AudioDriver::SpeakerMode AudioDriverIphone::get_speaker_mode() const {
-	return SPEAKER_MODE_STEREO;
+AudioDriverSW::OutputFormat AudioDriverIphone::get_output_format() const {
+	return OUTPUT_STEREO;
 };
 
 void AudioDriverIphone::lock() {

@@ -33,7 +33,7 @@
 
 void NavigationMesh::create_from_mesh(const Ref<Mesh> &p_mesh) {
 
-	vertices = PoolVector<Vector3>();
+	vertices = DVector<Vector3>();
 	clear_polygons();
 
 	for (int i = 0; i < p_mesh->get_surface_count(); i++) {
@@ -41,15 +41,15 @@ void NavigationMesh::create_from_mesh(const Ref<Mesh> &p_mesh) {
 		if (p_mesh->surface_get_primitive_type(i) != Mesh::PRIMITIVE_TRIANGLES)
 			continue;
 		Array arr = p_mesh->surface_get_arrays(i);
-		PoolVector<Vector3> varr = arr[Mesh::ARRAY_VERTEX];
-		PoolVector<int> iarr = arr[Mesh::ARRAY_INDEX];
+		DVector<Vector3> varr = arr[Mesh::ARRAY_VERTEX];
+		DVector<int> iarr = arr[Mesh::ARRAY_INDEX];
 		if (varr.size() == 0 || iarr.size() == 0)
 			continue;
 
 		int from = vertices.size();
 		vertices.append_array(varr);
 		int rlen = iarr.size();
-		PoolVector<int>::Read r = iarr.read();
+		DVector<int>::Read r = iarr.read();
 
 		for (int j = 0; j < rlen; j += 3) {
 			Vector<int> vi;
@@ -63,12 +63,12 @@ void NavigationMesh::create_from_mesh(const Ref<Mesh> &p_mesh) {
 	}
 }
 
-void NavigationMesh::set_vertices(const PoolVector<Vector3> &p_vertices) {
+void NavigationMesh::set_vertices(const DVector<Vector3> &p_vertices) {
 
 	vertices = p_vertices;
 }
 
-PoolVector<Vector3> NavigationMesh::get_vertices() const {
+DVector<Vector3> NavigationMesh::get_vertices() const {
 
 	return vertices;
 }
@@ -117,8 +117,8 @@ Ref<Mesh> NavigationMesh::get_debug_mesh() {
 	if (debug_mesh.is_valid())
 		return debug_mesh;
 
-	PoolVector<Vector3> vertices = get_vertices();
-	PoolVector<Vector3>::Read vr = vertices.read();
+	DVector<Vector3> vertices = get_vertices();
+	DVector<Vector3>::Read vr = vertices.read();
 	List<Face3> faces;
 	for (int i = 0; i < get_polygon_count(); i++) {
 		Vector<int> p = get_polygon(i);
@@ -134,11 +134,11 @@ Ref<Mesh> NavigationMesh::get_debug_mesh() {
 	}
 
 	Map<_EdgeKey, bool> edge_map;
-	PoolVector<Vector3> tmeshfaces;
+	DVector<Vector3> tmeshfaces;
 	tmeshfaces.resize(faces.size() * 3);
 
 	{
-		PoolVector<Vector3>::Write tw = tmeshfaces.write();
+		DVector<Vector3>::Write tw = tmeshfaces.write();
 		int tidx = 0;
 
 		for (List<Face3>::Element *E = faces.front(); E; E = E->next()) {
@@ -149,8 +149,8 @@ Ref<Mesh> NavigationMesh::get_debug_mesh() {
 
 				tw[tidx++] = f.vertex[j];
 				_EdgeKey ek;
-				ek.from = f.vertex[j].snapped(Vector3(CMP_EPSILON, CMP_EPSILON, CMP_EPSILON));
-				ek.to = f.vertex[(j + 1) % 3].snapped(Vector3(CMP_EPSILON, CMP_EPSILON, CMP_EPSILON));
+				ek.from = f.vertex[j].snapped(CMP_EPSILON);
+				ek.to = f.vertex[(j + 1) % 3].snapped(CMP_EPSILON);
 				if (ek.from < ek.to)
 					SWAP(ek.from, ek.to);
 
@@ -177,42 +177,42 @@ Ref<Mesh> NavigationMesh::get_debug_mesh() {
 		}
 	}
 
-	PoolVector<Vector3> varr;
+	DVector<Vector3> varr;
 	varr.resize(lines.size());
 	{
-		PoolVector<Vector3>::Write w = varr.write();
+		DVector<Vector3>::Write w = varr.write();
 		int idx = 0;
 		for (List<Vector3>::Element *E = lines.front(); E; E = E->next()) {
 			w[idx++] = E->get();
 		}
 	}
 
-	debug_mesh = Ref<ArrayMesh>(memnew(ArrayMesh));
+	debug_mesh = Ref<Mesh>(memnew(Mesh));
 
 	Array arr;
 	arr.resize(Mesh::ARRAY_MAX);
 	arr[Mesh::ARRAY_VERTEX] = varr;
 
-	debug_mesh->add_surface_from_arrays(Mesh::PRIMITIVE_LINES, arr);
+	debug_mesh->add_surface(Mesh::PRIMITIVE_LINES, arr);
 
 	return debug_mesh;
 }
 
 void NavigationMesh::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_vertices", "vertices"), &NavigationMesh::set_vertices);
-	ClassDB::bind_method(D_METHOD("get_vertices"), &NavigationMesh::get_vertices);
+	ObjectTypeDB::bind_method(_MD("set_vertices", "vertices"), &NavigationMesh::set_vertices);
+	ObjectTypeDB::bind_method(_MD("get_vertices"), &NavigationMesh::get_vertices);
 
-	ClassDB::bind_method(D_METHOD("add_polygon", "polygon"), &NavigationMesh::add_polygon);
-	ClassDB::bind_method(D_METHOD("get_polygon_count"), &NavigationMesh::get_polygon_count);
-	ClassDB::bind_method(D_METHOD("get_polygon", "idx"), &NavigationMesh::get_polygon);
-	ClassDB::bind_method(D_METHOD("clear_polygons"), &NavigationMesh::clear_polygons);
+	ObjectTypeDB::bind_method(_MD("add_polygon", "polygon"), &NavigationMesh::add_polygon);
+	ObjectTypeDB::bind_method(_MD("get_polygon_count"), &NavigationMesh::get_polygon_count);
+	ObjectTypeDB::bind_method(_MD("get_polygon", "idx"), &NavigationMesh::get_polygon);
+	ObjectTypeDB::bind_method(_MD("clear_polygons"), &NavigationMesh::clear_polygons);
 
-	ClassDB::bind_method(D_METHOD("_set_polygons", "polygons"), &NavigationMesh::_set_polygons);
-	ClassDB::bind_method(D_METHOD("_get_polygons"), &NavigationMesh::_get_polygons);
+	ObjectTypeDB::bind_method(_MD("_set_polygons", "polygons"), &NavigationMesh::_set_polygons);
+	ObjectTypeDB::bind_method(_MD("_get_polygons"), &NavigationMesh::_get_polygons);
 
-	ADD_PROPERTY(PropertyInfo(Variant::POOL_VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_vertices", "get_vertices");
-	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "_set_polygons", "_get_polygons");
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3_ARRAY, "vertices", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), _SCS("set_vertices"), _SCS("get_vertices"));
+	ADD_PROPERTY(PropertyInfo(Variant::ARRAY, "polygons", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), _SCS("_set_polygons"), _SCS("_get_polygons"));
 }
 
 NavigationMesh::NavigationMesh() {
@@ -354,7 +354,7 @@ Ref<NavigationMesh> NavigationMeshInstance::get_navigation_mesh() const {
 
 String NavigationMeshInstance::get_configuration_warning() const {
 
-	if (!is_visible_in_tree() || !is_inside_tree())
+	if (!is_visible() || !is_inside_tree())
 		return String();
 
 	if (!navmesh.is_valid()) {
@@ -374,14 +374,14 @@ String NavigationMeshInstance::get_configuration_warning() const {
 
 void NavigationMeshInstance::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_navigation_mesh", "navmesh"), &NavigationMeshInstance::set_navigation_mesh);
-	ClassDB::bind_method(D_METHOD("get_navigation_mesh"), &NavigationMeshInstance::get_navigation_mesh);
+	ObjectTypeDB::bind_method(_MD("set_navigation_mesh", "navmesh"), &NavigationMeshInstance::set_navigation_mesh);
+	ObjectTypeDB::bind_method(_MD("get_navigation_mesh"), &NavigationMeshInstance::get_navigation_mesh);
 
-	ClassDB::bind_method(D_METHOD("set_enabled", "enabled"), &NavigationMeshInstance::set_enabled);
-	ClassDB::bind_method(D_METHOD("is_enabled"), &NavigationMeshInstance::is_enabled);
+	ObjectTypeDB::bind_method(_MD("set_enabled", "enabled"), &NavigationMeshInstance::set_enabled);
+	ObjectTypeDB::bind_method(_MD("is_enabled"), &NavigationMeshInstance::is_enabled);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "navmesh", PROPERTY_HINT_RESOURCE_TYPE, "NavigationMesh"), "set_navigation_mesh", "get_navigation_mesh");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), "set_enabled", "is_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "navmesh", PROPERTY_HINT_RESOURCE_TYPE, "NavigationMesh"), _SCS("set_navigation_mesh"), _SCS("get_navigation_mesh"));
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "enabled"), _SCS("set_enabled"), _SCS("is_enabled"));
 }
 
 NavigationMeshInstance::NavigationMeshInstance() {
@@ -390,5 +390,4 @@ NavigationMeshInstance::NavigationMeshInstance() {
 	navigation = NULL;
 	nav_id = -1;
 	enabled = true;
-	set_notify_transform(true);
 }

@@ -30,33 +30,50 @@
 
 /*
 Adapted to Godot from the Bullet library.
-*/
-
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
-*/
-
-/*
-2007-09-09
-Generic6DOFJointSW Refactored by Francisco Le?n
-email: projectileman@yahoo.com
-http://gimpact.sf.net
+See corresponding header file for licensing info.
 */
 
 #include "generic_6dof_joint_sw.h"
 
 #define GENERIC_D6_DISABLE_WARMSTARTING 1
+
+real_t btGetMatrixElem(const Matrix3 &mat, int index);
+real_t btGetMatrixElem(const Matrix3 &mat, int index) {
+	int i = index % 3;
+	int j = index / 3;
+	return mat[i][j];
+}
+
+///MatrixToEulerXYZ from http://www.geometrictools.com/LibFoundation/Mathematics/Wm4Matrix3.inl.html
+bool matrixToEulerXYZ(const Matrix3 &mat, Vector3 &xyz);
+bool matrixToEulerXYZ(const Matrix3 &mat, Vector3 &xyz) {
+	//	// rot =  cy*cz          -cy*sz           sy
+	//	//        cz*sx*sy+cx*sz  cx*cz-sx*sy*sz -cy*sx
+	//	//       -cx*cz*sy+sx*sz  cz*sx+cx*sy*sz  cx*cy
+	//
+
+	if (btGetMatrixElem(mat, 2) < real_t(1.0)) {
+		if (btGetMatrixElem(mat, 2) > real_t(-1.0)) {
+			xyz[0] = Math::atan2(-btGetMatrixElem(mat, 5), btGetMatrixElem(mat, 8));
+			xyz[1] = Math::asin(btGetMatrixElem(mat, 2));
+			xyz[2] = Math::atan2(-btGetMatrixElem(mat, 1), btGetMatrixElem(mat, 0));
+			return true;
+		} else {
+			// WARNING.  Not unique.  XA - ZA = -atan2(r10,r11)
+			xyz[0] = -Math::atan2(btGetMatrixElem(mat, 3), btGetMatrixElem(mat, 4));
+			xyz[1] = -Math_PI * 0.5;
+			xyz[2] = real_t(0.0);
+			return false;
+		}
+	} else {
+		// WARNING.  Not unique.  XAngle + ZAngle = atan2(r10,r11)
+		xyz[0] = Math::atan2(btGetMatrixElem(mat, 3), btGetMatrixElem(mat, 4));
+		xyz[1] = Math_PI * 0.5;
+		xyz[2] = 0.0;
+	}
+
+	return false;
+}
 
 //////////////////////////// G6DOFRotationalLimitMotorSW ////////////////////////////////////
 
@@ -219,9 +236,9 @@ Generic6DOFJointSW::Generic6DOFJointSW(BodySW *rbA, BodySW *rbB, const Transform
 }
 
 void Generic6DOFJointSW::calculateAngleInfo() {
-	Basis relative_frame = m_calculatedTransformA.basis.inverse() * m_calculatedTransformB.basis;
+	Matrix3 relative_frame = m_calculatedTransformA.basis.inverse() * m_calculatedTransformB.basis;
 
-	m_calculatedAxisAngleDiff = relative_frame.get_euler();
+	matrixToEulerXYZ(relative_frame, m_calculatedAxisAngleDiff);
 
 	// in euler angle mode we do not actually constrain the angular velocity
 	// along the axes axis[0] and axis[2] (although we do use axis[1]) :
@@ -245,18 +262,16 @@ void Generic6DOFJointSW::calculateAngleInfo() {
 	m_calculatedAxis[0] = m_calculatedAxis[1].cross(axis2);
 	m_calculatedAxis[2] = axis0.cross(m_calculatedAxis[1]);
 
-	/*
-	if(m_debugDrawer)
-	{
-
-		char buff[300];
-		sprintf(buff,"\n X: %.2f ; Y: %.2f ; Z: %.2f ",
-		m_calculatedAxisAngleDiff[0],
-		m_calculatedAxisAngleDiff[1],
-		m_calculatedAxisAngleDiff[2]);
-		m_debugDrawer->reportErrorWarning(buff);
-	}
-	*/
+	//    if(m_debugDrawer)
+	//    {
+	//
+	//    	char buff[300];
+	//		sprintf(buff,"\n X: %.2f ; Y: %.2f ; Z: %.2f ",
+	//		m_calculatedAxisAngleDiff[0],
+	//		m_calculatedAxisAngleDiff[1],
+	//		m_calculatedAxisAngleDiff[2]);
+	//    	m_debugDrawer->reportErrorWarning(buff);
+	//    }
 }
 
 void Generic6DOFJointSW::calculateTransforms() {
@@ -270,10 +285,10 @@ void Generic6DOFJointSW::buildLinearJacobian(
 		JacobianEntrySW &jacLinear, const Vector3 &normalWorld,
 		const Vector3 &pivotAInW, const Vector3 &pivotBInW) {
 	memnew_placement(&jacLinear, JacobianEntrySW(
-										 A->get_principal_inertia_axes().transposed(),
-										 B->get_principal_inertia_axes().transposed(),
-										 pivotAInW - A->get_transform().origin - A->get_center_of_mass(),
-										 pivotBInW - B->get_transform().origin - B->get_center_of_mass(),
+										 A->get_transform().basis.transposed(),
+										 B->get_transform().basis.transposed(),
+										 pivotAInW - A->get_transform().origin,
+										 pivotBInW - B->get_transform().origin,
 										 normalWorld,
 										 A->get_inv_inertia(),
 										 A->get_inv_mass(),
@@ -284,8 +299,8 @@ void Generic6DOFJointSW::buildLinearJacobian(
 void Generic6DOFJointSW::buildAngularJacobian(
 		JacobianEntrySW &jacAngular, const Vector3 &jointAxisW) {
 	memnew_placement(&jacAngular, JacobianEntrySW(jointAxisW,
-										  A->get_principal_inertia_axes().transposed(),
-										  B->get_principal_inertia_axes().transposed(),
+										  A->get_transform().basis.transposed(),
+										  B->get_transform().basis.transposed(),
 										  A->get_inv_inertia(),
 										  B->get_inv_inertia()));
 }
@@ -298,7 +313,7 @@ bool Generic6DOFJointSW::testAngularLimitMotor(int axis_index) {
 	return m_angularLimits[axis_index].needApplyTorques();
 }
 
-bool Generic6DOFJointSW::setup(real_t p_step) {
+bool Generic6DOFJointSW::setup(float p_step) {
 
 	// Clear accumulated impulses for the next simulation step
 	m_linearLimits.m_accumulatedImpulse = Vector3(real_t(0.), real_t(0.), real_t(0.));
@@ -422,7 +437,7 @@ void Generic6DOFJointSW::calcAnchorPos(void) {
 	return;
 } // Generic6DOFJointSW::calcAnchorPos()
 
-void Generic6DOFJointSW::set_param(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisParam p_param, real_t p_value) {
+void Generic6DOFJointSW::set_param(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisParam p_param, float p_value) {
 
 	ERR_FAIL_INDEX(p_axis, 3);
 	switch (p_param) {
@@ -498,7 +513,7 @@ void Generic6DOFJointSW::set_param(Vector3::Axis p_axis, PhysicsServer::G6DOFJoi
 	}
 }
 
-real_t Generic6DOFJointSW::get_param(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisParam p_param) const {
+float Generic6DOFJointSW::get_param(Vector3::Axis p_axis, PhysicsServer::G6DOFJointAxisParam p_param) const {
 	ERR_FAIL_INDEX_V(p_axis, 3, 0);
 	switch (p_param) {
 		case PhysicsServer::G6DOF_JOINT_LINEAR_LOWER_LIMIT: {

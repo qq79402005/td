@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    ANSI-specific configuration file (specification only).               */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -140,14 +140,6 @@ FT_BEGIN_HEADER
 #define FT_MACINTOSH 1
 #endif
 
-#endif
-
-
-  /* Fix compiler warning with sgi compiler */
-#if defined( __sgi ) && !defined( __GNUC__ )
-#if defined( _COMPILER_VERSION ) && ( _COMPILER_VERSION >= 730 )
-#pragma set woff 3505
-#endif
 #endif
 
 
@@ -333,15 +325,6 @@ FT_BEGIN_HEADER
 #endif
 
 
-#ifdef _WIN64
-  /* only 64bit Windows uses the LLP64 data model, i.e., */
-  /* 32bit integers, 64bit pointers                      */
-#define FT_UINT_TO_POINTER( x ) (void*)(unsigned __int64)(x)
-#else
-#define FT_UINT_TO_POINTER( x ) (void*)(unsigned long)(x)
-#endif
-
-
   /*************************************************************************/
   /*                                                                       */
   /* miscellaneous                                                         */
@@ -355,11 +338,10 @@ FT_BEGIN_HEADER
 
 
   /* typeof condition taken from gnulib's `intprops.h' header file */
-#if ( ( defined( __GNUC__ ) && __GNUC__ >= 2 )                       || \
-      ( defined( __IBMC__ ) && __IBMC__ >= 1210 &&                      \
-        defined( __IBM__TYPEOF__ ) )                                 || \
-      ( defined( __SUNPRO_C ) && __SUNPRO_C >= 0x5110 && !__STDC__ ) )
-#define FT_TYPEOF( type )  ( __typeof__ ( type ) )
+#if ( __GNUC__ >= 2                         || \
+      defined( __IBM__TYPEOF__ )            || \
+      ( __SUNPRO_C >= 0x5110 && !__STDC__ ) )
+#define FT_TYPEOF( type )  (__typeof__ (type))
 #else
 #define FT_TYPEOF( type )  /* empty */
 #endif

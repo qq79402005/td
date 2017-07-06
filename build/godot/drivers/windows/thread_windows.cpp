@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "thread_windows.h"
 
-#if defined(WINDOWS_ENABLED) && !defined(UWP_ENABLED)
+#if defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED)
 
 #include "os/memory.h"
 

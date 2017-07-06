@@ -28,17 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "file_access_encrypted.h"
-
-#include "core/variant.h"
+#include "aes256.h"
+#include "md5.h"
 #include "os/copymem.h"
 #include "print_string.h"
-
-#include "thirdparty/misc/aes256.h"
-#include "thirdparty/misc/md5.h"
-
-#include <stdio.h>
-
 #define COMP_MAGIC 0x43454447
+
+#include "core/variant.h"
+#include <stdio.h>
 
 Error FileAccessEncrypted::open_and_parse(FileAccess *p_base, const Vector<uint8_t> &p_key, Mode p_mode) {
 

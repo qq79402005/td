@@ -40,7 +40,6 @@
 
 class CharString : public Vector<char> {
 public:
-	bool operator<(const CharString &p_right) const;
 	int length() const { return size() ? size() - 1 : 0; }
 	const char *get_data() const;
 	operator const char *() { return get_data(); };
@@ -98,7 +97,6 @@ public:
 
 	signed char casecmp_to(const String &p_str) const;
 	signed char nocasecmp_to(const String &p_str) const;
-	signed char naturalnocasecmp_to(const String &p_str) const;
 
 	const CharType *c_str() const;
 	/* standard size stuff */
@@ -122,7 +120,6 @@ public:
 	bool is_subsequence_ofi(const String &p_string) const;
 	Vector<String> bigrams() const;
 	float similarity(const String &p_string) const;
-	String format(const Variant &values, String placeholder = "{_}") const;
 	String replace_first(String p_key, String p_with) const;
 	String replace(String p_key, String p_with) const;
 	String replacen(String p_key, String p_with) const;
@@ -145,7 +142,6 @@ public:
 	int hex_to_int(bool p_with_prefix = true) const;
 	int to_int() const;
 
-	int64_t hex_to_int64(bool p_with_prefix = true) const;
 	int64_t to_int64() const;
 	static int to_int(const char *p_str, int p_len = -1);
 	static double to_double(const char *p_str);
@@ -174,8 +170,8 @@ public:
 	String right(int p_pos) const;
 	String strip_edges(bool left = true, bool right = true) const;
 	String strip_escapes() const;
-	String get_extension() const;
-	String get_basename() const;
+	String extension() const;
+	String basename() const;
 	String plus_file(const String &p_file) const;
 	CharType ord_at(int p_idx) const;
 
@@ -254,14 +250,6 @@ struct NoCaseComparator {
 	bool operator()(const String &p_a, const String &p_b) const {
 
 		return p_a.nocasecmp_to(p_b) < 0;
-	}
-};
-
-struct NaturalNoCaseComparator {
-
-	bool operator()(const String &p_a, const String &p_b) const {
-
-		return p_a.naturalnocasecmp_to(p_b) < 0;
 	}
 };
 

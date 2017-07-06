@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    The FreeType property service (specification).                       */
 /*                                                                         */
-/*  Copyright 2012-2017 by                                                 */
+/*  Copyright 2012-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -29,8 +29,7 @@ FT_BEGIN_HEADER
   typedef FT_Error
   (*FT_Properties_SetFunc)( FT_Module    module,
                             const char*  property_name,
-                            const void*  value,
-                            FT_Bool      value_is_string );
+                            const void*  value );
 
   typedef FT_Error
   (*FT_Properties_GetFunc)( FT_Module    module,

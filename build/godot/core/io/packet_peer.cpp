@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "packet_peer.h"
 
-#include "global_config.h"
+#include "globals.h"
 #include "io/marshalls.h"
 /* helpers / binders */
 
@@ -38,7 +38,7 @@ PacketPeer::PacketPeer() {
 	last_get_error = OK;
 }
 
-Error PacketPeer::get_packet_buffer(PoolVector<uint8_t> &r_buffer) const {
+Error PacketPeer::get_packet_buffer(DVector<uint8_t> &r_buffer) const {
 
 	const uint8_t *buffer;
 	int buffer_size;
@@ -50,20 +50,20 @@ Error PacketPeer::get_packet_buffer(PoolVector<uint8_t> &r_buffer) const {
 	if (buffer_size == 0)
 		return OK;
 
-	PoolVector<uint8_t>::Write w = r_buffer.write();
+	DVector<uint8_t>::Write w = r_buffer.write();
 	for (int i = 0; i < buffer_size; i++)
 		w[i] = buffer[i];
 
 	return OK;
 }
 
-Error PacketPeer::put_packet_buffer(const PoolVector<uint8_t> &p_buffer) {
+Error PacketPeer::put_packet_buffer(const DVector<uint8_t> &p_buffer) {
 
 	int len = p_buffer.size();
 	if (len == 0)
 		return OK;
 
-	PoolVector<uint8_t>::Read r = p_buffer.read();
+	DVector<uint8_t>::Read r = p_buffer.read();
 	return put_packet(&r[0], len);
 }
 
@@ -103,12 +103,12 @@ Variant PacketPeer::_bnd_get_var() const {
 	return var;
 };
 
-Error PacketPeer::_put_packet(const PoolVector<uint8_t> &p_buffer) {
+Error PacketPeer::_put_packet(const DVector<uint8_t> &p_buffer) {
 	return put_packet_buffer(p_buffer);
 }
-PoolVector<uint8_t> PacketPeer::_get_packet() const {
+DVector<uint8_t> PacketPeer::_get_packet() const {
 
-	PoolVector<uint8_t> raw;
+	DVector<uint8_t> raw;
 	last_get_error = get_packet_buffer(raw);
 	return raw;
 }
@@ -120,12 +120,12 @@ Error PacketPeer::_get_packet_error() const {
 
 void PacketPeer::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("get_var:Variant"), &PacketPeer::_bnd_get_var);
-	ClassDB::bind_method(D_METHOD("put_var", "var:Variant"), &PacketPeer::put_var);
-	ClassDB::bind_method(D_METHOD("get_packet"), &PacketPeer::_get_packet);
-	ClassDB::bind_method(D_METHOD("put_packet:Error", "buffer"), &PacketPeer::_put_packet);
-	ClassDB::bind_method(D_METHOD("get_packet_error:Error"), &PacketPeer::_get_packet_error);
-	ClassDB::bind_method(D_METHOD("get_available_packet_count"), &PacketPeer::get_available_packet_count);
+	ObjectTypeDB::bind_method(_MD("get_var:Variant"), &PacketPeer::_bnd_get_var);
+	ObjectTypeDB::bind_method(_MD("put_var", "var:Variant"), &PacketPeer::put_var);
+	ObjectTypeDB::bind_method(_MD("get_packet"), &PacketPeer::_get_packet);
+	ObjectTypeDB::bind_method(_MD("put_packet:Error", "buffer"), &PacketPeer::_put_packet);
+	ObjectTypeDB::bind_method(_MD("get_packet_error:Error"), &PacketPeer::_get_packet_error);
+	ObjectTypeDB::bind_method(_MD("get_available_packet_count"), &PacketPeer::get_available_packet_count);
 };
 
 /***************/
@@ -138,7 +138,7 @@ void PacketPeerStream::_set_stream_peer(REF p_peer) {
 
 void PacketPeerStream::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_stream_peer", "peer:StreamPeer"), &PacketPeerStream::_set_stream_peer);
+	ObjectTypeDB::bind_method(_MD("set_stream_peer", "peer:StreamPeer"), &PacketPeerStream::_set_stream_peer);
 }
 
 Error PacketPeerStream::_poll_buffer() const {
@@ -254,7 +254,7 @@ void PacketPeerStream::set_input_buffer_max_size(int p_max_size) {
 
 PacketPeerStream::PacketPeerStream() {
 
-	int rbsize = GLOBAL_GET("network/packets/packet_stream_peer_max_buffer_po2");
+	int rbsize = GLOBAL_DEF("core/packet_stream_peer_max_buffer_po2", (16));
 
 	ring_buffer.resize(rbsize);
 	temp_buffer.resize(1 << rbsize);

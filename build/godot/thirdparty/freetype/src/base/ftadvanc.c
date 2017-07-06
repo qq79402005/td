@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Quick computation of advance widths (body).                          */
 /*                                                                         */
-/*  Copyright 2008-2017 by                                                 */
+/*  Copyright 2008-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -36,7 +36,7 @@
     if ( flags & FT_LOAD_NO_SCALE )
       return FT_Err_Ok;
 
-    if ( !face->size )
+    if ( face->size == NULL )
       return FT_THROW( Invalid_Size_Handle );
 
     if ( flags & FT_LOAD_VERTICAL_LAYOUT )
@@ -60,13 +60,12 @@
    /*  - unscaled load                                             */
    /*  - unhinted load                                             */
    /*  - light-hinted load                                         */
-   /*  - if a variations font, it must have an `HVAR' or `VVAR'    */
-   /*    table (thus the old MM or GX fonts don't qualify; this    */
-   /*    gets checked by the driver-specific functions)            */
+   /*  - neither a MM nor a GX font                                */
 
-#define LOAD_ADVANCE_FAST_CHECK( face, flags )                      \
-          ( flags & ( FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING )    || \
-            FT_LOAD_TARGET_MODE( flags ) == FT_RENDER_MODE_LIGHT )
+#define LOAD_ADVANCE_FAST_CHECK( face, flags )                          \
+          ( ( flags & ( FT_LOAD_NO_SCALE | FT_LOAD_NO_HINTING )    ||   \
+              FT_LOAD_TARGET_MODE( flags ) == FT_RENDER_MODE_LIGHT ) && \
+            !FT_HAS_MULTIPLE_MASTERS( face )                         )
 
 
   /* documentation is in ftadvanc.h */

@@ -31,7 +31,7 @@
 #define SPATIAL_H
 
 #include "scene/main/node.h"
-#include "scene/main/scene_tree.h"
+#include "scene/main/scene_main_loop.h"
 
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
@@ -39,7 +39,7 @@
 
 class SpatialGizmo : public Reference {
 
-	GDCLASS(SpatialGizmo, Reference);
+	OBJ_TYPE(SpatialGizmo, Reference);
 
 public:
 	virtual void create() = 0;
@@ -53,7 +53,7 @@ public:
 
 class Spatial : public Node {
 
-	GDCLASS(Spatial, Node);
+	OBJ_TYPE(Spatial, Node);
 	OBJ_CATEGORY("3D");
 
 	enum TransformDirty {
@@ -87,7 +87,6 @@ class Spatial : public Node {
 
 		bool ignore_notification;
 		bool notify_local_transform;
-		bool notify_transform;
 
 		bool visible;
 
@@ -95,6 +94,7 @@ class Spatial : public Node {
 		Ref<SpatialGizmo> gizmo;
 		bool gizmo_disabled;
 		bool gizmo_dirty;
+		Transform import_transform;
 #endif
 
 	} data;
@@ -119,6 +119,9 @@ protected:
 	void _notification(int p_what);
 	static void _bind_methods();
 
+	void _set_visible_(bool p_visible);
+	bool _is_visible_() const;
+
 public:
 	enum {
 
@@ -135,12 +138,12 @@ public:
 
 	void set_translation(const Vector3 &p_translation);
 	void set_rotation(const Vector3 &p_euler_rad);
-	void set_rotation_in_degrees(const Vector3 &p_euler_deg);
+	void set_rotation_deg(const Vector3 &p_euler_deg);
 	void set_scale(const Vector3 &p_scale);
 
 	Vector3 get_translation() const;
 	Vector3 get_rotation() const;
-	Vector3 get_rotation_in_degrees() const;
+	Vector3 get_rotation_deg() const;
 	Vector3 get_scale() const;
 
 	void set_transform(const Transform &p_transform);
@@ -173,20 +176,22 @@ public:
 	void look_at(const Vector3 &p_target, const Vector3 &p_up_normal);
 	void look_at_from_pos(const Vector3 &p_pos, const Vector3 &p_target, const Vector3 &p_up_normal);
 
-	void set_notify_transform(bool p_enable);
-	bool is_transform_notification_enabled() const;
-
 	void set_notify_local_transform(bool p_enable);
 	bool is_local_transform_notification_enabled() const;
 
 	void orthonormalize();
 	void set_identity();
 
-	void set_visible(bool p_visible);
-	bool is_visible() const;
 	void show();
 	void hide();
-	bool is_visible_in_tree() const;
+	bool is_visible() const;
+	bool is_hidden() const;
+	void set_hidden(bool p_hidden);
+
+#ifdef TOOLS_ENABLED
+	void set_import_transform(const Transform &p_transform);
+	Transform get_import_transform() const;
+#endif
 
 	Spatial();
 	~Spatial();

@@ -31,8 +31,7 @@
 
 #ifdef ALSA_ENABLED
 
-#include "global_config.h"
-
+#include "globals.h"
 #include <errno.h>
 
 Error AudioDriverALSA::init() {
@@ -45,7 +44,7 @@ Error AudioDriverALSA::init() {
 	samples_out = NULL;
 
 	mix_rate = GLOBAL_DEF("audio/mix_rate", 44100);
-	speaker_mode = SPEAKER_MODE_STEREO;
+	output_format = OUTPUT_STEREO;
 	channels = 2;
 
 	int status;
@@ -200,18 +199,16 @@ int AudioDriverALSA::get_mix_rate() const {
 	return mix_rate;
 };
 
-AudioDriver::SpeakerMode AudioDriverALSA::get_speaker_mode() const {
+AudioDriverSW::OutputFormat AudioDriverALSA::get_output_format() const {
 
-	return speaker_mode;
+	return output_format;
 };
-
 void AudioDriverALSA::lock() {
 
 	if (!thread || !mutex)
 		return;
 	mutex->lock();
 };
-
 void AudioDriverALSA::unlock() {
 
 	if (!thread || !mutex)

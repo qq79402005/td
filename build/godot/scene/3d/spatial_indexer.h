@@ -38,7 +38,7 @@ class ProximityArea;
 
 class SpatialIndexer : public Object {
 
-	GDCLASS( SpatialIndexer, Object );
+	OBJ_TYPE( SpatialIndexer, Object );
 
 	template<class T>
 	struct TK {

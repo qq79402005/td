@@ -19,6 +19,7 @@ platform_list = []  # list of platforms
 platform_opts = {}  # options for each platform
 platform_flags = {}  # flags for each platform
 
+
 active_platforms = []
 active_platform_ids = []
 platform_exporters = []
@@ -62,7 +63,7 @@ platform_arg = ARGUMENTS.get("platform", ARGUMENTS.get("p", False))
 if (os.name == "posix"):
     pass
 elif (os.name == "nt"):
-    if (os.getenv("VCINSTALLDIR") == None or platform_arg == "android"):
+    if (os.getenv("VSINSTALLDIR") == None or platform_arg == "android"):
         custom_tools = ['mingw']
 
 env_base = Environment(tools=custom_tools)
@@ -135,7 +136,6 @@ opts.Add('tools', "Build the tools a.k.a. the Godot editor (yes/no)", 'yes')
 opts.Add('deprecated', "Enable deprecated features (yes/no)", 'yes')
 opts.Add('gdscript', "Build GDSCript support (yes/no)", 'yes')
 opts.Add('minizip', "Build minizip archive support (yes/no)", 'yes')
-opts.Add('xaudio2', "XAudio2 audio driver (yes/no)", 'no')
 opts.Add('xml', "XML format support for resources (yes/no)", 'yes')
 
 # Advanced options
@@ -145,19 +145,23 @@ opts.Add('extra_suffix', "Custom extra suffix added to the base filename of all 
 opts.Add('unix_global_settings_path', "UNIX-specific path to system-wide settings. Currently only used for templates", '')
 opts.Add('verbose', "Enable verbose output for the compilation (yes/no)", 'yes')
 opts.Add('vsproj', "Generate Visual Studio Project. (yes/no)", 'no')
-opts.Add('warnings', "Set the level of warnings emitted during compilation (extra/all/moderate/no)", 'all')
+opts.Add('warnings', "Enable showing warnings during the compilation (yes/no)", 'yes')
 
 # Thirdparty libraries
-opts.Add('builtin_enet', "Use the builtin enet library (yes/no)", 'yes')
 opts.Add('builtin_freetype', "Use the builtin freetype library (yes/no)", 'yes')
+opts.Add('builtin_glew', "Use the builtin glew library (yes/no)", 'yes')
+opts.Add('builtin_libmpcdec', "Use the builtin libmpcdec library (yes/no)", 'yes')
 opts.Add('builtin_libogg', "Use the builtin libogg library (yes/no)", 'yes')
 opts.Add('builtin_libpng', "Use the builtin libpng library (yes/no)", 'yes')
 opts.Add('builtin_libtheora', "Use the builtin libtheora library (yes/no)", 'yes')
 opts.Add('builtin_libvorbis', "Use the builtin libvorbis library (yes/no)", 'yes')
-opts.Add('builtin_libvpx', "Use the builtin libvpx library (yes/no)", 'yes')
 opts.Add('builtin_libwebp', "Use the builtin libwebp library (yes/no)", 'yes')
 opts.Add('builtin_openssl', "Use the builtin openssl library (yes/no)", 'yes')
 opts.Add('builtin_opus', "Use the builtin opus library (yes/no)", 'yes')
+# (akien) Unbundling would require work in audio_stream_speex.{cpp,h}, but since speex was
+# removed in 3.0+ and this is only to preserve compatibility in 2.1, I haven't worked on it.
+# Patches welcome if anyone cares :)
+opts.Add('builtin_speex', "Use the builtin speex library (yes/no)", 'yes')
 opts.Add('builtin_squish', "Use the builtin squish library (yes/no)", 'yes')
 opts.Add('builtin_zlib', "Use the builtin zlib library (yes/no)", 'yes')
 
@@ -272,28 +276,16 @@ if selected_platform in platform_list:
     # must happen after the flags, so when flags are used by configure, stuff happens (ie, ssl on x11)
     detect.configure(env)
 
-    if (env["warnings"] == 'yes'):
-        print("WARNING: warnings=yes is deprecated; assuming warnings=all")
-
-    if (os.name == "nt" and os.getenv("VSINSTALLDIR")): # MSVC, needs to stand out of course
-        disable_nonessential_warnings = ['/wd4267', '/wd4244', '/wd4305', '/wd4800'] # Truncations, narrowing conversions...
-        if (env["warnings"] == 'extra'):
-            env.Append(CCFLAGS=['/Wall']) # Implies /W4
-        elif (env["warnings"] == 'all' or env["warnings"] == 'yes'):
-            env.Append(CCFLAGS=['/W3'] + disable_nonessential_warnings)
-        elif (env["warnings"] == 'moderate'):
-            # C4244 shouldn't be needed here being a level-3 warning, but it is
-            env.Append(CCFLAGS=['/W2'] + disable_nonessential_warnings)
-        else: # 'no'
-            env.Append(CCFLAGS=['/w'])
-    else: # Rest of the world
-        if (env["warnings"] == 'extra'):
-            env.Append(CCFLAGS=['-Wall', '-Wextra'])
-        elif (env["warnings"] == 'all' or env["warnings"] == 'yes'):
+    # TODO: Add support to specify different levels of warning, e.g. only critical/significant, instead of on/off
+    if (env["warnings"] == "yes"):
+        if (os.name == "nt" and os.getenv("VSINSTALLDIR")): # MSVC, needs to stand out of course
+            env.Append(CCFLAGS=['/W4'])
+        else: # Rest of the world
             env.Append(CCFLAGS=['-Wall'])
-        elif (env["warnings"] == 'moderate'):
-            env.Append(CCFLAGS=['-Wall', '-Wno-unused'])
-        else: # 'no'
+    else:
+        if (os.name == "nt" and os.getenv("VSINSTALLDIR")): # MSVC
+            env.Append(CCFLAGS=['/w'])
+        else: # Rest of the world
             env.Append(CCFLAGS=['-w'])
 
     #env['platform_libsuffix'] = env['LIBSUFFIX']
@@ -376,9 +368,6 @@ if selected_platform in platform_list:
     if (env['verbose'] == 'no'):
         methods.no_verbose(sys, env)
 
-    if (True): # FIXME: detect GLES3
-        env.Append( BUILDERS = { 'GLES3_GLSL' : env.Builder(action = methods.build_gles3_headers, suffix = 'glsl.gen.h',src_suffix = '.glsl') } )
-
     Export('env')
 
     # build subdirs, the build order is dependent on link order.
@@ -411,7 +400,7 @@ if selected_platform in platform_list:
         # env['MSVS_VERSION']='9.0'
 
         # Calls a CMD with /C(lose) and /V(delayed environment variable expansion) options.
-        # And runs vcvarsall bat for the proper architecture and scons for proper configuration
+        # And runs vcvarsall bat for the propper arhitecture and scons for propper configuration
         env['MSVSBUILDCOM'] = 'cmd /V /C set "plat=$(PlatformTarget)" ^& (if "$(PlatformTarget)"=="x64" (set "plat=x86_amd64")) ^& set "tools=yes" ^& (if "$(Configuration)"=="release" (set "tools=no")) ^& call "$(VCInstallDir)vcvarsall.bat" !plat! ^& scons platform=windows target=$(Configuration) tools=!tools! -j2'
         env['MSVSREBUILDCOM'] = 'cmd /V /C set "plat=$(PlatformTarget)" ^& (if "$(PlatformTarget)"=="x64" (set "plat=x86_amd64")) ^& set "tools=yes" ^& (if "$(Configuration)"=="release" (set "tools=no")) & call "$(VCInstallDir)vcvarsall.bat" !plat! ^& scons platform=windows target=$(Configuration) tools=!tools! vsproj=yes -j2'
         env['MSVSCLEANCOM'] = 'cmd /V /C set "plat=$(PlatformTarget)" ^& (if "$(PlatformTarget)"=="x64" (set "plat=x86_amd64")) ^& set "tools=yes" ^& (if "$(Configuration)"=="release" (set "tools=no")) ^& call "$(VCInstallDir)vcvarsall.bat" !plat! ^& scons --clean platform=windows target=$(Configuration) tools=!tools! -j2'

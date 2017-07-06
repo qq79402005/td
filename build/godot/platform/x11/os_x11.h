@@ -31,22 +31,24 @@
 #define OS_X11_H
 
 #include "context_gl_x11.h"
-#include "drivers/unix/os_unix.h"
-#include "os/input.h"
-#include "servers/visual_server.h"
-//#include "servers/visual/visual_server_wrap_mt.h"
 #include "drivers/alsa/audio_driver_alsa.h"
 #include "drivers/pulseaudio/audio_driver_pulseaudio.h"
 #include "drivers/rtaudio/audio_driver_rtaudio.h"
-#include "joypad_linux.h"
+#include "drivers/unix/os_unix.h"
+#include "joystick_linux.h"
 #include "main/input_default.h"
-#include "power_x11.h"
+#include "os/input.h"
 #include "servers/audio/audio_driver_dummy.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server_sw.h"
+#include "servers/audio/sample_manager_sw.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
 #include "servers/physics_server.h"
+#include "servers/spatial_sound/spatial_sound_server_sw.h"
+#include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "servers/visual/rasterizer.h"
+#include "servers/visual/visual_server_wrap_mt.h"
+#include "servers/visual_server.h"
 
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/Xlib.h>
@@ -98,7 +100,7 @@ class OS_X11 : public OS_Unix {
 #if defined(OPENGL_ENABLED) || defined(LEGACYGL_ENABLED)
 	ContextGL_X11 *context_gl;
 #endif
-	//Rasterizer *rasterizer;
+	Rasterizer *rasterizer;
 	VisualServer *visual_server;
 	VideoMode current_videomode;
 	List<String> args;
@@ -113,19 +115,16 @@ class OS_X11 : public OS_Unix {
 	::XIC xic;
 	::XIM xim;
 	::XIMStyle xim_style;
-	static void xim_destroy_callback(::XIM im, ::XPointer client_data,
-			::XPointer call_data);
-	void set_ime_position(short x, short y);
-
 	Point2i last_mouse_pos;
 	bool last_mouse_pos_valid;
 	Point2i last_click_pos;
 	uint64_t last_click_ms;
+	unsigned int event_id;
 	uint32_t last_button_state;
 
 	PhysicsServer *physics_server;
 	unsigned int get_mouse_button_state(unsigned int p_x11_state);
-	void get_key_modifier_state(unsigned int p_x11_state, Ref<InputEventWithModifiers> state);
+	InputModifierState get_key_modifier_state(unsigned int p_x11_state);
 	Physics2DServer *physics_2d_server;
 
 	MouseMode mouse_mode;
@@ -136,9 +135,14 @@ class OS_X11 : public OS_Unix {
 	virtual void delete_main_loop();
 	IP_Unix *ip_unix;
 
+	AudioServerSW *audio_server;
+	SampleManagerMallocSW *sample_manager;
+	SpatialSoundServerSW *spatial_sound_server;
+	SpatialSound2DServerSW *spatial_sound_2d_server;
+
 	bool force_quit;
 	bool minimized;
-	bool window_has_focus;
+
 	bool do_mouse_warp;
 
 	const char *cursor_theme;
@@ -151,7 +155,7 @@ class OS_X11 : public OS_Unix {
 	InputDefault *input;
 
 #ifdef JOYDEV_ENABLED
-	JoypadLinux *joypad;
+	joystick_linux *joystick;
 #endif
 
 #ifdef RTAUDIO_ENABLED
@@ -168,8 +172,6 @@ class OS_X11 : public OS_Unix {
 	AudioDriverDummy driver_dummy;
 
 	Atom net_wm_icon;
-
-	PowerX11 *power_manager;
 
 	int audio_driver_index;
 	unsigned int capture_idle;
@@ -206,11 +208,11 @@ public:
 	MouseMode get_mouse_mode() const;
 
 	virtual void warp_mouse_pos(const Point2 &p_to);
-	virtual Point2 get_mouse_position() const;
+	virtual Point2 get_mouse_pos() const;
 	virtual int get_mouse_button_state() const;
 	virtual void set_window_title(const String &p_title);
 
-	virtual void set_icon(const Ref<Image> &p_icon);
+	virtual void set_icon(const Image &p_icon);
 
 	virtual MainLoop *get_main_loop() const;
 
@@ -261,10 +263,6 @@ public:
 
 	virtual void set_use_vsync(bool p_enable);
 	virtual bool is_vsync_enabled() const;
-
-	virtual PowerState get_power_state();
-	virtual int get_power_seconds_left();
-	virtual int get_power_percent_left();
 
 	void run();
 

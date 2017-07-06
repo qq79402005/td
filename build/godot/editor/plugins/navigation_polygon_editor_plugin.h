@@ -43,7 +43,7 @@ class CanvasItemEditor;
 
 class NavigationPolygonEditor : public HBoxContainer {
 
-	GDCLASS(NavigationPolygonEditor, HBoxContainer);
+	OBJ_TYPE(NavigationPolygonEditor, HBoxContainer);
 
 	UndoRedo *undo_redo;
 	enum Mode {
@@ -69,7 +69,7 @@ class NavigationPolygonEditor : public HBoxContainer {
 	int edited_outline;
 	int edited_point;
 	Vector2 edited_point_pos;
-	PoolVector<Vector2> pre_move_edit;
+	DVector<Vector2> pre_move_edit;
 	Vector<Vector2> wip;
 	bool wip_active;
 
@@ -85,20 +85,20 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool forward_gui_input(const Ref<InputEvent> &p_event);
+	bool forward_input_event(const InputEvent &p_event);
 	void edit(Node *p_collision_polygon);
 	NavigationPolygonEditor(EditorNode *p_editor);
 };
 
 class NavigationPolygonEditorPlugin : public EditorPlugin {
 
-	GDCLASS(NavigationPolygonEditorPlugin, EditorPlugin);
+	OBJ_TYPE(NavigationPolygonEditorPlugin, EditorPlugin);
 
 	NavigationPolygonEditor *collision_polygon_editor;
 	EditorNode *editor;
 
 public:
-	virtual bool forward_canvas_gui_input(const Transform2D &p_canvas_xform, const Ref<InputEvent> &p_event) { return collision_polygon_editor->forward_gui_input(p_event); }
+	virtual bool forward_input_event(const InputEvent &p_event) { return collision_polygon_editor->forward_input_event(p_event); }
 
 	virtual String get_name() const { return "NavigationPolygonInstance"; }
 	bool has_main_screen() const { return false; }

@@ -8,8 +8,6 @@ if (!Module.expectedDataFileDownloads) {
 Module.expectedDataFileDownloads++;
 (function() {
 
-    const PACK_FILE_NAME = '$GODOT_PACK_NAME';
-    const PACK_FILE_SIZE = $GODOT_PACK_SIZE;
     function fetchRemotePackage(packageName, callback, errback) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', packageName, true);
@@ -54,7 +52,7 @@ Module.expectedDataFileDownloads++;
     };
 
       var fetched = null, fetchedCallback = null;
-      fetchRemotePackage(PACK_FILE_NAME, function(data) {
+      fetchRemotePackage('data.pck', function(data) {
         if (fetchedCallback) {
           fetchedCallback(data);
           fetchedCallback = null;
@@ -103,7 +101,7 @@ function assert(check, msg) {
         this.requests[this.name] = null;
       },
     };
-      new DataRequest(0, PACK_FILE_SIZE, 0, 0).open('GET', '/' + PACK_FILE_NAME);
+      new DataRequest(0, $DPLEN, 0, 0).open('GET', '/data.pck');
 
     var PACKAGE_PATH;
     if (typeof window === 'object') {
@@ -112,8 +110,8 @@ function assert(check, msg) {
       // worker
       PACKAGE_PATH = encodeURIComponent(location.pathname.toString().substring(0, location.pathname.toString().lastIndexOf('/')) + '/');
     }
-    var PACKAGE_NAME = PACK_FILE_NAME;
-    var REMOTE_PACKAGE_NAME = PACK_FILE_NAME;
+    var PACKAGE_NAME = 'data.pck';
+    var REMOTE_PACKAGE_NAME = 'data.pck';
     var PACKAGE_UUID = 'b39761ce-0348-4959-9b16-302ed8e1592e';
 
     function processPackageData(arrayBuffer) {
@@ -124,7 +122,7 @@ function assert(check, msg) {
 
       // Reuse the bytearray from the XHR as the source for file reads.
       DataRequest.prototype.byteArray = byteArray;
-          DataRequest.prototype.requests['/' + PACK_FILE_NAME].onload();
+          DataRequest.prototype.requests["/data.pck"].onload();
           Module['removeRunDependency']('datafile_datapack');
 
     };

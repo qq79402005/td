@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Type 42 objects manager (body).                                      */
 /*                                                                         */
-/*  Copyright 2002-2017 by                                                 */
+/*  Copyright 2002-2016 by                                                 */
 /*  Roberto Alameda.                                                       */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -590,7 +590,7 @@
     FT_Error       error   = FT_Err_Ok;
 
 
-    if ( !face->glyph )
+    if ( face->glyph == NULL )
     {
       /* First glyph slot for this face */
       slot->ttslot = t42face->ttf_face->glyph;
@@ -656,9 +656,8 @@
     FT_TRACE1(( "T42_GlyphSlot_Load: glyph index %d\n", glyph_index ));
 
     /* map T42 glyph index to embedded TTF's glyph index */
-    glyph_index = (FT_UInt)ft_strtol(
-                    (const char *)t42face->type1.charstrings[glyph_index],
-                    NULL, 10 );
+    glyph_index = (FT_UInt)ft_atol(
+                    (const char *)t42face->type1.charstrings[glyph_index] );
 
     t42_glyphslot_clear( t42slot->ttslot );
     error = ttclazz->load_glyph( t42slot->ttslot,

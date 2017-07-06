@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    PostScript Type 1 decoding routines (body).                          */
 /*                                                                         */
-/*  Copyright 2000-2017 by                                                 */
+/*  Copyright 2000-2016 by                                                 */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -405,7 +405,9 @@
                ( decoder->buildchar == NULL )  );
 
     if ( decoder->buildchar && decoder->len_buildchar > 0 )
-      FT_ARRAY_ZERO( decoder->buildchar, decoder->len_buildchar );
+      ft_memset( &decoder->buildchar[0],
+                 0,
+                 sizeof ( decoder->buildchar[0] ) * decoder->len_buildchar );
 
     FT_TRACE4(( "\n"
                 "Start charstring\n" ));
@@ -666,9 +668,9 @@
 
 #ifdef FT_DEBUG_LEVEL_TRACE
         if ( large_int )
-          FT_TRACE4(( " %d", value ));
+          FT_TRACE4(( " %ld", value ));
         else
-          FT_TRACE4(( " %d", value / 65536 ));
+          FT_TRACE4(( " %ld", value / 65536 ));
 #endif
 
         *top++       = value;
@@ -734,7 +736,7 @@
           if ( arg_cnt != 3 )
             goto Unexpected_OtherSubr;
 
-          if ( !decoder->flex_state           ||
+          if ( decoder->flex_state       == 0 ||
                decoder->num_flex_vectors != 7 )
           {
             FT_ERROR(( "t1_decoder_parse_charstrings:"
@@ -752,12 +754,13 @@
           if ( arg_cnt != 0 )
             goto Unexpected_OtherSubr;
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) ||
-               FT_SET_ERROR( t1_builder_check_points( builder, 6 ) )   )
-            goto Fail;
-
           decoder->flex_state        = 1;
           decoder->num_flex_vectors  = 0;
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok                                   ||
+               ( error = t1_builder_check_points( builder, 6 ) )
+                 != FT_Err_Ok                                   )
+            goto Fail;
           break;
 
         case 2:                     /* add flex vectors */
@@ -768,7 +771,7 @@
             if ( arg_cnt != 0 )
               goto Unexpected_OtherSubr;
 
-            if ( !decoder->flex_state )
+            if ( decoder->flex_state == 0 )
             {
               FT_ERROR(( "t1_decoder_parse_charstrings:"
                          " missing flex start\n" ));
@@ -780,19 +783,10 @@
             /* point without adding any point to the outline    */
             idx = decoder->num_flex_vectors++;
             if ( idx > 0 && idx < 7 )
-            {
-              /* in malformed fonts it is possible to have other */
-              /* opcodes in the middle of a flex (which don't    */
-              /* increase `num_flex_vectors'); we thus have to   */
-              /* check whether we can add a point                */
-              if ( FT_SET_ERROR( t1_builder_check_points( builder, 1 ) ) )
-                goto Syntax_Error;
-
               t1_builder_add_point( builder,
                                     x,
                                     y,
                                     (FT_Byte)( idx == 3 || idx == 6 ) );
-            }
           }
           break;
 
@@ -882,7 +876,7 @@
             PS_Blend  blend = decoder->blend;
 
 
-            if ( arg_cnt != 1 || !blend )
+            if ( arg_cnt != 1 || blend == NULL )
               goto Unexpected_OtherSubr;
 
             idx = Fix2Int( top[0] );
@@ -950,7 +944,7 @@
             PS_Blend  blend = decoder->blend;
 
 
-            if ( arg_cnt != 2 || !blend )
+            if ( arg_cnt != 2 || blend == NULL )
               goto Unexpected_OtherSubr;
 
             idx = Fix2Int( top[1] );
@@ -971,7 +965,7 @@
             PS_Blend  blend = decoder->blend;
 
 
-            if ( arg_cnt != 1 || !blend )
+            if ( arg_cnt != 1 || blend == NULL )
               goto Unexpected_OtherSubr;
 
             idx = Fix2Int( top[0] );
@@ -1129,7 +1123,7 @@
 
             FT_TRACE4(( "BuildCharArray = [ " ));
 
-            for ( i = 0; i < decoder->len_buildchar; i++ )
+            for ( i = 0; i < decoder->len_buildchar; ++i )
               FT_TRACE4(( "%d ", decoder->buildchar[i] ));
 
             FT_TRACE4(( "]\n" ));
@@ -1207,7 +1201,8 @@
         case op_hlineto:
           FT_TRACE4(( " hlineto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok )
             goto Fail;
 
           x += top[0];
@@ -1228,8 +1223,10 @@
         case op_hvcurveto:
           FT_TRACE4(( " hvcurveto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) ||
-               FT_SET_ERROR( t1_builder_check_points( builder, 3 ) )   )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok                                   ||
+               ( error = t1_builder_check_points( builder, 3 ) )
+                 != FT_Err_Ok                                   )
             goto Fail;
 
           x += top[0];
@@ -1244,14 +1241,16 @@
         case op_rlineto:
           FT_TRACE4(( " rlineto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok )
             goto Fail;
 
           x += top[0];
           y += top[1];
 
         Add_Line:
-          if ( FT_SET_ERROR( t1_builder_add_point1( builder, x, y ) ) )
+          if ( ( error = t1_builder_add_point1( builder, x, y ) )
+                 != FT_Err_Ok )
             goto Fail;
           break;
 
@@ -1271,8 +1270,10 @@
         case op_rrcurveto:
           FT_TRACE4(( " rrcurveto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) ||
-               FT_SET_ERROR( t1_builder_check_points( builder, 3 ) )   )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok                                   ||
+               ( error = t1_builder_check_points( builder, 3 ) )
+                 != FT_Err_Ok                                   )
             goto Fail;
 
           x += top[0];
@@ -1291,8 +1292,10 @@
         case op_vhcurveto:
           FT_TRACE4(( " vhcurveto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) ||
-               FT_SET_ERROR( t1_builder_check_points( builder, 3 ) )   )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok                                   ||
+               ( error = t1_builder_check_points( builder, 3 ) )
+                 != FT_Err_Ok                                   )
             goto Fail;
 
           y += top[0];
@@ -1307,7 +1310,8 @@
         case op_vlineto:
           FT_TRACE4(( " vlineto" ));
 
-          if ( FT_SET_ERROR( t1_builder_start_point( builder, x, y ) ) )
+          if ( ( error = t1_builder_start_point( builder, x, y ) )
+                 != FT_Err_Ok )
             goto Fail;
 
           y += top[0];
@@ -1332,7 +1336,7 @@
           /* otherwise, we divide numbers in 16.16 format --    */
           /* in both cases, it is the same operation            */
           *top = FT_DivFix( top[0], top[1] );
-          top++;
+          ++top;
 
           large_int = FALSE;
           break;
@@ -1587,7 +1591,7 @@
                    FT_Render_Mode       hint_mode,
                    T1_Decoder_Callback  parse_callback )
   {
-    FT_ZERO( decoder );
+    FT_MEM_ZERO( decoder, sizeof ( *decoder ) );
 
     /* retrieve PSNames interface from list of current modules */
     {

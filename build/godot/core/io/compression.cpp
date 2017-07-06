@@ -28,14 +28,11 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "compression.h"
-#include "global_config.h"
 #include "os/copymem.h"
+#include "zlib.h"
+
+#include "fastlz.h"
 #include "zip_io.h"
-
-#include "thirdparty/misc/fastlz.h"
-#include "thirdparty/zstd/zstd.h"
-
-#include <zlib.h>
 
 int Compression::compress(uint8_t *p_dst, const uint8_t *p_src, int p_src_size, Mode p_mode) {
 
@@ -58,17 +55,12 @@ int Compression::compress(uint8_t *p_dst, const uint8_t *p_src, int p_src_size, 
 			strm.zalloc = zipio_alloc;
 			strm.zfree = zipio_free;
 			strm.opaque = Z_NULL;
-			int level = GLOBAL_GET("compression/zlib/compression_level");
-			int err = deflateInit(&strm, level);
+			int err = deflateInit(&strm, Z_DEFAULT_COMPRESSION);
 			if (err != Z_OK)
 				return -1;
 
 			strm.avail_in = p_src_size;
 			int aout = deflateBound(&strm, p_src_size);
-			/*if (aout>p_src_size) {
-				deflateEnd(&strm);
-				return -1;
-			}*/
 			strm.avail_out = aout;
 			strm.next_in = (Bytef *)p_src;
 			strm.next_out = p_dst;
@@ -77,12 +69,6 @@ int Compression::compress(uint8_t *p_dst, const uint8_t *p_src, int p_src_size, 
 			deflateEnd(&strm);
 			return aout;
 
-		} break;
-		case MODE_ZSTD: {
-
-			int max_dst_size = get_max_compressed_buffer_size(p_src_size, MODE_ZSTD);
-			int level = GLOBAL_GET("compression/zstd/compression_level");
-			return ZSTD_compress(p_dst, max_dst_size, p_src, p_src_size, level);
 		} break;
 	}
 
@@ -113,30 +99,24 @@ int Compression::get_max_compressed_buffer_size(int p_src_size, Mode p_mode) {
 			deflateEnd(&strm);
 			return aout;
 		} break;
-		case MODE_ZSTD: {
-
-			return ZSTD_compressBound(p_src_size);
-		} break;
 	}
 
 	ERR_FAIL_V(-1);
 }
 
-int Compression::decompress(uint8_t *p_dst, int p_dst_max_size, const uint8_t *p_src, int p_src_size, Mode p_mode) {
+void Compression::decompress(uint8_t *p_dst, int p_dst_max_size, const uint8_t *p_src, int p_src_size, Mode p_mode) {
 
 	switch (p_mode) {
 		case MODE_FASTLZ: {
 
-			int ret_size = 0;
-
 			if (p_dst_max_size < 16) {
 				uint8_t dst[16];
-				ret_size = fastlz_decompress(p_src, p_src_size, dst, 16);
+				fastlz_decompress(p_src, p_src_size, dst, 16);
 				copymem(p_dst, dst, p_dst_max_size);
 			} else {
-				ret_size = fastlz_decompress(p_src, p_src_size, p_dst, p_dst_max_size);
+				fastlz_decompress(p_src, p_src_size, p_dst, p_dst_max_size);
 			}
-			return ret_size;
+			return;
 		} break;
 		case MODE_DEFLATE: {
 
@@ -147,7 +127,7 @@ int Compression::decompress(uint8_t *p_dst, int p_dst_max_size, const uint8_t *p
 			strm.avail_in = 0;
 			strm.next_in = Z_NULL;
 			int err = inflateInit(&strm);
-			ERR_FAIL_COND_V(err != Z_OK, -1);
+			ERR_FAIL_COND(err != Z_OK);
 
 			strm.avail_in = p_src_size;
 			strm.avail_out = p_dst_max_size;
@@ -155,16 +135,11 @@ int Compression::decompress(uint8_t *p_dst, int p_dst_max_size, const uint8_t *p
 			strm.next_out = p_dst;
 
 			err = inflate(&strm, Z_FINISH);
-			int total = strm.total_out;
 			inflateEnd(&strm);
-			ERR_FAIL_COND_V(err != Z_STREAM_END, -1);
-			return total;
-		} break;
-		case MODE_ZSTD: {
-
-			return ZSTD_decompress(p_dst, p_dst_max_size, p_src, p_src_size);
+			ERR_FAIL_COND(err != Z_STREAM_END);
+			return;
 		} break;
 	}
 
-	ERR_FAIL_V(-1);
+	ERR_FAIL();
 }

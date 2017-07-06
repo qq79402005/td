@@ -28,31 +28,34 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "project_manager.h"
-
-#include "editor_initialize_ssl.h"
-#include "editor_scale.h"
 #include "editor_settings.h"
-#include "editor_themes.h"
 #include "io/config_file.h"
-#include "io/resource_saver.h"
-#include "io/stream_peer_ssl.h"
-#include "io/zip_io.h"
 #include "os/dir_access.h"
 #include "os/file_access.h"
 #include "os/keyboard.h"
 #include "os/os.h"
-#include "scene/gui/center_container.h"
-#include "scene/gui/line_edit.h"
-#include "scene/gui/margin_container.h"
-#include "scene/gui/panel_container.h"
 #include "scene/gui/separator.h"
-#include "scene/gui/texture_rect.h"
 #include "scene/gui/tool_button.h"
 #include "version.h"
 
+#include "io/stream_peer_ssl.h"
+#include "scene/gui/center_container.h"
+#include "scene/gui/line_edit.h"
+#include "scene/gui/panel_container.h"
+
+#include "io/resource_saver.h"
+#include "scene/gui/margin_container.h"
+#include "scene/gui/texture_frame.h"
+
+#include "editor_initialize_ssl.h"
+#include "editor_scale.h"
+#include "editor_themes.h"
+
+#include "io/zip_io.h"
+
 class NewProjectDialog : public ConfirmationDialog {
 
-	GDCLASS(NewProjectDialog, ConfirmationDialog);
+	OBJ_TYPE(NewProjectDialog, ConfirmationDialog);
 
 public:
 	enum Mode {
@@ -92,18 +95,18 @@ private:
 
 		if (mode != MODE_IMPORT) {
 
-			if (d->file_exists("project.godot")) {
+			if (d->file_exists("engine.cfg")) {
 
-				error->set_text(TTR("Invalid project path, project.godot must not exist."));
+				error->set_text(TTR("Invalid project path, engine.cfg must not exist."));
 				memdelete(d);
 				return "";
 			}
 
 		} else {
 
-			if (valid_path != "" && !d->file_exists("project.godot")) {
+			if (valid_path != "" && !d->file_exists("engine.cfg")) {
 
-				error->set_text(TTR("Invalid project path, project.godot must exist."));
+				error->set_text(TTR("Invalid project path, engine.cfg must exist."));
 				memdelete(d);
 				return "";
 			}
@@ -136,7 +139,7 @@ private:
 
 		String p = p_path;
 		if (mode == MODE_IMPORT) {
-			if (p.ends_with("project.godot")) {
+			if (p.ends_with("engine.cfg")) {
 
 				p = p.get_base_dir();
 			}
@@ -162,7 +165,7 @@ private:
 
 			fdialog->set_mode(FileDialog::MODE_OPEN_FILE);
 			fdialog->clear_filters();
-			fdialog->add_filter("project.godot ; " _MKSTR(VERSION_NAME) " Project");
+			fdialog->add_filter("engine.cfg ; " _MKSTR(VERSION_NAME) " Project");
 		} else {
 			fdialog->set_mode(FileDialog::MODE_OPEN_DIR);
 		}
@@ -186,9 +189,9 @@ private:
 		} else {
 			if (mode == MODE_NEW) {
 
-				FileAccess *f = FileAccess::open(dir.plus_file("/project.godot"), FileAccess::WRITE);
+				FileAccess *f = FileAccess::open(dir.plus_file("/engine.cfg"), FileAccess::WRITE);
 				if (!f) {
-					error->set_text(TTR("Couldn't create project.godot in project path."));
+					error->set_text(TTR("Couldn't create engine.cfg in project path."));
 				} else {
 
 					f->store_line("; Engine configuration file.");
@@ -203,23 +206,10 @@ private:
 					f->store_line("\n");
 					f->store_line("name=\"" + project_name->get_text() + "\"");
 					f->store_line("icon=\"res://icon.png\"");
-					f->store_line("[rendering]");
-					f->store_line("viewport/default_environment=\"res://default_env.tres\"");
+
 					memdelete(f);
 
 					ResourceSaver::save(dir.plus_file("/icon.png"), get_icon("DefaultProjectIcon", "EditorIcons"));
-
-					f = FileAccess::open(dir.plus_file("/default_env.tres"), FileAccess::WRITE);
-					if (!f) {
-						error->set_text(TTR("Couldn't create project.godot in project path."));
-					} else {
-						f->store_line("[gd_resource type=\"Environment\" load_steps=2 format=2]");
-						f->store_line("[sub_resource type=\"ProceduralSky\" id=1]");
-						f->store_line("[resource]");
-						f->store_line("background_mode = 2");
-						f->store_line("background_sky = SubResource( 1 )");
-						memdelete(f);
-					}
 				}
 
 			} else if (mode == MODE_INSTALL) {
@@ -331,11 +321,11 @@ private:
 protected:
 	static void _bind_methods() {
 
-		ClassDB::bind_method("_browse_path", &NewProjectDialog::_browse_path);
-		ClassDB::bind_method("_text_changed", &NewProjectDialog::_text_changed);
-		ClassDB::bind_method("_path_text_changed", &NewProjectDialog::_path_text_changed);
-		ClassDB::bind_method("_path_selected", &NewProjectDialog::_path_selected);
-		ClassDB::bind_method("_file_selected", &NewProjectDialog::_file_selected);
+		ObjectTypeDB::bind_method("_browse_path", &NewProjectDialog::_browse_path);
+		ObjectTypeDB::bind_method("_text_changed", &NewProjectDialog::_text_changed);
+		ObjectTypeDB::bind_method("_path_text_changed", &NewProjectDialog::_path_text_changed);
+		ObjectTypeDB::bind_method("_path_selected", &NewProjectDialog::_path_selected);
+		ObjectTypeDB::bind_method("_file_selected", &NewProjectDialog::_file_selected);
 		ADD_SIGNAL(MethodInfo("project_created"));
 	}
 
@@ -396,7 +386,7 @@ public:
 
 		VBoxContainer *vb = memnew(VBoxContainer);
 		add_child(vb);
-		//set_child_rect(vb);
+		set_child_rect(vb);
 
 		Label *l = memnew(Label);
 		l->set_text(TTR("Project Path:"));
@@ -418,7 +408,7 @@ public:
 
 		l = memnew(Label);
 		l->set_text(TTR("Project Name:"));
-		l->set_position(Point2(5, 50));
+		l->set_pos(Point2(5, 50));
 		vb->add_child(l);
 		pn = l;
 
@@ -442,7 +432,7 @@ public:
 		fdialog = memnew(FileDialog);
 		add_child(fdialog);
 		fdialog->set_access(FileDialog::ACCESS_FILESYSTEM);
-		fdialog->set_current_dir(EditorSettings::get_singleton()->get("filesystem/directories/default_project_path"));
+		fdialog->set_current_dir(EditorSettings::get_singleton()->get("global/default_project_path"));
 		project_name->connect("text_changed", this, "_text_changed");
 		project_path->connect("text_changed", this, "_path_text_changed");
 		fdialog->connect("dir_selected", this, "_path_selected");
@@ -481,7 +471,7 @@ void ProjectManager::_notification(int p_what) {
 
 	} else if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
 
-		set_process_unhandled_input(is_visible_in_tree());
+		set_process_unhandled_input(is_visible());
 	}
 }
 
@@ -492,7 +482,7 @@ void ProjectManager::_panel_draw(Node *p_hb) {
 	hb->draw_line(Point2(0, hb->get_size().y + 1), Point2(hb->get_size().x - 10, hb->get_size().y + 1), get_color("guide_color", "Tree"));
 
 	if (selected_list.has(hb->get_meta("name"))) {
-		hb->draw_style_box(gui_base->get_stylebox("selected", "Tree"), Rect2(Point2(), hb->get_size() - Size2(10, 0)));
+		hb->draw_style_box(get_stylebox("selected", "Tree"), Rect2(Point2(), hb->get_size() - Size2(10, 0)));
 	}
 }
 
@@ -516,16 +506,14 @@ void ProjectManager::_update_project_buttons() {
 	run_btn->set_disabled(!has_runnable_scene);
 }
 
-void ProjectManager::_panel_input(const Ref<InputEvent> &p_ev, Node *p_hb) {
+void ProjectManager::_panel_input(const InputEvent &p_ev, Node *p_hb) {
 
-	Ref<InputEventMouseButton> mb = p_ev;
-
-	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+	if (p_ev.type == InputEvent::MOUSE_BUTTON && p_ev.mouse_button.pressed && p_ev.mouse_button.button_index == BUTTON_LEFT) {
 
 		String clicked = p_hb->get_meta("name");
 		String clicked_main_scene = p_hb->get_meta("main_scene");
 
-		if (mb->get_shift() && selected_list.size() > 0 && last_clicked != "" && clicked != last_clicked) {
+		if (p_ev.key.mod.shift && selected_list.size() > 0 && last_clicked != "" && clicked != last_clicked) {
 
 			int clicked_id = -1;
 			int last_clicked_id = -1;
@@ -542,7 +530,7 @@ void ProjectManager::_panel_input(const Ref<InputEvent> &p_ev, Node *p_hb) {
 				for (int i = 0; i < scroll_childs->get_child_count(); ++i) {
 					HBoxContainer *hb = scroll_childs->get_child(i)->cast_to<HBoxContainer>();
 					if (!hb) continue;
-					if (i != clicked_id && (i < min || i > max) && !mb->get_control()) {
+					if (i != clicked_id && (i < min || i > max) && !p_ev.key.mod.control) {
 						selected_list.erase(hb->get_meta("name"));
 					} else if (i >= min && i <= max) {
 						selected_list.insert(hb->get_meta("name"), hb->get_meta("main_scene"));
@@ -550,14 +538,14 @@ void ProjectManager::_panel_input(const Ref<InputEvent> &p_ev, Node *p_hb) {
 				}
 			}
 
-		} else if (selected_list.has(clicked) && mb->get_control()) {
+		} else if (selected_list.has(clicked) && p_ev.key.mod.control) {
 
 			selected_list.erase(clicked);
 
 		} else {
 
 			last_clicked = clicked;
-			if (mb->get_control() || selected_list.size() == 0) {
+			if (p_ev.key.mod.control || selected_list.size() == 0) {
 				selected_list.insert(clicked, clicked_main_scene);
 			} else {
 				selected_list.clear();
@@ -567,23 +555,23 @@ void ProjectManager::_panel_input(const Ref<InputEvent> &p_ev, Node *p_hb) {
 
 		_update_project_buttons();
 
-		if (mb->is_doubleclick())
+		if (p_ev.mouse_button.doubleclick)
 			_open_project(); //open if doubleclicked
 	}
 }
 
-void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
+void ProjectManager::_unhandled_input(const InputEvent &p_ev) {
 
-	Ref<InputEventKey> k = p_ev;
+	if (p_ev.type == InputEvent::KEY) {
 
-	if (k.is_valid()) {
+		const InputEventKey &k = p_ev.key;
 
-		if (!k->is_pressed())
+		if (!k.pressed)
 			return;
 
 		bool scancode_handled = true;
 
-		switch (k->get_scancode()) {
+		switch (k.scancode) {
 
 			case KEY_RETURN: {
 
@@ -621,7 +609,7 @@ void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
 			} break;
 			case KEY_UP: {
 
-				if (k->get_shift())
+				if (k.mod.shift)
 					break;
 
 				if (selected_list.size()) {
@@ -639,7 +627,7 @@ void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
 							selected_list.clear();
 							selected_list.insert(current, hb->get_meta("main_scene"));
 
-							int offset_diff = scroll->get_v_scroll() - hb->get_position().y;
+							int offset_diff = scroll->get_v_scroll() - hb->get_pos().y;
 
 							if (offset_diff > 0)
 								scroll->set_v_scroll(scroll->get_v_scroll() - offset_diff);
@@ -660,7 +648,7 @@ void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
 			}
 			case KEY_DOWN: {
 
-				if (k->get_shift())
+				if (k.mod.shift)
 					break;
 
 				bool found = selected_list.empty();
@@ -677,7 +665,7 @@ void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
 						selected_list.insert(current, hb->get_meta("main_scene"));
 
 						int last_y_visible = scroll->get_v_scroll() + scroll->get_size().y;
-						int offset_diff = (hb->get_position().y + hb->get_size().y) - last_y_visible;
+						int offset_diff = (hb->get_pos().y + hb->get_size().y) - last_y_visible;
 
 						if (offset_diff > 0)
 							scroll->set_v_scroll(scroll->get_v_scroll() + offset_diff);
@@ -694,7 +682,7 @@ void ProjectManager::_unhandled_input(const Ref<InputEvent> &p_ev) {
 
 			} break;
 			case KEY_F: {
-				if (k->get_command())
+				if (k.mod.command)
 					this->project_filter->search_box->grab_focus();
 				else
 					scancode_handled = false;
@@ -740,7 +728,7 @@ void ProjectManager::_load_recent_projects() {
 	List<PropertyInfo> properties;
 	EditorSettings::get_singleton()->get_property_list(&properties);
 
-	Color font_color = gui_base->get_color("font_color", "Tree");
+	Color font_color = get_color("font_color", "Tree");
 
 	List<ProjectItem> projects;
 	List<ProjectItem> favorite_projects;
@@ -756,7 +744,7 @@ void ProjectManager::_load_recent_projects() {
 			continue;
 
 		String project = _name.get_slice("/", 1);
-		String conf = path.plus_file("project.godot");
+		String conf = path.plus_file("engine.cfg");
 		bool favorite = (_name.begins_with("favorite_projects/")) ? true : false;
 
 		uint64_t last_modified = 0;
@@ -821,12 +809,11 @@ void ProjectManager::_load_recent_projects() {
 		if (cf->has_section_key("application", "icon")) {
 			String appicon = cf->get_value("application", "icon");
 			if (appicon != "") {
-				Ref<Image> img;
-				img.instance();
-				Error err = img->load(appicon.replace_first("res://", path + "/"));
+				Image img;
+				Error err = img.load(appicon.replace_first("res://", path + "/"));
 				if (err == OK) {
 
-					img->resize(64, 64);
+					img.resize(64, 64);
 					Ref<ImageTexture> it = memnew(ImageTexture);
 					it->create_from_image(img);
 					icon = it;
@@ -850,20 +837,19 @@ void ProjectManager::_load_recent_projects() {
 		hb->set_meta("main_scene", main_scene);
 		hb->set_meta("favorite", is_favorite);
 		hb->connect("draw", this, "_panel_draw", varray(hb));
-		hb->connect("gui_input", this, "_panel_input", varray(hb));
-		hb->add_constant_override("separation", 10 * EDSCALE);
+		hb->connect("input_event", this, "_panel_input", varray(hb));
 
 		VBoxContainer *favorite_box = memnew(VBoxContainer);
 		TextureButton *favorite = memnew(TextureButton);
 		favorite->set_normal_texture(favorite_icon);
 		if (!is_favorite)
-			favorite->set_modulate(Color(1, 1, 1, 0.2));
+			favorite->set_opacity(0.2);
 		favorite->set_v_size_flags(SIZE_EXPAND);
 		favorite->connect("pressed", this, "_favorite_pressed", varray(hb));
 		favorite_box->add_child(favorite);
 		hb->add_child(favorite_box);
 
-		TextureRect *tf = memnew(TextureRect);
+		TextureFrame *tf = memnew(TextureFrame);
 		tf->set_texture(icon);
 		hb->add_child(tf);
 
@@ -874,13 +860,13 @@ void ProjectManager::_load_recent_projects() {
 		ec->set_custom_minimum_size(Size2(0, 1));
 		vb->add_child(ec);
 		Label *title = memnew(Label(project_name));
-		title->add_font_override("font", gui_base->get_font("large", "Fonts"));
+		title->add_font_override("font", get_font("large", "Fonts"));
 		title->add_color_override("font_color", font_color);
 		vb->add_child(title);
 		Label *fpath = memnew(Label(path));
 		fpath->set_name("path");
 		vb->add_child(fpath);
-		fpath->set_modulate(Color(1, 1, 1, 0.5));
+		fpath->set_opacity(0.5);
 		fpath->add_color_override("font_color", font_color);
 
 		scroll_childs->add_child(hb);
@@ -914,9 +900,8 @@ void ProjectManager::_on_project_created(const String &dir) {
 		_update_scroll_pos(dir);
 	} else {
 		_load_recent_projects();
-		_update_scroll_pos(dir);
+		scroll->connect("draw", this, "_update_scroll_pos", varray(dir), CONNECT_ONESHOT);
 	}
-	_open_project();
 }
 
 void ProjectManager::_update_scroll_pos(const String &dir) {
@@ -929,7 +914,7 @@ void ProjectManager::_update_scroll_pos(const String &dir) {
 			selected_list.insert(hb->get_meta("name"), hb->get_meta("main_scene"));
 			_update_project_buttons();
 			int last_y_visible = scroll->get_v_scroll() + scroll->get_size().y;
-			int offset_diff = (hb->get_position().y + hb->get_size().y) - last_y_visible;
+			int offset_diff = (hb->get_pos().y + hb->get_size().y) - last_y_visible;
 
 			if (offset_diff > 0)
 				scroll->set_v_scroll(scroll->get_v_scroll() + offset_diff);
@@ -998,7 +983,7 @@ void ProjectManager::_run_project_confirm() {
 		Error err = OS::get_singleton()->execute(exec, args, false, &pid);
 		ERR_FAIL_COND(err);
 	}
-	//get_scene()->quit(); do not quit
+	//	get_scene()->quit(); do not quit
 }
 
 void ProjectManager::_run_project() {
@@ -1023,7 +1008,7 @@ void ProjectManager::_scan_dir(DirAccess *da, float pos, float total, List<Strin
 	while (n != String()) {
 		if (da->current_is_dir() && !n.begins_with(".")) {
 			subdirs.push_front(n);
-		} else if (n == "project.godot") {
+		} else if (n == "engine.cfg") {
 			r_projects->push_back(da->get_current_dir());
 		}
 		n = da->get_next();
@@ -1113,7 +1098,7 @@ void ProjectManager::_install_project(const String &p_zip_path, const String &p_
 	npdialog->show_dialog();
 }
 
-void ProjectManager::_files_dropped(PoolStringArray p_files, int p_screen) {
+void ProjectManager::_files_dropped(StringArray p_files, int p_screen) {
 	Set<String> folders_set;
 	DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	for (int i = 0; i < p_files.size(); i++) {
@@ -1122,7 +1107,7 @@ void ProjectManager::_files_dropped(PoolStringArray p_files, int p_screen) {
 	}
 	memdelete(da);
 	if (folders_set.size() > 0) {
-		PoolStringArray folders;
+		StringArray folders;
 		for (Set<String>::Element *E = folders_set.front(); E; E = E->next()) {
 			folders.append(E->get());
 		}
@@ -1134,7 +1119,7 @@ void ProjectManager::_files_dropped(PoolStringArray p_files, int p_screen) {
 				dir->list_dir_begin();
 				String file = dir->get_next();
 				while (confirm && file != String()) {
-					if (!dir->current_is_dir() && file.ends_with("project.godot")) {
+					if (!dir->current_is_dir() && file.ends_with("engine.cfg")) {
 						confirm = false;
 					}
 					file = dir->get_next();
@@ -1154,7 +1139,7 @@ void ProjectManager::_files_dropped(PoolStringArray p_files, int p_screen) {
 	}
 }
 
-void ProjectManager::_scan_multiple_folders(PoolStringArray p_files) {
+void ProjectManager::_scan_multiple_folders(StringArray p_files) {
 	for (int i = 0; i < p_files.size(); i++) {
 		_scan_begin(p_files.get(i));
 	}
@@ -1162,27 +1147,27 @@ void ProjectManager::_scan_multiple_folders(PoolStringArray p_files) {
 
 void ProjectManager::_bind_methods() {
 
-	ClassDB::bind_method("_open_project", &ProjectManager::_open_project);
-	ClassDB::bind_method("_open_project_confirm", &ProjectManager::_open_project_confirm);
-	ClassDB::bind_method("_run_project", &ProjectManager::_run_project);
-	ClassDB::bind_method("_run_project_confirm", &ProjectManager::_run_project_confirm);
-	ClassDB::bind_method("_scan_projects", &ProjectManager::_scan_projects);
-	ClassDB::bind_method("_scan_begin", &ProjectManager::_scan_begin);
-	ClassDB::bind_method("_import_project", &ProjectManager::_import_project);
-	ClassDB::bind_method("_new_project", &ProjectManager::_new_project);
-	ClassDB::bind_method("_erase_project", &ProjectManager::_erase_project);
-	ClassDB::bind_method("_erase_project_confirm", &ProjectManager::_erase_project_confirm);
-	ClassDB::bind_method("_exit_dialog", &ProjectManager::_exit_dialog);
-	ClassDB::bind_method("_load_recent_projects", &ProjectManager::_load_recent_projects);
-	ClassDB::bind_method("_on_project_created", &ProjectManager::_on_project_created);
-	ClassDB::bind_method("_update_scroll_pos", &ProjectManager::_update_scroll_pos);
-	ClassDB::bind_method("_panel_draw", &ProjectManager::_panel_draw);
-	ClassDB::bind_method("_panel_input", &ProjectManager::_panel_input);
-	ClassDB::bind_method("_unhandled_input", &ProjectManager::_unhandled_input);
-	ClassDB::bind_method("_favorite_pressed", &ProjectManager::_favorite_pressed);
-	ClassDB::bind_method("_install_project", &ProjectManager::_install_project);
-	ClassDB::bind_method("_files_dropped", &ProjectManager::_files_dropped);
-	ClassDB::bind_method(D_METHOD("_scan_multiple_folders", "files"), &ProjectManager::_scan_multiple_folders);
+	ObjectTypeDB::bind_method("_open_project", &ProjectManager::_open_project);
+	ObjectTypeDB::bind_method("_open_project_confirm", &ProjectManager::_open_project_confirm);
+	ObjectTypeDB::bind_method("_run_project", &ProjectManager::_run_project);
+	ObjectTypeDB::bind_method("_run_project_confirm", &ProjectManager::_run_project_confirm);
+	ObjectTypeDB::bind_method("_scan_projects", &ProjectManager::_scan_projects);
+	ObjectTypeDB::bind_method("_scan_begin", &ProjectManager::_scan_begin);
+	ObjectTypeDB::bind_method("_import_project", &ProjectManager::_import_project);
+	ObjectTypeDB::bind_method("_new_project", &ProjectManager::_new_project);
+	ObjectTypeDB::bind_method("_erase_project", &ProjectManager::_erase_project);
+	ObjectTypeDB::bind_method("_erase_project_confirm", &ProjectManager::_erase_project_confirm);
+	ObjectTypeDB::bind_method("_exit_dialog", &ProjectManager::_exit_dialog);
+	ObjectTypeDB::bind_method("_load_recent_projects", &ProjectManager::_load_recent_projects);
+	ObjectTypeDB::bind_method("_on_project_created", &ProjectManager::_on_project_created);
+	ObjectTypeDB::bind_method("_update_scroll_pos", &ProjectManager::_update_scroll_pos);
+	ObjectTypeDB::bind_method("_panel_draw", &ProjectManager::_panel_draw);
+	ObjectTypeDB::bind_method("_panel_input", &ProjectManager::_panel_input);
+	ObjectTypeDB::bind_method("_unhandled_input", &ProjectManager::_unhandled_input);
+	ObjectTypeDB::bind_method("_favorite_pressed", &ProjectManager::_favorite_pressed);
+	ObjectTypeDB::bind_method("_install_project", &ProjectManager::_install_project);
+	ObjectTypeDB::bind_method("_files_dropped", &ProjectManager::_files_dropped);
+	ObjectTypeDB::bind_method(_MD("_scan_multiple_folders", "files"), &ProjectManager::_scan_multiple_folders);
 }
 
 ProjectManager::ProjectManager() {
@@ -1194,29 +1179,24 @@ ProjectManager::ProjectManager() {
 	EditorSettings::get_singleton()->set_optimize_save(false); //just write settings as they came
 
 	{
-		int dpi_mode = EditorSettings::get_singleton()->get("interface/hidpi_mode");
+		int dpi_mode = EditorSettings::get_singleton()->get("global/hidpi_mode");
 		if (dpi_mode == 0) {
-			editor_set_scale(OS::get_singleton()->get_screen_dpi(0) >= 192 && OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x > 2000 ? 2.0 : 1.0);
-		} else if (dpi_mode == 1) {
-			editor_set_scale(0.75);
+			editor_set_hidpi(OS::get_singleton()->get_screen_dpi(0) >= 192 && OS::get_singleton()->get_screen_size(OS::get_singleton()->get_current_screen()).x > 2000);
 		} else if (dpi_mode == 2) {
-			editor_set_scale(1.0);
-		} else if (dpi_mode == 3) {
-			editor_set_scale(1.5);
-		} else if (dpi_mode == 4) {
-			editor_set_scale(2.0);
+			editor_set_hidpi(true);
+		} else {
+			editor_set_hidpi(false);
 		}
 	}
 
-	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files"));
+	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("file_dialog/show_hidden_files"));
 
 	set_area_as_parent_rect();
-	set_theme(create_editor_theme());
+	set_theme(create_default_theme());
 
 	gui_base = memnew(Control);
 	add_child(gui_base);
 	gui_base->set_area_as_parent_rect();
-	gui_base->set_theme(create_custom_theme());
 
 	Panel *panel = memnew(Panel);
 	gui_base->add_child(panel);
@@ -1239,7 +1219,7 @@ ProjectManager::ProjectManager() {
 	CenterContainer *ccl = memnew(CenterContainer);
 	Label *l = memnew(Label);
 	l->set_text(_MKSTR(VERSION_NAME) + String(" - ") + TTR("Project Manager"));
-	l->add_font_override("font", gui_base->get_font("doc", "EditorFonts"));
+	l->add_font_override("font", get_font("doc", "EditorFonts"));
 	ccl->add_child(l);
 	top_hb->add_child(ccl);
 	top_hb->add_spacer();
@@ -1275,7 +1255,7 @@ ProjectManager::ProjectManager() {
 	search_tree_vb->add_child(search_box);
 
 	PanelContainer *pc = memnew(PanelContainer);
-	pc->add_style_override("panel", gui_base->get_stylebox("bg", "Tree"));
+	pc->add_style_override("panel", get_stylebox("bg", "Tree"));
 	search_tree_vb->add_child(pc);
 	pc->set_v_size_flags(SIZE_EXPAND_FILL);
 
@@ -1317,7 +1297,7 @@ ProjectManager::ProjectManager() {
 	scan_dir->set_access(FileDialog::ACCESS_FILESYSTEM);
 	scan_dir->set_mode(FileDialog::MODE_OPEN_DIR);
 	scan_dir->set_title(TTR("Select a Folder to Scan")); // must be after mode or it's overridden
-	scan_dir->set_current_dir(EditorSettings::get_singleton()->get("filesystem/directories/default_project_path"));
+	scan_dir->set_current_dir(EditorSettings::get_singleton()->get("global/default_project_path"));
 	gui_base->add_child(scan_dir);
 	scan_dir->connect("dir_selected", this, "_scan_begin");
 
@@ -1341,7 +1321,7 @@ ProjectManager::ProjectManager() {
 
 	if (StreamPeerSSL::is_available()) {
 		asset_library = memnew(EditorAssetLibrary(true));
-		asset_library->set_name(TTR("Templates"));
+		asset_library->set_name("Templates");
 		tabs->add_child(asset_library);
 		asset_library->connect("install_asset", this, "_install_project");
 	} else {
@@ -1389,8 +1369,8 @@ ProjectManager::ProjectManager() {
 	npdialog->connect("project_created", this, "_on_project_created");
 	_load_recent_projects();
 
-	if (EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path")) {
-		_scan_begin(EditorSettings::get_singleton()->get("filesystem/directories/autoscan_project_path"));
+	if (EditorSettings::get_singleton()->get("global/autoscan_project_path")) {
+		_scan_begin(EditorSettings::get_singleton()->get("global/autoscan_project_path"));
 	}
 
 	//get_ok()->set_text("Open");
@@ -1399,6 +1379,8 @@ ProjectManager::ProjectManager() {
 	last_clicked = "";
 
 	SceneTree::get_singleton()->connect("files_dropped", this, "_files_dropped");
+
+	gui_base->set_theme(create_editor_theme());
 }
 
 ProjectManager::~ProjectManager() {
@@ -1456,9 +1438,9 @@ void ProjectListFilter::_notification(int p_what) {
 
 void ProjectListFilter::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_command"), &ProjectListFilter::_command);
-	ClassDB::bind_method(D_METHOD("_search_text_changed"), &ProjectListFilter::_search_text_changed);
-	ClassDB::bind_method(D_METHOD("_filter_option_selected"), &ProjectListFilter::_filter_option_selected);
+	ObjectTypeDB::bind_method(_MD("_command"), &ProjectListFilter::_command);
+	ObjectTypeDB::bind_method(_MD("_search_text_changed"), &ProjectListFilter::_search_text_changed);
+	ObjectTypeDB::bind_method(_MD("_filter_option_selected"), &ProjectListFilter::_filter_option_selected);
 
 	ADD_SIGNAL(MethodInfo("filter_changed"));
 }
@@ -1470,7 +1452,7 @@ ProjectListFilter::ProjectListFilter() {
 	_current_filter = FILTER_NAME;
 
 	filter_option = memnew(OptionButton);
-	filter_option->set_custom_minimum_size(Size2(80 * EDSCALE, 10 * EDSCALE));
+	filter_option->set_custom_minimum_size(Size2(80, 10));
 	filter_option->set_clip_text(true);
 	filter_option->connect("item_selected", this, "_filter_option_selected");
 	add_child(filter_option);

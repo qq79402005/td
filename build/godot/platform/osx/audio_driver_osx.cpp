@@ -156,8 +156,8 @@ int AudioDriverOSX::get_mix_rate() const {
 	return 44100;
 };
 
-AudioDriver::SpeakerMode AudioDriverOSX::get_speaker_mode() const {
-	return SPEAKER_MODE_STEREO;
+AudioDriverSW::OutputFormat AudioDriverOSX::get_output_format() const {
+	return OUTPUT_STEREO;
 };
 
 void AudioDriverOSX::lock() {

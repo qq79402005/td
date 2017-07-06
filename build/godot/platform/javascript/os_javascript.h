@@ -33,26 +33,46 @@
 #include "audio_driver_javascript.h"
 #include "audio_server_javascript.h"
 #include "drivers/unix/os_unix.h"
-#include "javascript_eval.h"
+#include "emscripten/html5.h"
 #include "main/input_default.h"
 #include "os/input.h"
 #include "os/main_loop.h"
-#include "power_javascript.h"
-#include "servers/audio_server.h"
+#include "servers/audio/audio_server_sw.h"
 #include "servers/physics/physics_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_sw.h"
+#include "servers/spatial_sound/spatial_sound_server_sw.h"
+#include "servers/spatial_sound_2d/spatial_sound_2d_server_sw.h"
 #include "servers/visual/rasterizer.h"
 
-#include <emscripten/html5.h>
-
+typedef void (*GFXInitFunc)(void *ud, bool gl2, int w, int h, bool fs);
 typedef String (*GetDataDirFunc)();
 
 class OS_JavaScript : public OS_Unix {
+public:
+	struct TouchPos {
+		int id;
+		Point2 pos;
+	};
+
+private:
+	Vector<TouchPos> touch;
+	Point2 last_mouse;
+	int last_button_mask;
+	unsigned int last_id;
+	GFXInitFunc gfx_init_func;
+	void *gfx_init_ud;
+
+	bool use_gl2;
 
 	int64_t time_to_save_sync;
 	int64_t last_sync_time;
 
+	Rasterizer *rasterizer;
 	VisualServer *visual_server;
+	AudioServerJavascript *audio_server;
+	//SampleManagerMallocSW *sample_manager;
+	SpatialSoundServerSW *spatial_sound_server;
+	SpatialSound2DServerSW *spatial_sound_2d_server;
 	PhysicsServer *physics_server;
 	Physics2DServer *physics_2d_server;
 	AudioDriverJavaScript audio_driver_javascript;
@@ -61,23 +81,13 @@ class OS_JavaScript : public OS_Unix {
 	InputDefault *input;
 	bool window_maximized;
 	VideoMode video_mode;
-	CursorShape cursor_shape;
 	MainLoop *main_loop;
 
 	GetDataDirFunc get_data_dir_func;
 
-	PowerJavascript *power_manager;
-
-#ifdef JAVASCRIPT_EVAL_ENABLED
-	JavaScript *javascript_eval;
-#endif
-
 	static void _close_notification_funcs(const String &p_file, int p_flags);
 
-	void process_joypads();
-
-	void set_css_cursor(const char *);
-	const char *get_css_cursor() const;
+	void process_joysticks();
 
 public:
 	// functions used by main to initialize/deintialize the OS
@@ -108,9 +118,10 @@ public:
 
 	virtual void alert(const String &p_alert, const String &p_title = "ALERT!");
 
-	virtual void set_mouse_mode(MouseMode p_mode);
-	virtual MouseMode get_mouse_mode() const;
-	virtual Point2 get_mouse_position() const;
+	virtual void set_mouse_show(bool p_show);
+	virtual void set_mouse_grab(bool p_grab);
+	virtual bool is_mouse_grab_enabled() const;
+	virtual Point2 get_mouse_pos() const;
 	virtual int get_mouse_button_state() const;
 	virtual void set_window_title(const String &p_title);
 
@@ -148,23 +159,22 @@ public:
 
 	void set_opengl_extensions(const char *p_gl_extensions);
 
+	void reload_gfx();
+
 	virtual Error shell_open(String p_uri);
 	virtual String get_data_dir() const;
 	String get_executable_path() const;
 	virtual String get_resource_dir() const;
 
 	void process_accelerometer(const Vector3 &p_accelerometer);
-	void push_input(const Ref<InputEvent> &p_ev);
+	void process_touch(int p_what, int p_pointer, const Vector<TouchPos> &p_points);
+	void push_input(const InputEvent &p_ev);
 
 	virtual bool is_joy_known(int p_device);
 	virtual String get_joy_guid(int p_device) const;
 	bool joy_connection_changed(int p_type, const EmscriptenGamepadEvent *p_event);
 
-	virtual PowerState get_power_state();
-	virtual int get_power_seconds_left();
-	virtual int get_power_percent_left();
-
-	OS_JavaScript(const char *p_execpath, GetDataDirFunc p_get_data_dir_func);
+	OS_JavaScript(GFXInitFunc p_gfx_init_func, void *p_gfx_init_ud, GetDataDirFunc p_get_data_dir_func);
 	~OS_JavaScript();
 };
 

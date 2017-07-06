@@ -1,39 +1,10 @@
-/*************************************************************************/
-/*  texture_editor_plugin.cpp                                            */
-/*************************************************************************/
-/*                       This file is part of:                           */
-/*                           GODOT ENGINE                                */
-/*                    http://www.godotengine.org                         */
-/*************************************************************************/
-/* Copyright (c) 2007-2017 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2017 Godot Engine contributors (cf. AUTHORS.md)    */
-/*                                                                       */
-/* Permission is hereby granted, free of charge, to any person obtaining */
-/* a copy of this software and associated documentation files (the       */
-/* "Software"), to deal in the Software without restriction, including   */
-/* without limitation the rights to use, copy, modify, merge, publish,   */
-/* distribute, sublicense, and/or sell copies of the Software, and to    */
-/* permit persons to whom the Software is furnished to do so, subject to */
-/* the following conditions:                                             */
-/*                                                                       */
-/* The above copyright notice and this permission notice shall be        */
-/* included in all copies or substantial portions of the Software.       */
-/*                                                                       */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
-/*************************************************************************/
 #include "texture_editor_plugin.h"
 
 #include "editor/editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/resource_loader.h"
 
-void TextureEditor::_gui_input(Ref<InputEvent> p_event) {
+void TextureEditor::_input_event(InputEvent p_event) {
 }
 
 void TextureEditor::_notification(int p_what) {
@@ -61,20 +32,8 @@ void TextureEditor::_notification(int p_what) {
 			tex_height = texture->get_height() * tex_width / texture->get_width();
 		}
 
-		// Prevent the texture from being unpreviewable after the rescale, so that we can still see something
-		if (tex_height <= 0)
-			tex_height = 1;
-		if (tex_width <= 0)
-			tex_width = 1;
-
 		int ofs_x = (size.width - tex_width) / 2;
 		int ofs_y = (size.height - tex_height) / 2;
-
-		if (texture->cast_to<CurveTexture>()) {
-			// In the case of CurveTextures we know they are 1 in height, so fill the preview to see the gradient
-			ofs_y = 0;
-			tex_height = size.height;
-		}
 
 		draw_texture_rect(texture, Rect2(ofs_x, ofs_y, tex_width, tex_height));
 
@@ -83,10 +42,8 @@ void TextureEditor::_notification(int p_what) {
 		String format;
 		if (texture->cast_to<ImageTexture>()) {
 			format = Image::get_format_name(texture->cast_to<ImageTexture>()->get_format());
-		} else if (texture->cast_to<StreamTexture>()) {
-			format = Image::get_format_name(texture->cast_to<StreamTexture>()->get_format());
 		} else {
-			format = texture->get_class();
+			format = texture->get_type();
 		}
 		String text = itos(texture->get_width()) + "x" + itos(texture->get_height()) + " " + format;
 
@@ -116,7 +73,7 @@ void TextureEditor::edit(Ref<Texture> p_texture) {
 
 void TextureEditor::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_gui_input"), &TextureEditor::_gui_input);
+	ObjectTypeDB::bind_method(_MD("_input_event"), &TextureEditor::_input_event);
 }
 
 TextureEditor::TextureEditor() {
@@ -135,18 +92,18 @@ void TextureEditorPlugin::edit(Object *p_object) {
 
 bool TextureEditorPlugin::handles(Object *p_object) const {
 
-	return p_object->is_class("Texture");
+	return p_object->is_type("Texture");
 }
 
 void TextureEditorPlugin::make_visible(bool p_visible) {
 
 	if (p_visible) {
 		texture_editor->show();
-		//texture_editor->set_process(true);
+		//		texture_editor->set_process(true);
 	} else {
 
 		texture_editor->hide();
-		//texture_editor->set_process(false);
+		//		texture_editor->set_process(false);
 	}
 }
 

@@ -37,7 +37,7 @@
 
 class AnimationTreePlayer : public Node {
 
-	GDCLASS(AnimationTreePlayer, Node);
+	OBJ_TYPE(AnimationTreePlayer, Node);
 	OBJ_CATEGORY("Animation Nodes");
 
 public:
@@ -321,7 +321,7 @@ private:
 	Track *_find_track(const NodePath &p_path);
 	void _recompute_caches();
 	void _recompute_caches(const StringName &p_node);
-	PoolVector<String> _get_node_list();
+	DVector<String> _get_node_list();
 
 	void _compute_weights(float *p_fallback_weight, HashMap<NodePath, float> *p_weights, float p_coeff, const HashMap<NodePath, bool> *p_filter = NULL, float p_filtered_coeff = 0);
 
@@ -427,9 +427,9 @@ public:
 	void get_node_list(List<StringName> *p_node_list) const;
 	void remove_node(const StringName &p_node);
 
-	Error connect_nodes(const StringName &p_src_node, const StringName &p_dst_node, int p_dst_input);
-	bool are_nodes_connected(const StringName &p_src_node, const StringName &p_dst_node, int p_input) const;
-	void disconnect_nodes(const StringName &p_src_node, int p_input);
+	Error connect(const StringName &p_src_node, const StringName &p_dst_node, int p_dst_input);
+	bool is_connected(const StringName &p_src_node, const StringName &p_dst_node, int p_input) const;
+	void disconnect(const StringName &p_src_node, int p_input);
 
 	void set_base_path(const NodePath &p_path);
 	NodePath get_base_path() const;

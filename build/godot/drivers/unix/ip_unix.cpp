@@ -36,10 +36,10 @@
 #ifdef WINDOWS_ENABLED
 #include <stdio.h>
 #include <winsock2.h>
-// Needs to be included after winsocks2.h
+// Needs to be included after winsock2.h
 #include <windows.h>
 #include <ws2tcpip.h>
-#ifndef UWP_ENABLED
+#ifndef WINRT_ENABLED
 #if defined(__MINGW32__) && (!defined(__MINGW64_VERSION_MAJOR) || __MINGW64_VERSION_MAJOR < 4)
 // MinGW-w64 on Ubuntu 12.04 (our Travis build env) has bugs in this code where
 // some includes are missing in dependencies of iphlpapi.h for WINVER >= 0x0600 (Vista).
@@ -77,7 +77,7 @@ static IP_Address _sockaddr2ip(struct sockaddr *p_addr) {
 	if (p_addr->sa_family == AF_INET) {
 		struct sockaddr_in *addr = (struct sockaddr_in *)p_addr;
 		ip.set_ipv4((uint8_t *)&(addr->sin_addr));
-	} else if (p_addr->sa_family == AF_INET6) {
+	} else {
 		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)p_addr;
 		ip.set_ipv6(addr6->sin6_addr.s6_addr);
 	};
@@ -121,7 +121,7 @@ IP_Address IP_Unix::_resolve_hostname(const String &p_hostname, Type p_type) {
 
 #if defined(WINDOWS_ENABLED)
 
-#if defined(UWP_ENABLED)
+#if defined(WINRT_ENABLED)
 
 void IP_Unix::get_local_addresses(List<IP_Address> *r_addresses) const {
 
@@ -180,15 +180,14 @@ void IP_Unix::get_local_addresses(List<IP_Address> *r_addresses) const {
 				SOCKADDR_IN *ipv4 = reinterpret_cast<SOCKADDR_IN *>(address->Address.lpSockaddr);
 
 				ip.set_ipv4((uint8_t *)&(ipv4->sin_addr));
-				r_addresses->push_back(ip);
-
-			} else if (address->Address.lpSockaddr->sa_family == AF_INET6) { // ipv6
+			} else { // ipv6
 
 				SOCKADDR_IN6 *ipv6 = reinterpret_cast<SOCKADDR_IN6 *>(address->Address.lpSockaddr);
 
 				ip.set_ipv6(ipv6->sin6_addr.s6_addr);
-				r_addresses->push_back(ip);
 			};
+
+			r_addresses->push_back(ip);
 
 			address = address->Next;
 		};
@@ -206,17 +205,11 @@ void IP_Unix::get_local_addresses(List<IP_Address> *r_addresses) const {
 
 	struct ifaddrs *ifAddrStruct = NULL;
 	struct ifaddrs *ifa = NULL;
-	int family;
 
 	getifaddrs(&ifAddrStruct);
 
 	for (ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next) {
 		if (!ifa->ifa_addr)
-			continue;
-
-		family = ifa->ifa_addr->sa_family;
-
-		if (family != AF_INET && family != AF_INET6)
 			continue;
 
 		IP_Address ip = _sockaddr2ip(ifa->ifa_addr);

@@ -31,9 +31,9 @@
 #define STRING_DB_H
 
 #include "hash_map.h"
-#include "os/mutex.h"
 #include "safe_refcount.h"
 #include "ustring.h"
+
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -84,7 +84,6 @@ class StringName {
 	friend void register_core_types();
 	friend void unregister_core_types();
 
-	static Mutex *lock;
 	static void setup();
 	static void cleanup();
 	static bool configured;
@@ -154,5 +153,8 @@ struct StringNameHasher {
 };
 
 StringName _scs_create(const char *p_chr);
+
+//#define _SCS(m_cstr) (m_cstr[0]?StringName(StaticCString::create(m_cstr)):StringName())
+#define _SCS(m_cstr) _scs_create(m_cstr)
 
 #endif

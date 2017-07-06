@@ -33,7 +33,7 @@
 
 #include <pulse/error.h>
 
-#include "global_config.h"
+#include "globals.h"
 
 Error AudioDriverPulseAudio::init() {
 
@@ -45,7 +45,7 @@ Error AudioDriverPulseAudio::init() {
 	samples_out = NULL;
 
 	mix_rate = GLOBAL_DEF("audio/mix_rate", 44100);
-	speaker_mode = SPEAKER_MODE_STEREO;
+	output_format = OUTPUT_STEREO;
 	channels = 2;
 
 	pa_sample_spec spec;
@@ -148,9 +148,9 @@ int AudioDriverPulseAudio::get_mix_rate() const {
 	return mix_rate;
 }
 
-AudioDriver::SpeakerMode AudioDriverPulseAudio::get_speaker_mode() const {
+AudioDriverSW::OutputFormat AudioDriverPulseAudio::get_output_format() const {
 
-	return speaker_mode;
+	return output_format;
 }
 
 void AudioDriverPulseAudio::lock() {

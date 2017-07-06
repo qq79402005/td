@@ -39,10 +39,10 @@ void VisibilityNotifier::_enter_camera(Camera *p_camera) {
 	ERR_FAIL_COND(cameras.has(p_camera));
 	cameras.insert(p_camera);
 	if (cameras.size() == 1) {
-		emit_signal(SceneStringNames::get_singleton()->screen_entered);
+		emit_signal(SceneStringNames::get_singleton()->enter_screen);
 		_screen_enter();
 	}
-	emit_signal(SceneStringNames::get_singleton()->camera_entered, p_camera);
+	emit_signal(SceneStringNames::get_singleton()->enter_camera, p_camera);
 }
 
 void VisibilityNotifier::_exit_camera(Camera *p_camera) {
@@ -50,15 +50,15 @@ void VisibilityNotifier::_exit_camera(Camera *p_camera) {
 	ERR_FAIL_COND(!cameras.has(p_camera));
 	cameras.erase(p_camera);
 
-	emit_signal(SceneStringNames::get_singleton()->camera_exited, p_camera);
+	emit_signal(SceneStringNames::get_singleton()->exit_camera, p_camera);
 	if (cameras.size() == 0) {
-		emit_signal(SceneStringNames::get_singleton()->screen_exited);
+		emit_signal(SceneStringNames::get_singleton()->exit_screen);
 
 		_screen_exit();
 	}
 }
 
-void VisibilityNotifier::set_aabb(const Rect3 &p_aabb) {
+void VisibilityNotifier::set_aabb(const AABB &p_aabb) {
 
 	if (aabb == p_aabb)
 		return;
@@ -72,7 +72,7 @@ void VisibilityNotifier::set_aabb(const Rect3 &p_aabb) {
 	update_gizmo();
 }
 
-Rect3 VisibilityNotifier::get_aabb() const {
+AABB VisibilityNotifier::get_aabb() const {
 
 	return aabb;
 }
@@ -102,22 +102,21 @@ bool VisibilityNotifier::is_on_screen() const {
 
 void VisibilityNotifier::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_aabb", "rect"), &VisibilityNotifier::set_aabb);
-	ClassDB::bind_method(D_METHOD("get_aabb"), &VisibilityNotifier::get_aabb);
-	ClassDB::bind_method(D_METHOD("is_on_screen"), &VisibilityNotifier::is_on_screen);
+	ObjectTypeDB::bind_method(_MD("set_aabb", "rect"), &VisibilityNotifier::set_aabb);
+	ObjectTypeDB::bind_method(_MD("get_aabb"), &VisibilityNotifier::get_aabb);
+	ObjectTypeDB::bind_method(_MD("is_on_screen"), &VisibilityNotifier::is_on_screen);
 
-	ADD_PROPERTY(PropertyInfo(Variant::RECT3, "aabb"), "set_aabb", "get_aabb");
+	ADD_PROPERTY(PropertyInfo(Variant::_AABB, "aabb"), _SCS("set_aabb"), _SCS("get_aabb"));
 
-	ADD_SIGNAL(MethodInfo("camera_entered", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera")));
-	ADD_SIGNAL(MethodInfo("camera_exited", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera")));
-	ADD_SIGNAL(MethodInfo("screen_entered"));
-	ADD_SIGNAL(MethodInfo("screen_exited"));
+	ADD_SIGNAL(MethodInfo("enter_camera", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera")));
+	ADD_SIGNAL(MethodInfo("exit_camera", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera")));
+	ADD_SIGNAL(MethodInfo("enter_screen"));
+	ADD_SIGNAL(MethodInfo("exit_screen"));
 }
 
 VisibilityNotifier::VisibilityNotifier() {
 
-	aabb = Rect3(Vector3(-1, -1, -1), Vector3(2, 2, 2));
-	set_notify_transform(true);
+	aabb = AABB(Vector3(-1, -1, -1), Vector3(2, 2, 2));
 }
 
 //////////////////////////////////////
@@ -167,7 +166,7 @@ void VisibilityEnabler::_find_nodes(Node *p_node) {
 
 	if (add) {
 
-		p_node->connect(SceneStringNames::get_singleton()->tree_exited, this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
+		p_node->connect(SceneStringNames::get_singleton()->exit_tree, this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
 		nodes[p_node] = meta;
 		_change_node_state(p_node, false);
 	}
@@ -205,7 +204,7 @@ void VisibilityEnabler::_notification(int p_what) {
 
 			if (!visible)
 				_change_node_state(E->key(), true);
-			E->key()->disconnect(SceneStringNames::get_singleton()->tree_exited, this, "_node_removed");
+			E->key()->disconnect(SceneStringNames::get_singleton()->exit_tree, this, "_node_removed");
 		}
 
 		nodes.clear();
@@ -237,18 +236,18 @@ void VisibilityEnabler::_node_removed(Node *p_node) {
 
 	if (!visible)
 		_change_node_state(p_node, true);
-	p_node->disconnect(SceneStringNames::get_singleton()->tree_exited, this, "_node_removed");
+	p_node->disconnect(SceneStringNames::get_singleton()->exit_tree, this, "_node_removed");
 	nodes.erase(p_node);
 }
 
 void VisibilityEnabler::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_enabler", "enabler", "enabled"), &VisibilityEnabler::set_enabler);
-	ClassDB::bind_method(D_METHOD("is_enabler_enabled", "enabler"), &VisibilityEnabler::is_enabler_enabled);
-	ClassDB::bind_method(D_METHOD("_node_removed"), &VisibilityEnabler::_node_removed);
+	ObjectTypeDB::bind_method(_MD("set_enabler", "enabler", "enabled"), &VisibilityEnabler::set_enabler);
+	ObjectTypeDB::bind_method(_MD("is_enabler_enabled", "enabler"), &VisibilityEnabler::is_enabler_enabled);
+	ObjectTypeDB::bind_method(_MD("_node_removed"), &VisibilityEnabler::_node_removed);
 
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "pause_animations"), "set_enabler", "is_enabler_enabled", ENABLER_PAUSE_ANIMATIONS);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "freeze_bodies"), "set_enabler", "is_enabler_enabled", ENABLER_FREEZE_BODIES);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enabler/pause_animations"), _SCS("set_enabler"), _SCS("is_enabler_enabled"), ENABLER_PAUSE_ANIMATIONS);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "enabler/freeze_bodies"), _SCS("set_enabler"), _SCS("is_enabler_enabled"), ENABLER_FREEZE_BODIES);
 
 	BIND_CONSTANT(ENABLER_FREEZE_BODIES);
 	BIND_CONSTANT(ENABLER_PAUSE_ANIMATIONS);

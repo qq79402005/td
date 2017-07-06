@@ -113,7 +113,7 @@ void SpatialIndexer::_update_pairs() {
 void SpatialIndexer::_bind_methods() {
 
 
-	ClassDB::bind_method(D_METHOD("_update_pairs"),&SpatialIndexer::_update_pairs);
+	ObjectTypeDB::bind_method(_MD("_update_pairs"),&SpatialIndexer::_update_pairs);
 }
 
 

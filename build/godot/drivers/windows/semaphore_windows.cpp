@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "semaphore_windows.h"
 
-#if defined(WINDOWS_ENABLED)
+#if defined(WINDOWS_ENABLED) && !defined(WINRT_ENABLED)
 
 #include "os/memory.h"
 
@@ -71,7 +71,7 @@ void SemaphoreWindows::make_default() {
 
 SemaphoreWindows::SemaphoreWindows() {
 
-#ifdef UWP_ENABLED
+#ifdef WINRT_ENABLED
 	semaphore = CreateSemaphoreEx(
 			NULL,
 			0,

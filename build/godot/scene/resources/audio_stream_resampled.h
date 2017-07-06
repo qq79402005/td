@@ -30,12 +30,12 @@
 #ifndef AUDIO_STREAM_RESAMPLED_H
 #define AUDIO_STREAM_RESAMPLED_H
 
-//#include "scene/resources/audio_stream.h"
+#include "scene/resources/audio_stream.h"
 
 #if 0
 
 class AudioStreamResampled : public AudioStream {
-	GDCLASS(AudioStreamResampled,AudioStream);
+	OBJ_TYPE(AudioStreamResampled,AudioStream);
 
 	uint32_t rb_bits;
 	uint32_t rb_len;

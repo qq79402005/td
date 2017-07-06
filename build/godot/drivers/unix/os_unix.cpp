@@ -31,11 +31,10 @@
 
 #ifdef UNIX_ENABLED
 
-#include "servers/visual_server.h"
-
 #include "core/os/thread_dummy.h"
+#include "memory_pool_static_malloc.h"
 #include "mutex_posix.h"
-#include "rw_lock_posix.h"
+#include "os/memory_pool_dynamic_static.h"
 #include "semaphore_posix.h"
 #include "thread_posix.h"
 
@@ -53,9 +52,8 @@
 #ifdef __FreeBSD__
 #include <sys/param.h>
 #endif
-#include "global_config.h"
+#include "globals.h"
 #include <assert.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <poll.h>
 #include <signal.h>
@@ -91,10 +89,6 @@ void OS_Unix::print_error(const char *p_function, const char *p_file, int p_line
 			print("\E[1;35mSCRIPT ERROR: %s: \E[0m\E[1m%s\n", p_function, err_details);
 			print("\E[0;35m   At: %s:%i.\E[0m\n", p_file, p_line);
 			break;
-		case ERR_SHADER:
-			print("\E[1;36mSHADER ERROR: %s: \E[0m\E[1m%s\n", p_function, err_details);
-			print("\E[0;36m   At: %s:%i.\E[0m\n", p_file, p_line);
-			break;
 	}
 }
 
@@ -117,6 +111,9 @@ int OS_Unix::unix_initialize_audio(int p_audio_driver) {
 	return 0;
 }
 
+static MemoryPoolStaticMalloc *mempool_static = NULL;
+static MemoryPoolDynamicStatic *mempool_dynamic = NULL;
+
 // Very simple signal handler to reap processes where ::execute was called with
 // !p_blocking
 void handle_sigchld(int sig) {
@@ -136,7 +133,6 @@ void OS_Unix::initialize_core() {
 	ThreadPosix::make_default();
 	SemaphorePosix::make_default();
 	MutexPosix::make_default();
-	RWLockPosix::make_default();
 #endif
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
 	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
@@ -152,6 +148,8 @@ void OS_Unix::initialize_core() {
 	PacketPeerUDPPosix::make_default();
 	IP_Unix::make_default();
 #endif
+	mempool_static = new MemoryPoolStaticMalloc;
+	mempool_dynamic = memnew(MemoryPoolDynamicStatic);
 
 	ticks_start = 0;
 	ticks_start = get_ticks_usec();
@@ -166,6 +164,10 @@ void OS_Unix::initialize_core() {
 }
 
 void OS_Unix::finalize_core() {
+
+	if (mempool_dynamic)
+		memdelete(mempool_dynamic);
+	delete mempool_static;
 }
 
 void OS_Unix::vprint(const char *p_format, va_list p_list, bool p_stder) {
@@ -392,7 +394,7 @@ Error OS_Unix::execute(const String &p_path, const List<String> &p_arguments, bo
 	if (p_blocking) {
 
 		int status;
-		waitpid(pid, &status, 0);
+		pid_t rpid = waitpid(pid, &status, 0);
 		if (r_exitcode)
 			*r_exitcode = WEXITSTATUS(status);
 	} else {
@@ -437,36 +439,6 @@ String OS_Unix::get_locale() const {
 	return locale;
 }
 
-Error OS_Unix::open_dynamic_library(const String p_path, void *&p_library_handle) {
-	p_library_handle = dlopen(p_path.utf8().get_data(), RTLD_NOW);
-	if (!p_library_handle) {
-		ERR_EXPLAIN("Can't open dynamic library: " + p_path + ". Error: " + dlerror());
-		ERR_FAIL_V(ERR_CANT_OPEN);
-	}
-	return OK;
-}
-
-Error OS_Unix::close_dynamic_library(void *p_library_handle) {
-	if (dlclose(p_library_handle)) {
-		return FAILED;
-	}
-	return OK;
-}
-
-Error OS_Unix::get_dynamic_library_symbol_handle(void *p_library_handle, const String p_name, void *&p_symbol_handle) {
-	const char *error;
-	dlerror(); // Clear existing errors
-
-	p_symbol_handle = dlsym(p_library_handle, p_name.utf8().get_data());
-
-	error = dlerror();
-	if (error != NULL) {
-		ERR_EXPLAIN("Can't resolve symbol " + p_name + ". Error: " + error);
-		ERR_FAIL_V(ERR_CANT_RESOLVE);
-	}
-	return OK;
-}
-
 Error OS_Unix::set_cwd(const String &p_cwd) {
 
 	if (chdir(p_cwd.utf8().get_data()) != 0)
@@ -494,7 +466,7 @@ String OS_Unix::get_data_dir() const {
 
 		if (has_environment("HOME")) {
 
-			bool use_godot = GlobalConfig::get_singleton()->get("application/use_shared_user_dir");
+			bool use_godot = Globals::get_singleton()->get("application/use_shared_user_dir");
 			if (use_godot)
 				return get_environment("HOME") + "/.godot/app_userdata/" + an;
 			else
@@ -502,12 +474,7 @@ String OS_Unix::get_data_dir() const {
 		}
 	}
 
-	return GlobalConfig::get_singleton()->get_resource_path();
-}
-
-bool OS_Unix::check_feature_support(const String &p_feature) {
-
-	return VisualServer::get_singleton()->has_os_feature(p_feature);
+	return Globals::get_singleton()->get_resource_path();
 }
 
 String OS_Unix::get_installed_templates_path() const {

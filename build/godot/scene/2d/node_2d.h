@@ -34,7 +34,7 @@
 
 class Node2D : public CanvasItem {
 
-	GDCLASS(Node2D, CanvasItem);
+	OBJ_TYPE(Node2D, CanvasItem);
 
 	Point2 pos;
 	float angle;
@@ -42,7 +42,7 @@ class Node2D : public CanvasItem {
 	int z;
 	bool z_relative;
 
-	Transform2D _mat;
+	Matrix32 _mat;
 
 	bool _xform_dirty;
 
@@ -68,9 +68,9 @@ public:
 	virtual Point2 edit_get_pivot() const;
 	virtual bool edit_has_pivot() const;
 
-	void set_position(const Point2 &p_pos);
-	void set_rotation(float p_radians);
-	void set_rotation_in_degrees(float p_degrees);
+	void set_pos(const Point2 &p_pos);
+	void set_rot(float p_radians);
+	void set_rotd(float p_degrees);
 	void set_scale(const Size2 &p_scale);
 
 	void rotate(float p_radians);
@@ -80,22 +80,22 @@ public:
 	void global_translate(const Vector2 &p_amount);
 	void scale(const Size2 &p_amount);
 
-	Point2 get_position() const;
-	float get_rotation() const;
-	float get_rotation_in_degrees() const;
+	Point2 get_pos() const;
+	float get_rot() const;
+	float get_rotd() const;
 	Size2 get_scale() const;
 
-	Point2 get_global_position() const;
-	float get_global_rotation() const;
-	float get_global_rotation_in_degrees() const;
+	Point2 get_global_pos() const;
+	float get_global_rot() const;
+	float get_global_rotd() const;
 	Size2 get_global_scale() const;
 	virtual Rect2 get_item_rect() const;
 
-	void set_transform(const Transform2D &p_transform);
-	void set_global_transform(const Transform2D &p_transform);
-	void set_global_position(const Point2 &p_pos);
-	void set_global_rotation(float p_radians);
-	void set_global_rotation_in_degrees(float p_degrees);
+	void set_transform(const Matrix32 &p_transform);
+	void set_global_transform(const Matrix32 &p_transform);
+	void set_global_pos(const Point2 &p_pos);
+	void set_global_rot(float p_radians);
+	void set_global_rotd(float p_degrees);
 	void set_global_scale(const Size2 &p_scale);
 
 	void set_z(int p_z);
@@ -107,9 +107,9 @@ public:
 	void set_z_as_relative(bool p_enabled);
 	bool is_z_relative() const;
 
-	Transform2D get_relative_transform_to_parent(const Node *p_parent) const;
+	Matrix32 get_relative_transform_to_parent(const Node *p_parent) const;
 
-	Transform2D get_transform() const;
+	Matrix32 get_transform() const;
 
 	Node2D();
 };

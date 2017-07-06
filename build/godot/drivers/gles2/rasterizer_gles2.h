@@ -154,7 +154,7 @@ class RasterizerGLES2 : public Rasterizer {
 			flags = width = height = 0;
 			tex_id = 0;
 			data_size = 0;
-			format = Image::FORMAT_L8;
+			format = Image::FORMAT_GRAYSCALE;
 			gl_components_cache = 0;
 			format_has_alpha = false;
 			has_alpha = false;
@@ -1225,7 +1225,7 @@ class RasterizerGLES2 : public Rasterizer {
 	bool uses_texpixel_size;
 	bool rebind_texpixel_size;
 	Transform canvas_transform;
-	ShaderMaterial *canvas_last_material;
+	CanvasItemMaterial *canvas_last_material;
 	bool canvas_texscreen_used;
 	Vector2 normal_flip;
 	_FORCE_INLINE_ void _canvas_normal_set_flip(const Vector2 &p_flip);
@@ -1289,8 +1289,8 @@ class RasterizerGLES2 : public Rasterizer {
 
 	template <bool use_normalmap>
 	_FORCE_INLINE_ void _canvas_item_render_commands(CanvasItem *p_item, CanvasItem *current_clip, bool &reclip);
-	_FORCE_INLINE_ void _canvas_item_setup_shader_params(ShaderMaterial *material, Shader *p_shader);
-	_FORCE_INLINE_ void _canvas_item_setup_shader_uniforms(ShaderMaterial *material, Shader *p_shader);
+	_FORCE_INLINE_ void _canvas_item_setup_shader_params(CanvasItemMaterial *material, Shader *p_shader);
+	_FORCE_INLINE_ void _canvas_item_setup_shader_uniforms(CanvasItemMaterial *material, Shader *p_shader);
 
 public:
 	/* TEXTURE API */
@@ -1592,15 +1592,15 @@ public:
 
 	virtual void canvas_set_opacity(float p_opacity);
 	virtual void canvas_set_blend_mode(VS::MaterialBlendMode p_mode);
-	virtual void canvas_begin_rect(const Transform2D &p_transform);
+	virtual void canvas_begin_rect(const Matrix32 &p_transform);
 	virtual void canvas_set_clip(bool p_clip, const Rect2 &p_rect);
 	virtual void canvas_end_rect();
-	virtual void canvas_draw_line(const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width, bool p_antialiased);
+	virtual void canvas_draw_line(const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width);
 	virtual void canvas_draw_rect(const Rect2 &p_rect, int p_flags, const Rect2 &p_source, RID p_texture, const Color &p_modulate);
 	virtual void canvas_draw_style_box(const Rect2 &p_rect, const Rect2 &p_src_region, RID p_texture, const float *p_margins, bool p_draw_center = true, const Color &p_modulate = Color(1, 1, 1));
 	virtual void canvas_draw_primitive(const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs, RID p_texture, float p_width);
 	virtual void canvas_draw_polygon(int p_vertex_count, const int *p_indices, const Vector2 *p_vertices, const Vector2 *p_uvs, const Color *p_colors, const RID &p_texture, bool p_singlecolor);
-	virtual void canvas_set_transform(const Transform2D &p_transform);
+	virtual void canvas_set_transform(const Matrix32 &p_transform);
 
 	virtual void canvas_render_items(CanvasItem *p_item_list, int p_z, const Color &p_modulate, CanvasLight *p_light);
 	virtual void canvas_debug_viewport_shadows(CanvasLight *p_lights_with_shadow);
@@ -1609,7 +1609,7 @@ public:
 
 	//buffer
 	virtual RID canvas_light_shadow_buffer_create(int p_width);
-	virtual void canvas_light_shadow_buffer_update(RID p_buffer, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, CanvasLightOccluderInstance *p_occluders, CameraMatrix *p_xform_cache);
+	virtual void canvas_light_shadow_buffer_update(RID p_buffer, const Matrix32 &p_light_xform, int p_light_mask, float p_near, float p_far, CanvasLightOccluderInstance *p_occluders, CameraMatrix *p_xform_cache);
 
 	//occluder
 	virtual RID canvas_light_occluder_create();
@@ -1662,7 +1662,7 @@ public:
 
 	void set_base_framebuffer(GLuint p_id, Vector2 p_size = Vector2(0, 0));
 
-	virtual void flush_frame(); //not necessary in most cases
+	virtual void flush_frame(); //not necesary in most cases
 	void set_extensions(const char *p_strings);
 
 	virtual bool needs_to_draw_next_frame() const;

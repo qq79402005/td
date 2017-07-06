@@ -89,7 +89,7 @@ normal_relative_velocity(Body2DSW *a, Body2DSW *b, Vector2 rA, Vector2 rB, Vecto
 
 #if 0
 
-bool PinJoint2DSW::setup(real_t p_step) {
+bool PinJoint2DSW::setup(float p_step) {
 
 	Space2DSW *space = A->get_space();
 	ERR_FAIL_COND_V(!space,false;)
@@ -134,7 +134,7 @@ bool PinJoint2DSW::setup(real_t p_step) {
 
 
 
-void PinJoint2DSW::solve(real_t p_step){
+void PinJoint2DSW::solve(float p_step){
 
 	if (!correct)
 		return;
@@ -186,7 +186,7 @@ PinJoint2DSW::~PinJoint2DSW() {
 
 #else
 
-bool PinJoint2DSW::setup(real_t p_step) {
+bool PinJoint2DSW::setup(float p_step) {
 
 	Space2DSW *space = A->get_space();
 	ERR_FAIL_COND_V(!space, false;)
@@ -211,25 +211,25 @@ bool PinJoint2DSW::setup(real_t p_step) {
 
 	real_t B_inv_mass = B ? B->get_inv_mass() : 0.0;
 
-	Transform2D K1;
+	Matrix32 K1;
 	K1[0].x = A->get_inv_mass() + B_inv_mass;
 	K1[1].x = 0.0f;
 	K1[0].y = 0.0f;
 	K1[1].y = A->get_inv_mass() + B_inv_mass;
 
-	Transform2D K2;
+	Matrix32 K2;
 	K2[0].x = A->get_inv_inertia() * rA.y * rA.y;
 	K2[1].x = -A->get_inv_inertia() * rA.x * rA.y;
 	K2[0].y = -A->get_inv_inertia() * rA.x * rA.y;
 	K2[1].y = A->get_inv_inertia() * rA.x * rA.x;
 
-	Transform2D K;
+	Matrix32 K;
 	K[0] = K1[0] + K2[0];
 	K[1] = K1[1] + K2[1];
 
 	if (B) {
 
-		Transform2D K3;
+		Matrix32 K3;
 		K3[0].x = B->get_inv_inertia() * rB.y * rB.y;
 		K3[1].x = -B->get_inv_inertia() * rB.x * rB.y;
 		K3[0].y = -B->get_inv_inertia() * rB.x * rB.y;
@@ -259,7 +259,7 @@ bool PinJoint2DSW::setup(real_t p_step) {
 	return true;
 }
 
-void PinJoint2DSW::solve(real_t p_step) {
+void PinJoint2DSW::solve(float p_step) {
 
 	// compute relative velocity
 	Vector2 vA = A->get_linear_velocity() - rA.cross(A->get_angular_velocity());
@@ -368,7 +368,7 @@ mult_k(const Vector2 &vr, const Vector2 &k1, const Vector2 &k2) {
 	return Vector2(vr.dot(k1), vr.dot(k2));
 }
 
-bool GrooveJoint2DSW::setup(real_t p_step) {
+bool GrooveJoint2DSW::setup(float p_step) {
 
 	// calculate endpoints in worldspace
 	Vector2 ta = A->get_transform().xform(A_groove_1);
@@ -404,11 +404,11 @@ bool GrooveJoint2DSW::setup(real_t p_step) {
 	jn_max = get_max_force() * p_step;
 
 	// calculate bias velocity
-	//cpVect delta = cpvsub(cpvadd(b->p, joint->r2), cpvadd(a->p, joint->r1));
-	//joint->bias = cpvclamp(cpvmult(delta, -joint->constraint.biasCoef*dt_inv), joint->constraint.maxBias);
+	//	cpVect delta = cpvsub(cpvadd(b->p, joint->r2), cpvadd(a->p, joint->r1));
+	//	joint->bias = cpvclamp(cpvmult(delta, -joint->constraint.biasCoef*dt_inv), joint->constraint.maxBias);
 
 	Vector2 delta = (B->get_transform().get_origin() + rB) - (A->get_transform().get_origin() + rA);
-	real_t _b = get_bias();
+	float _b = get_bias();
 	_b = 0.001;
 	gbias = (delta * -(_b == 0 ? space->get_constraint_bias() : _b) * (1.0 / p_step)).clamped(get_max_bias());
 
@@ -420,7 +420,7 @@ bool GrooveJoint2DSW::setup(real_t p_step) {
 	return true;
 }
 
-void GrooveJoint2DSW::solve(real_t p_step) {
+void GrooveJoint2DSW::solve(float p_step) {
 
 	// compute impulse
 	Vector2 vr = relative_velocity(A, B, rA, rB);
@@ -462,7 +462,7 @@ GrooveJoint2DSW::~GrooveJoint2DSW() {
 //////////////////////////////////////////////
 //////////////////////////////////////////////
 
-bool DampedSpringJoint2DSW::setup(real_t p_step) {
+bool DampedSpringJoint2DSW::setup(float p_step) {
 
 	rA = A->get_transform().basis_xform(anchor_A);
 	rB = B->get_transform().basis_xform(anchor_B);
@@ -491,7 +491,7 @@ bool DampedSpringJoint2DSW::setup(real_t p_step) {
 	return true;
 }
 
-void DampedSpringJoint2DSW::solve(real_t p_step) {
+void DampedSpringJoint2DSW::solve(float p_step) {
 
 	// compute relative velocity
 	real_t vrn = normal_relative_velocity(A, B, rA, rB, n) - target_vrn;

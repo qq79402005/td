@@ -28,13 +28,13 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "os.h"
-
 #include "dir_access.h"
-#include "global_config.h"
+#include "globals.h"
 #include "input.h"
 #include "os/file_access.h"
-
 #include <stdarg.h>
+// For get_engine_version, could be removed if it's moved to a new Engine singleton
+#include "version.h"
 
 OS *OS::singleton = NULL;
 
@@ -69,7 +69,6 @@ void OS::print_error(const char *p_function, const char *p_file, int p_line, con
 		case ERR_ERROR: err_type = "**ERROR**"; break;
 		case ERR_WARNING: err_type = "**WARNING**"; break;
 		case ERR_SCRIPT: err_type = "**SCRIPT ERROR**"; break;
-		case ERR_SHADER: err_type = "**SHADER ERROR**"; break;
 	}
 
 	if (p_rationale && *p_rationale)
@@ -96,6 +95,23 @@ void OS::printerr(const char *p_format, ...) {
 
 	va_end(argp);
 };
+
+void OS::set_iterations_per_second(int p_ips) {
+
+	ips = p_ips;
+}
+int OS::get_iterations_per_second() const {
+
+	return ips;
+}
+
+void OS::set_target_fps(int p_fps) {
+	_target_fps = p_fps > 0 ? p_fps : 0;
+}
+
+float OS::get_target_fps() const {
+	return _target_fps;
+}
 
 void OS::set_keep_screen_on(bool p_enabled) {
 	_keep_screen_on = p_enabled;
@@ -134,6 +150,11 @@ int OS::get_process_ID() const {
 	return -1;
 };
 
+uint64_t OS::get_frames_drawn() {
+
+	return frames_drawn;
+}
+
 bool OS::is_stdout_verbose() const {
 
 	return _verbose_stdout;
@@ -164,7 +185,7 @@ const char *OS::get_last_error() const {
 
 void OS::dump_memory_to_file(const char *p_file) {
 
-	//Memory::dump_static_mem_to_file(p_file);
+	Memory::dump_static_mem_to_file(p_file);
 }
 
 static FileAccess *_OSPRF = NULL;
@@ -175,7 +196,7 @@ static void _OS_printres(Object *p_obj) {
 	if (!res)
 		return;
 
-	String str = itos(res->get_instance_ID()) + String(res->get_class()) + ":" + String(res->get_name()) + " - " + res->get_path();
+	String str = itos(res->get_instance_ID()) + String(res->get_type()) + ":" + String(res->get_name()) + " - " + res->get_path();
 	if (_OSPRF)
 		_OSPRF->store_line(str);
 	else
@@ -233,6 +254,15 @@ void OS::clear_last_error() {
 		memfree(last_error);
 	last_error = NULL;
 }
+void OS::set_frame_delay(uint32_t p_msec) {
+
+	_frame_delay = p_msec;
+}
+
+uint32_t OS::get_frame_delay() const {
+
+	return _frame_delay;
+}
 
 void OS::set_no_window_mode(bool p_enable) {
 
@@ -260,7 +290,7 @@ String OS::get_locale() const {
 
 String OS::get_resource_dir() const {
 
-	return GlobalConfig::get_singleton()->get_resource_path();
+	return Globals::get_singleton()->get_resource_path();
 }
 
 String OS::get_system_dir(SystemDir p_dir) const {
@@ -269,7 +299,7 @@ String OS::get_system_dir(SystemDir p_dir) const {
 }
 
 String OS::get_safe_application_name() const {
-	String an = GlobalConfig::get_singleton()->get("application/name");
+	String an = Globals::get_singleton()->get("application/name");
 	Vector<String> invalid_char = String("\\ / : * ? \" < > |").split(" ");
 	for (int i = 0; i < invalid_char.size(); i++) {
 		an = an.replace(invalid_char[i], "-");
@@ -329,16 +359,16 @@ Error OS::dialog_input_text(String p_title, String p_description, String p_parti
 
 int OS::get_static_memory_usage() const {
 
-	return Memory::get_mem_usage();
+	return Memory::get_static_mem_usage();
 }
 int OS::get_dynamic_memory_usage() const {
 
-	return MemoryPool::total_memory;
+	return Memory::get_dynamic_mem_usage();
 }
 
 int OS::get_static_memory_peak_usage() const {
 
-	return Memory::get_mem_max_usage();
+	return Memory::get_static_mem_max_usage();
 }
 
 Error OS::set_cwd(const String &p_cwd) {
@@ -354,7 +384,7 @@ bool OS::has_touchscreen_ui_hint() const {
 
 int OS::get_free_static_memory() const {
 
-	return Memory::get_mem_available();
+	return Memory::get_static_mem_available();
 }
 
 void OS::yield() {
@@ -389,7 +419,7 @@ void OS::_ensure_data_dir() {
 	memdelete(da);
 }
 
-void OS::set_icon(const Ref<Image> &p_icon) {
+void OS::set_icon(const Image &p_icon) {
 }
 
 String OS::get_model_name() const {
@@ -461,9 +491,19 @@ OS::MouseMode OS::get_mouse_mode() const {
 	return MOUSE_MODE_VISIBLE;
 }
 
+void OS::set_time_scale(float p_scale) {
+
+	_time_scale = p_scale;
+}
+
 OS::LatinKeyboardVariant OS::get_latin_keyboard_variant() const {
 
 	return LATIN_KEYBOARD_QWERTY;
+}
+
+float OS::get_time_scale() const {
+
+	return _time_scale;
 }
 
 bool OS::is_joy_known(int p_device) {
@@ -471,7 +511,7 @@ bool OS::is_joy_known(int p_device) {
 }
 
 String OS::get_joy_guid(int p_device) const {
-	return "Default Joypad";
+	return "Default Joystick";
 }
 
 void OS::set_context(int p_context) {
@@ -484,29 +524,47 @@ bool OS::is_vsync_enabled() const {
 	return true;
 }
 
-PowerState OS::get_power_state() {
-	return POWERSTATE_UNKNOWN;
-}
-int OS::get_power_seconds_left() {
-	return -1;
-}
-int OS::get_power_percent_left() {
-	return -1;
+Dictionary OS::get_engine_version() const {
+
+	Dictionary dict;
+	dict["major"] = _MKSTR(VERSION_MAJOR);
+	dict["minor"] = _MKSTR(VERSION_MINOR);
+#ifdef VERSION_PATCH
+	dict["patch"] = _MKSTR(VERSION_PATCH);
+#else
+	dict["patch"] = "";
+#endif
+	dict["status"] = _MKSTR(VERSION_STATUS);
+	dict["revision"] = _MKSTR(VERSION_REVISION);
+
+	String stringver = String(dict["major"]) + "." + String(dict["minor"]);
+	if (dict["patch"] != "")
+		stringver += "." + String(dict["patch"]);
+	stringver += "-" + String(dict["status"]) + " (" + String(dict["revision"]) + ")";
+	dict["string"] = stringver;
+
+	return dict;
 }
 
 OS::OS() {
 	last_error = NULL;
+	frames_drawn = 0;
 	singleton = this;
+	ips = 60;
 	_keep_screen_on = true; // set default value to true, because this had been true before godot 2.0.
 	low_processor_usage_mode = false;
 	_verbose_stdout = false;
+	_frame_delay = 0;
 	_no_window = false;
 	_exit_code = 0;
 	_orientation = SCREEN_LANDSCAPE;
-
+	_fps = 1;
+	_target_fps = 0;
 	_render_thread_mode = RENDER_THREAD_SAFE;
-
+	_time_scale = 1.0;
+	_pixel_snap = false;
 	_allow_hidpi = true;
+	Math::seed(1234567);
 }
 
 OS::~OS() {

@@ -35,7 +35,7 @@
 
 class ItemList : public Control {
 
-	GDCLASS(ItemList, Control);
+	OBJ_TYPE(ItemList, Control);
 
 public:
 	enum IconMode {
@@ -103,11 +103,8 @@ private:
 
 	real_t icon_scale;
 
-	Array _get_items() const;
-	void _set_items(const Array &p_items);
-
 	void _scroll_changed(double);
-	void _gui_input(const Ref<InputEvent> &p_event);
+	void _input_event(const InputEvent &p_event);
 
 protected:
 	void _notification(int p_what);
@@ -193,7 +190,6 @@ public:
 
 	virtual String get_tooltip(const Point2 &p_pos) const;
 	int get_item_at_pos(const Point2 &p_pos, bool p_exact = false) const;
-	bool is_pos_at_end_of_items(const Point2 &p_pos) const;
 
 	void set_icon_scale(real_t p_scale);
 	real_t get_icon_scale() const;

@@ -28,33 +28,36 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "tile_set_editor_plugin.h"
-
 #include "scene/2d/physics_body_2d.h"
 #include "scene/2d/sprite.h"
-
 void TileSetEditor::edit(const Ref<TileSet> &p_tileset) {
 
 	tileset = p_tileset;
 }
 
-void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
+void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_merge) {
 
-	for (int i = 0; i < p_node->get_child_count(); i++) {
+	if (!p_merge)
+		p_library->clear();
 
-		Node *child = p_node->get_child(i);
+	for (int i = 0; i < scene->get_child_count(); i++) {
+
+		Node *child = scene->get_child(i);
 
 		if (!child->cast_to<Sprite>()) {
 			if (child->get_child_count() > 0) {
-				_import_node(child, p_library);
-			}
+				child = child->get_child(0);
+				if (!child->cast_to<Sprite>()) {
+					continue;
+				}
 
-			continue;
+			} else
+				continue;
 		}
 
 		Sprite *mi = child->cast_to<Sprite>();
 		Ref<Texture> texture = mi->get_texture();
-		Ref<Texture> normal_map = mi->get_normal_map();
-		Ref<ShaderMaterial> material = mi->get_material();
+		Ref<CanvasItemMaterial> material = mi->get_material();
 
 		if (texture.is_null())
 			continue;
@@ -68,7 +71,6 @@ void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 		}
 
 		p_library->tile_set_texture(id, texture);
-		p_library->tile_set_normal_map(id, normal_map);
 		p_library->tile_set_material(id, material);
 
 		p_library->tile_set_modulate(id, mi->get_modulate());
@@ -90,10 +92,9 @@ void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 			phys_offset += -s / 2;
 		}
 
-		Vector<TileSet::ShapeData> collisions;
+		Vector<Ref<Shape2D> > collisions;
 		Ref<NavigationPolygon> nav_poly;
 		Ref<OccluderPolygon2D> occluder;
-		bool found_collisions = false;
 
 		for (int j = 0; j < mi->get_child_count(); j++) {
 
@@ -107,36 +108,24 @@ void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 
 			if (!child2->cast_to<StaticBody2D>())
 				continue;
-
-			found_collisions = true;
-
 			StaticBody2D *sb = child2->cast_to<StaticBody2D>();
-
-			List<uint32_t> shapes;
-			sb->get_shape_owners(&shapes);
-
-			for (List<uint32_t>::Element *E = shapes.front(); E; E = E->next()) {
-				if (sb->is_shape_owner_disabled(E->get())) continue;
-
-				Transform2D shape_transform = sb->shape_owner_get_transform(E->get());
-				bool one_way = sb->is_shape_owner_one_way_collision_enabled(E->get());
-
-				shape_transform.set_origin(shape_transform.get_origin() - phys_offset);
-
-				for (int k = 0; k < sb->shape_owner_get_shape_count(E->get()); k++) {
-
-					Ref<Shape2D> shape = sb->shape_owner_get_shape(E->get(), k);
-					TileSet::ShapeData shape_data;
-					shape_data.shape = shape;
-					shape_data.shape_transform = shape_transform;
-					shape_data.one_way_collision = one_way;
-					collisions.push_back(shape_data);
+			int shape_count = sb->get_shape_count();
+			if (shape_count == 0)
+				continue;
+			for (int shape_index = 0; shape_index < shape_count; ++shape_index) {
+				Ref<Shape2D> collision = sb->get_shape(shape_index);
+				if (collision.is_valid()) {
+					collisions.push_back(collision);
 				}
 			}
 		}
 
-		if (found_collisions) {
+		if (collisions.size()) {
+
 			p_library->tile_set_shapes(id, collisions);
+			p_library->tile_set_shape_offset(id, -phys_offset);
+		} else {
+			p_library->tile_set_shape_offset(id, Vector2());
 		}
 
 		p_library->tile_set_texture_offset(id, mi->get_offset());
@@ -145,14 +134,6 @@ void TileSetEditor::_import_node(Node *p_node, Ref<TileSet> p_library) {
 		p_library->tile_set_occluder_offset(id, -phys_offset);
 		p_library->tile_set_navigation_polygon_offset(id, -phys_offset);
 	}
-}
-
-void TileSetEditor::_import_scene(Node *scene, Ref<TileSet> p_library, bool p_merge) {
-
-	if (!p_merge)
-		p_library->clear();
-
-	_import_node(scene, p_library);
 }
 
 void TileSetEditor::_menu_confirm() {
@@ -230,9 +211,9 @@ Error TileSetEditor::update_library_file(Node *p_base_scene, Ref<TileSet> ml, bo
 
 void TileSetEditor::_bind_methods() {
 
-	ClassDB::bind_method("_menu_cbk", &TileSetEditor::_menu_cbk);
-	ClassDB::bind_method("_menu_confirm", &TileSetEditor::_menu_confirm);
-	ClassDB::bind_method("_name_dialog_confirm", &TileSetEditor::_name_dialog_confirm);
+	ObjectTypeDB::bind_method("_menu_cbk", &TileSetEditor::_menu_cbk);
+	ObjectTypeDB::bind_method("_menu_confirm", &TileSetEditor::_menu_confirm);
+	ObjectTypeDB::bind_method("_name_dialog_confirm", &TileSetEditor::_name_dialog_confirm);
 }
 
 TileSetEditor::TileSetEditor(EditorNode *p_editor) {
@@ -242,14 +223,14 @@ TileSetEditor::TileSetEditor(EditorNode *p_editor) {
 	add_child(panel);
 	MenuButton *options = memnew(MenuButton);
 	panel->add_child(options);
-	options->set_position(Point2(1, 1));
+	options->set_pos(Point2(1, 1));
 	options->set_text("Theme");
 	options->get_popup()->add_item(TTR("Add Item"), MENU_OPTION_ADD_ITEM);
 	options->get_popup()->add_item(TTR("Remove Item"), MENU_OPTION_REMOVE_ITEM);
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Create from Scene"), MENU_OPTION_CREATE_FROM_SCENE);
 	options->get_popup()->add_item(TTR("Merge from Scene"), MENU_OPTION_MERGE_FROM_SCENE);
-	options->get_popup()->connect("id_pressed", this, "_menu_cbk");
+	options->get_popup()->connect("item_pressed", this, "_menu_cbk");
 	editor = p_editor;
 	cd = memnew(ConfirmationDialog);
 	add_child(cd);
@@ -277,7 +258,7 @@ void TileSetEditorPlugin::edit(Object *p_node) {
 
 bool TileSetEditorPlugin::handles(Object *p_node) const {
 
-	return p_node->is_class("TileSet");
+	return p_node->is_type("TileSet");
 }
 
 void TileSetEditorPlugin::make_visible(bool p_visible) {

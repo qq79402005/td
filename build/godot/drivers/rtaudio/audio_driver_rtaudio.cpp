@@ -29,7 +29,7 @@
 /*************************************************************************/
 #include "audio_driver_rtaudio.h"
 
-#include "global_config.h"
+#include "globals.h"
 #include "os/os.h"
 
 #ifdef RTAUDIO_ENABLED
@@ -85,19 +85,16 @@ Error AudioDriverRtAudio::init() {
 	ERR_EXPLAIN("Cannot initialize RtAudio audio driver: No devices present.")
 	ERR_FAIL_COND_V(dac->getDeviceCount() < 1, ERR_UNAVAILABLE);
 
-	// FIXME: Adapt to the OutputFormat -> SpeakerMode change
-	/*
-	String channels = GLOBAL_DEF("audio/output","stereo");
+	String channels = GLOBAL_DEF("audio/output", "stereo");
 
-	if (channels=="5.1")
-		output_format=OUTPUT_5_1;
-	else if (channels=="quad")
-		output_format=OUTPUT_QUAD;
-	else if (channels=="mono")
-		output_format=OUTPUT_MONO;
+	if (channels == "5.1")
+		output_format = OUTPUT_5_1;
+	else if (channels == "quad")
+		output_format = OUTPUT_QUAD;
+	else if (channels == "mono")
+		output_format = OUTPUT_MONO;
 	else
-		output_format=OUTPUT_STEREO;
-	*/
+		output_format = OUTPUT_STEREO;
 
 	RtAudio::StreamParameters parameters;
 	parameters.deviceId = dac->getDefaultOutputDevice();
@@ -107,11 +104,11 @@ Error AudioDriverRtAudio::init() {
 	unsigned int target_number_of_buffers = 4;
 	options.numberOfBuffers = target_number_of_buffers;
 
-	//options.
-	//RtAudioStreamFlags flags;      /*!< A bit-mask of stream flags (RTAUDIO_NONINTERLEAVED, RTAUDIO_MINIMIZE_LATENCY, RTAUDIO_HOG_DEVICE). *///
-	//unsigned int numberOfBuffers;  /*!< Number of stream buffers. */
-	//std::string streamName;        /*!< A stream name (currently used only in Jack). */
-	//int priority;                  /*!< Scheduling priority of callback thread (only used with flag RTAUDIO_SCHEDULE_REALTIME). */
+	//	options.
+	//	RtAudioStreamFlags flags;      /*!< A bit-mask of stream flags (RTAUDIO_NONINTERLEAVED, RTAUDIO_MINIMIZE_LATENCY, RTAUDIO_HOG_DEVICE). *///
+	//	unsigned int numberOfBuffers;  /*!< Number of stream buffers. */
+	//	std::string streamName;        /*!< A stream name (currently used only in Jack). */
+	//	int priority;                  /*!< Scheduling priority of callback thread (only used with flag RTAUDIO_SCHEDULE_REALTIME). */
 
 	parameters.firstChannel = 0;
 	mix_rate = GLOBAL_DEF("audio/mix_rate", 44100);
@@ -128,10 +125,11 @@ Error AudioDriverRtAudio::init() {
 
 	while (true) {
 		while (true) {
-			switch (speaker_mode) {
-				case SPEAKER_MODE_STEREO: parameters.nChannels = 2; break;
-				case SPEAKER_SURROUND_51: parameters.nChannels = 6; break;
-				case SPEAKER_SURROUND_71: parameters.nChannels = 8; break;
+			switch (output_format) {
+				case OUTPUT_MONO: parameters.nChannels = 1; break;
+				case OUTPUT_STEREO: parameters.nChannels = 2; break;
+				case OUTPUT_QUAD: parameters.nChannels = 4; break;
+				case OUTPUT_5_1: parameters.nChannels = 6; break;
 			};
 
 			try {
@@ -144,10 +142,14 @@ Error AudioDriverRtAudio::init() {
 				// try with less channels
 				ERR_PRINT("Unable to open audio, retrying with fewer channels..");
 
-				switch (speaker_mode) {
-					case SPEAKER_MODE_STEREO: speaker_mode = SPEAKER_MODE_STEREO; break;
-					case SPEAKER_SURROUND_51: speaker_mode = SPEAKER_SURROUND_51; break;
-					case SPEAKER_SURROUND_71: speaker_mode = SPEAKER_SURROUND_71; break;
+				switch (output_format) {
+					case OUTPUT_MONO:
+						ERR_EXPLAIN("Unable to open audio.");
+						ERR_FAIL_V(ERR_UNAVAILABLE);
+						break;
+					case OUTPUT_STEREO: output_format = OUTPUT_MONO; break;
+					case OUTPUT_QUAD: output_format = OUTPUT_STEREO; break;
+					case OUTPUT_5_1: output_format = OUTPUT_QUAD; break;
 				};
 			}
 		}
@@ -187,9 +189,9 @@ int AudioDriverRtAudio::get_mix_rate() const {
 	return mix_rate;
 }
 
-AudioDriver::SpeakerMode AudioDriverRtAudio::get_speaker_mode() const {
+AudioDriverSW::OutputFormat AudioDriverRtAudio::get_output_format() const {
 
-	return speaker_mode;
+	return output_format;
 }
 
 void AudioDriverRtAudio::start() {
@@ -224,7 +226,7 @@ AudioDriverRtAudio::AudioDriverRtAudio() {
 
 	mutex = NULL;
 	mix_rate = 44100;
-	speaker_mode = SPEAKER_MODE_STEREO;
+	output_format = OUTPUT_STEREO;
 }
 
 #endif

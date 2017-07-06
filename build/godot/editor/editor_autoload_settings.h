@@ -37,7 +37,7 @@
 
 class EditorAutoloadSettings : public VBoxContainer {
 
-	GDCLASS(EditorAutoloadSettings, VBoxContainer);
+	OBJ_TYPE(EditorAutoloadSettings, VBoxContainer);
 
 	enum {
 		BUTTON_MOVE_UP,

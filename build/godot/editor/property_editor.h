@@ -36,12 +36,11 @@
 #include "scene/gui/check_button.h"
 #include "scene/gui/color_picker.h"
 #include "scene/gui/dialogs.h"
-#include "scene/gui/grid_container.h"
 #include "scene/gui/label.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/split_container.h"
 #include "scene/gui/text_edit.h"
-#include "scene/gui/texture_rect.h"
+#include "scene/gui/texture_frame.h"
 #include "scene/gui/tree.h"
 #include "scene_tree_editor.h"
 
@@ -50,12 +49,10 @@
 */
 
 class PropertyValueEvaluator;
-class CreateDialog;
-class PropertySelector;
 
 class CustomPropertyEditor : public Popup {
 
-	GDCLASS(CustomPropertyEditor, Popup);
+	OBJ_TYPE(CustomPropertyEditor, Popup);
 
 	enum {
 		MAX_VALUE_EDITORS = 12,
@@ -68,8 +65,8 @@ class CustomPropertyEditor : public Popup {
 		OBJ_MENU_PASTE = 5,
 		OBJ_MENU_REIMPORT = 6,
 		OBJ_MENU_NEW_SCRIPT = 7,
-		OBJ_MENU_SHOW_IN_FILE_SYSTEM = 8,
 		TYPE_BASE_ID = 100
+
 	};
 
 	enum {
@@ -98,19 +95,15 @@ class CustomPropertyEditor : public Popup {
 	Button *action_buttons[MAX_ACTION_BUTTONS];
 	MenuButton *type_button;
 	Vector<String> inheritors_array;
-	TextureRect *texture_preview;
+	TextureFrame *texture_preview;
 	ColorPicker *color_picker;
 	TextEdit *text_edit;
 	bool read_only;
-	bool picking_viewport;
-	GridContainer *checks20gc;
 	CheckBox *checks20[20];
 	SpinBox *spinbox;
 	HSlider *slider;
 
 	Control *easing_draw;
-	CreateDialog *create_dialog;
-	PropertySelector *property_select;
 
 	Object *owner;
 
@@ -127,14 +120,12 @@ class CustomPropertyEditor : public Popup {
 	void _focus_exit();
 	void _action_pressed(int p_which);
 	void _type_create_selected(int p_idx);
-	void _create_dialog_callback();
-	void _create_selected_property(const String &p_prop);
 
 	void _color_changed(const Color &p_color);
 	void _draw_easing();
 	void _menu_option(int p_which);
 
-	void _drag_easing(const Ref<InputEvent> &p_ev);
+	void _drag_easing(const InputEvent &p_ev);
 
 	void _node_path_selected(NodePath p_path);
 	void show_value_editors(int p_amount);
@@ -164,7 +155,7 @@ public:
 
 class PropertyEditor : public Control {
 
-	GDCLASS(PropertyEditor, Control);
+	OBJ_TYPE(PropertyEditor, Control);
 
 	Tree *tree;
 	Label *top_label;
@@ -175,6 +166,7 @@ class PropertyEditor : public Control {
 
 	Object *obj;
 
+	Array _prop_edited_name;
 	StringName _prop_edited;
 
 	bool capitalize_paths;
@@ -189,10 +181,6 @@ class PropertyEditor : public Control {
 	bool use_doc_hints;
 	bool use_filter;
 	bool subsection_selectable;
-	bool hide_script;
-	bool use_folding;
-
-	bool updating_folding;
 
 	HashMap<String, String> pending;
 	String selected_property;
@@ -209,7 +197,7 @@ class PropertyEditor : public Control {
 
 	void _item_selected();
 	void _item_edited();
-	TreeItem *get_parent_node(String p_path, HashMap<String, TreeItem *> &item_paths, TreeItem *root, TreeItem *category);
+	TreeItem *get_parent_node(String p_path, HashMap<String, TreeItem *> &item_paths, TreeItem *root);
 
 	void set_item_text(TreeItem *p_item, int p_type, const String &p_name, int p_hint = PROPERTY_HINT_NONE, const String &p_hint_text = "");
 
@@ -225,7 +213,7 @@ class PropertyEditor : public Control {
 	void _node_removed(Node *p_node);
 
 	friend class ProjectExportDialog;
-	void _edit_set(const String &p_name, const Variant &p_value, bool p_refresh_all = false, const String &p_changed_field = "");
+	void _edit_set(const String &p_name, const Variant &p_value, const String &p_changed_field = "");
 	void _draw_flags(Object *ti, const Rect2 &p_rect);
 
 	bool _might_be_in_instance();
@@ -246,8 +234,6 @@ class PropertyEditor : public Control {
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
 	void _resource_preview_done(const String &p_path, const Ref<Texture> &p_preview, Variant p_ud);
-	void _draw_transparency(Object *t, const Rect2 &p_rect);
-	void _item_folded(Object *item_obj);
 
 	UndoRedo *undo_redo;
 
@@ -276,20 +262,17 @@ public:
 		custom_editor->set_read_only(p_read_only);
 	}
 
-	bool is_capitalize_paths_enabled() const;
-	void set_enable_capitalize_paths(bool p_capitalize);
+	void set_capitalize_paths(bool p_capitalize);
 	void set_autoclear(bool p_enable);
 
 	void set_show_categories(bool p_show);
 	void set_use_doc_hints(bool p_enable) { use_doc_hints = p_enable; }
-	void set_hide_script(bool p_hide) { hide_script = p_hide; }
 
 	void set_use_filter(bool p_use);
 	void register_text_enter(Node *p_line_edit);
 
 	void set_subsection_selectable(bool p_selectable);
 
-	void set_use_folding(bool p_enable);
 	PropertyEditor();
 	~PropertyEditor();
 };
@@ -298,18 +281,16 @@ class SectionedPropertyEditorFilter;
 
 class SectionedPropertyEditor : public HBoxContainer {
 
-	GDCLASS(SectionedPropertyEditor, HBoxContainer);
+	OBJ_TYPE(SectionedPropertyEditor, HBoxContainer);
 
 	ObjectID obj;
 
-	Tree *sections;
+	ItemList *sections;
 	SectionedPropertyEditorFilter *filter;
-
-	Map<String, TreeItem *> section_map;
 	PropertyEditor *editor;
 
 	static void _bind_methods();
-	void _section_selected();
+	void _section_selected(int p_which);
 
 public:
 	PropertyEditor *get_property_editor();
@@ -326,7 +307,7 @@ public:
 };
 
 class PropertyValueEvaluator : public ValueEvaluator {
-	GDCLASS(PropertyValueEvaluator, ValueEvaluator);
+	OBJ_TYPE(PropertyValueEvaluator, ValueEvaluator);
 
 	Object *obj;
 	ScriptLanguage *script_language;

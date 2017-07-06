@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_dir_dialog.h"
-
 #include "editor/editor_file_system.h"
 #include "editor/editor_settings.h"
 #include "os/keyboard.h"
@@ -47,7 +46,7 @@ void EditorDirDialog::_update_dir(TreeItem *p_item) {
 
 	List<String> dirs;
 	bool ishidden;
-	bool show_hidden = EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files");
+	bool show_hidden = EditorSettings::get_singleton()->get("file_dialog/show_hidden_files");
 
 	while (p != "") {
 
@@ -76,7 +75,7 @@ void EditorDirDialog::_update_dir(TreeItem *p_item) {
 
 void EditorDirDialog::reload() {
 
-	if (!is_visible_in_tree()) {
+	if (!is_visible()) {
 		must_reload = true;
 		return;
 	}
@@ -106,7 +105,7 @@ void EditorDirDialog::_notification(int p_what) {
 	}
 
 	if (p_what == NOTIFICATION_VISIBILITY_CHANGED) {
-		if (must_reload && is_visible_in_tree()) {
+		if (must_reload && is_visible()) {
 			reload();
 		}
 	}
@@ -215,10 +214,10 @@ void EditorDirDialog::_make_dir_confirm() {
 
 void EditorDirDialog::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_item_collapsed"), &EditorDirDialog::_item_collapsed);
-	ClassDB::bind_method(D_METHOD("_make_dir"), &EditorDirDialog::_make_dir);
-	ClassDB::bind_method(D_METHOD("_make_dir_confirm"), &EditorDirDialog::_make_dir_confirm);
-	ClassDB::bind_method(D_METHOD("reload"), &EditorDirDialog::reload);
+	ObjectTypeDB::bind_method(_MD("_item_collapsed"), &EditorDirDialog::_item_collapsed);
+	ObjectTypeDB::bind_method(_MD("_make_dir"), &EditorDirDialog::_make_dir);
+	ObjectTypeDB::bind_method(_MD("_make_dir_confirm"), &EditorDirDialog::_make_dir_confirm);
+	ObjectTypeDB::bind_method(_MD("reload"), &EditorDirDialog::reload);
 
 	ADD_SIGNAL(MethodInfo("dir_selected", PropertyInfo(Variant::STRING, "dir")));
 }
@@ -232,7 +231,7 @@ EditorDirDialog::EditorDirDialog() {
 
 	tree = memnew(Tree);
 	add_child(tree);
-
+	set_child_rect(tree);
 	tree->connect("item_activated", this, "_ok");
 
 	makedir = add_button(TTR("Create Folder"), OS::get_singleton()->get_swap_ok_cancel() ? true : false, "makedir");
@@ -244,7 +243,7 @@ EditorDirDialog::EditorDirDialog() {
 
 	VBoxContainer *makevb = memnew(VBoxContainer);
 	makedialog->add_child(makevb);
-	//makedialog->set_child_rect(makevb);
+	makedialog->set_child_rect(makevb);
 
 	makedirname = memnew(LineEdit);
 	makevb->add_margin_child(TTR("Name:"), makedirname);

@@ -28,12 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "script_debugger_remote.h"
-
-#include "global_config.h"
+#include "globals.h"
 #include "io/ip.h"
 #include "os/input.h"
 #include "os/os.h"
-
 void ScriptDebuggerRemote::_send_video_memory() {
 
 	List<ResourceUsage> usage;
@@ -65,7 +63,7 @@ Error ScriptDebuggerRemote::connect_to_host(const String &p_host, uint16_t p_por
 	int port = p_port;
 
 	int tries = 3;
-	tcp_client->connect_to_host(ip, port);
+	tcp_client->connect(ip, port);
 
 	while (tries--) {
 
@@ -125,12 +123,12 @@ void ScriptDebuggerRemote::debug(ScriptLanguage *p_script, bool p_can_continue) 
 	//this function is called when there is a debugger break (bug on script)
 	//or when execution is paused from editor
 
-	if (!tcp_client->is_connected_to_host()) {
+	if (!tcp_client->is_connected()) {
 		ERR_EXPLAIN("Script Debugger failed to connect, but being used anyway.");
 		ERR_FAIL();
 	}
 
-	OS::get_singleton()->enable_for_stealing_focus(GlobalConfig::get_singleton()->get("editor_pid"));
+	OS::get_singleton()->enable_for_stealing_focus(Globals::get_singleton()->get("editor_pid"));
 
 	packet_peer_stream->put_var("debug_enter");
 	packet_peer_stream->put_var(2);
@@ -370,7 +368,7 @@ void ScriptDebuggerRemote::_get_output() {
 void ScriptDebuggerRemote::line_poll() {
 
 	//the purpose of this is just processing events every now and then when the script might get too busy
-	//otherwise bugs like infinite loops can't be caught
+	//otherwise bugs like infinite loops cant be catched
 	if (poll_every % 2048 == 0)
 		_poll_events();
 	poll_every++;
@@ -421,7 +419,7 @@ void ScriptDebuggerRemote::_err_handler(void *ud, const char *p_func, const char
 
 	sdr->mutex->lock();
 
-	if (!sdr->locking && sdr->tcp_client->is_connected_to_host()) {
+	if (!sdr->locking && sdr->tcp_client->is_connected()) {
 
 		sdr->errors.push_back(oe);
 	}
@@ -547,8 +545,8 @@ void ScriptDebuggerRemote::_send_object_id(ObjectID p_id) {
 	packet_peer_stream->put_var("message:inspect_object");
 	packet_peer_stream->put_var(props_to_send * 5 + 4);
 	packet_peer_stream->put_var(p_id);
-	packet_peer_stream->put_var(obj->get_class());
-	if (obj->is_class("Resource") || obj->is_class("Node"))
+	packet_peer_stream->put_var(obj->get_type());
+	if (obj->is_type("Resource") || obj->is_type("Node"))
 		packet_peer_stream->put_var(obj->call("get_path"));
 	else
 		packet_peer_stream->put_var("");
@@ -586,7 +584,9 @@ void ScriptDebuggerRemote::_send_object_id(ObjectID p_id) {
 				packet_peer_stream->put_var(E->get().hint);
 				packet_peer_stream->put_var(E->get().hint_string);
 				//only send information that can be sent..
-
+				if (var.get_type() == Variant::IMAGE) {
+					var = Image();
+				}
 				if (var.get_type() >= Variant::DICTIONARY) {
 					var = Array(); //send none for now, may be to big
 				}
@@ -737,7 +737,7 @@ void ScriptDebuggerRemote::_send_profiling_data(bool p_for_frame) {
 		packet_peer_stream->put_var(8 + to_send * 4);
 	}
 
-	packet_peer_stream->put_var(Engine::get_singleton()->get_frames_drawn()); //total frame time
+	packet_peer_stream->put_var(OS::get_singleton()->get_frames_drawn()); //total frame time
 	packet_peer_stream->put_var(frame_time); //total frame time
 	packet_peer_stream->put_var(idle_time); //idle frame time
 	packet_peer_stream->put_var(fixed_time); //fixed frame time
@@ -834,7 +834,7 @@ void ScriptDebuggerRemote::idle_poll() {
 void ScriptDebuggerRemote::send_message(const String &p_message, const Array &p_args) {
 
 	mutex->lock();
-	if (!locking && tcp_client->is_connected_to_host()) {
+	if (!locking && tcp_client->is_connected()) {
 
 		Message msg;
 		msg.message = p_message;
@@ -874,7 +874,7 @@ void ScriptDebuggerRemote::_print_handler(void *p_this, const String &p_string) 
 	}
 
 	sdr->mutex->lock();
-	if (!sdr->locking && sdr->tcp_client->is_connected_to_host()) {
+	if (!sdr->locking && sdr->tcp_client->is_connected()) {
 
 		sdr->output_strings.push_back(s);
 	}
@@ -952,12 +952,12 @@ ScriptDebuggerRemote::ScriptDebuggerRemote() {
 	phl.userdata = this;
 	add_print_handler(&phl);
 	requested_quit = false;
-	performance = GlobalConfig::get_singleton()->get_singleton_object("Performance");
+	performance = Globals::get_singleton()->get_singleton_object("Performance");
 	last_perf_time = 0;
 	poll_every = 0;
 	request_scene_tree = NULL;
 	live_edit_funcs = NULL;
-	max_cps = GLOBAL_DEF("network/debug/max_remote_stdout_chars_per_second", 2048);
+	max_cps = GLOBAL_DEF("debug/max_remote_stdout_chars_per_second", 2048);
 	char_count = 0;
 	msec_count = 0;
 	last_msec = 0;
@@ -967,7 +967,7 @@ ScriptDebuggerRemote::ScriptDebuggerRemote() {
 	eh.userdata = this;
 	add_error_handler(&eh);
 
-	profile_info.resize(CLAMP(int(GlobalConfig::get_singleton()->get("debug/profiler/max_functions")), 128, 65535));
+	profile_info.resize(CLAMP(int(Globals::get_singleton()->get("debug/profiler_max_functions")), 128, 65535));
 	profile_info_ptrs.resize(profile_info.size());
 	profiling = false;
 	max_frame_functions = 16;

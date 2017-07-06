@@ -297,11 +297,11 @@ String ShaderCompilerGLES2::dump_node_code(SL::Node *p_node, int p_level, bool p
 					code = "vec4(" + _mknum(v.normal.x) + ", " + _mknum(v.normal.y) + ", " + _mknum(v.normal.z) + ", " + _mknum(v.d) + ")";
 				} break;
 				case SL::TYPE_MAT2: {
-					Transform2D x = cnode->value;
+					Matrix32 x = cnode->value;
 					code = "mat2( vec2(" + _mknum(x[0][0]) + ", " + _mknum(x[0][1]) + "), vec2(" + _mknum(x[1][0]) + ", " + _mknum(x[1][1]) + "))";
 				} break;
 				case SL::TYPE_MAT3: {
-					Basis x = cnode->value;
+					Matrix3 x = cnode->value;
 					code = "mat3( vec3(" + _mknum(x.get_axis(0).x) + ", " + _mknum(x.get_axis(0).y) + ", " + _mknum(x.get_axis(0).z) + "), vec3(" + _mknum(x.get_axis(1).x) + ", " + _mknum(x.get_axis(1).y) + ", " + _mknum(x.get_axis(1).z) + "), vec3(" + _mknum(x.get_axis(2).x) + ", " + _mknum(x.get_axis(2).y) + ", " + _mknum(x.get_axis(2).z) + "))";
 				} break;
 				case SL::TYPE_MAT4: {
@@ -436,7 +436,7 @@ String ShaderCompilerGLES2::dump_node_code(SL::Node *p_node, int p_level, bool p
 						//create the call to sample the screen, and clamp it
 						uses_texpos = true;
 						code = "get_texpos(" + dump_node_code(onode->arguments[1], p_level) + "";
-						//code="get_texpos(gl_ProjectionMatrixInverse * texture2D( depth_texture, clamp(("+dump_node_code(onode->arguments[1],p_level)+").xy,vec2(0.0),vec2(1.0))*gl_LightSource[5].specular.zw+gl_LightSource[5].specular.xy)";
+						//						code="get_texpos(gl_ProjectionMatrixInverse * texture2D( depth_texture, clamp(("+dump_node_code(onode->arguments[1],p_level)+").xy,vec2(0.0),vec2(1.0))*gl_LightSource[5].specular.zw+gl_LightSource[5].specular.xy)";
 						//code="(texture2D( screen_texture, ("+dump_node_code(onode->arguments[1],p_level)+").xy).rgb";
 						break;
 					} else if (custom_h && callfunc == "cosh_custom") {
@@ -575,16 +575,12 @@ Error ShaderCompilerGLES2::compile_node(SL::ProgramNode *p_program) {
 
 		global_code += uline;
 		if (uniforms) {
-			/*
-			if (uniforms->has(E->key())) {
-				//repeated uniform, error
-				ERR_EXPLAIN("Uniform already exists from other shader: "+String(E->key()));
-				ERR_FAIL_COND_V(uniforms->has(E->key()),ERR_ALREADY_EXISTS);
+			// Check to avoid uniforms with the same name being re-added to avoid overwriting entries
+			if (!uniforms->has(E->key())) {
+				SL::Uniform u = E->get();
+				u.order += ubase;
+				uniforms->insert(E->key(), u);
 			}
-			*/
-			SL::Uniform u = E->get();
-			u.order += ubase;
-			uniforms->insert(E->key(), u);
 		}
 	}
 
@@ -811,8 +807,8 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["VAR1"] = "var1_interp";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["VAR2"] = "var2_interp";
 
-	//mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["SCREEN_POS"]="SCREEN_POS";
-	//mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["SCREEN_SIZE"]="SCREEN_SIZE";
+	//	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["SCREEN_POS"]="SCREEN_POS";
+	//	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["SCREEN_SIZE"]="SCREEN_SIZE";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["INSTANCE_ID"] = "instance_id";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_VERTEX]["TIME"] = "time";
 
@@ -820,7 +816,8 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	//mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["POSITION"]="IN_POSITION";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["NORMAL"] = "normal";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["TANGENT"] = "tangent";
-	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["POSITION"] = "gl_Position";
+	//mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["POSITION"]="gl_Position";
+	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["POSITION"] = "gl_FragCoord";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["BINORMAL"] = "binormal";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["NORMALMAP"] = "normalmap";
 	mode_replace_table[ShaderLanguage::SHADER_MATERIAL_FRAGMENT]["NORMALMAP_DEPTH"] = "normaldepth";
@@ -877,7 +874,7 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_VERTEX]["EXTRA_MATRIX"] = "extra_matrix";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_VERTEX]["TIME"] = "time";
 
-	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["POSITION"] = "gl_Position";
+	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["POSITION"] = "(gl_FragCoord.xy)";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["NORMAL"] = "normal";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["NORMALMAP"] = "normal_map";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["NORMALMAP_DEPTH"] = "normal_depth";
@@ -892,7 +889,7 @@ ShaderCompilerGLES2::ShaderCompilerGLES2() {
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["POINT_COORD"] = "gl_PointCoord";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_FRAGMENT]["TIME"] = "time";
 
-	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_LIGHT]["POSITION"] = "gl_Position";
+	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_LIGHT]["POSITION"] = "(gl_FragCoord.xy)";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_LIGHT]["NORMAL"] = "normal";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_LIGHT]["UV"] = "uv_interp";
 	mode_replace_table[ShaderLanguage::SHADER_CANVAS_ITEM_LIGHT]["COLOR"] = "color";

@@ -35,7 +35,7 @@
 
 class Path : public Spatial {
 
-	GDCLASS(Path, Spatial);
+	OBJ_TYPE(Path, Spatial);
 
 	Ref<Curve3D> curve;
 
@@ -54,7 +54,7 @@ public:
 
 class PathFollow : public Spatial {
 
-	GDCLASS(PathFollow, Spatial);
+	OBJ_TYPE(PathFollow, Spatial);
 
 public:
 	enum RotationMode {

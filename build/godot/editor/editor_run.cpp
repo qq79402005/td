@@ -28,21 +28,18 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "editor_run.h"
-
 #include "editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 
 EditorRun::Status EditorRun::get_status() const {
 
 	return status;
 }
-Error EditorRun::run(const String &p_scene, const String p_custom_args, const List<String> &p_breakpoints) {
+Error EditorRun::run(const String &p_scene, const String p_custom_args, const List<String> &p_breakpoints, const String &p_edited_scene) {
 
 	List<String> args;
 
-	String resource_path = GlobalConfig::get_singleton()->get_resource_path();
-	String remote_host = EditorSettings::get_singleton()->get("network/debug/remote_host");
-	int remote_port = (int)EditorSettings::get_singleton()->get("network/debug/remote_port");
+	String resource_path = Globals::get_singleton()->get_resource_path();
 
 	if (resource_path != "") {
 		args.push_back("-path");
@@ -51,7 +48,13 @@ Error EditorRun::run(const String &p_scene, const String p_custom_args, const Li
 
 	if (true) {
 		args.push_back("-rdebug");
-		args.push_back(remote_host + ":" + String::num(remote_port));
+#ifdef WINDOWS_ENABLED
+		// Avoid failing DNS lookup on disconnected Windows machines.
+		const char *debug_host = "127.0.0.1:";
+#else
+		const char *debug_host = "localhost:";
+#endif
+		args.push_back(debug_host + String::num(GLOBAL_DEF("debug/debug_port", 6007)));
 	}
 
 	args.push_back("-epid");
@@ -65,7 +68,7 @@ Error EditorRun::run(const String &p_scene, const String p_custom_args, const Li
 		args.push_back("-debugnav");
 	}
 
-	int screen = EditorSettings::get_singleton()->get("run/window_placement/screen");
+	int screen = EditorSettings::get_singleton()->get("game_window_placement/screen");
 
 	if (screen == 0) {
 		screen = OS::get_singleton()->get_current_screen();
@@ -74,43 +77,43 @@ Error EditorRun::run(const String &p_scene, const String p_custom_args, const Li
 	}
 
 	Rect2 screen_rect;
-	screen_rect.position = OS::get_singleton()->get_screen_position(screen);
+	screen_rect.pos = OS::get_singleton()->get_screen_position(screen);
 	screen_rect.size = OS::get_singleton()->get_screen_size(screen);
 
 	Size2 desired_size;
 
-	desired_size.x = GlobalConfig::get_singleton()->get("display/window/width");
-	desired_size.y = GlobalConfig::get_singleton()->get("display/window/height");
+	desired_size.x = Globals::get_singleton()->get("display/width");
+	desired_size.y = Globals::get_singleton()->get("display/height");
 
 	Size2 test_size;
-	test_size.x = GlobalConfig::get_singleton()->get("display/window/test_width");
-	test_size.y = GlobalConfig::get_singleton()->get("display/window/test_height");
+	test_size.x = Globals::get_singleton()->get("display/test_width");
+	test_size.y = Globals::get_singleton()->get("display/test_height");
 	if (test_size.x > 0 && test_size.y > 0) {
 
 		desired_size = test_size;
 	}
 
-	int window_placement = EditorSettings::get_singleton()->get("run/window_placement/rect");
+	int window_placement = EditorSettings::get_singleton()->get("game_window_placement/rect");
 
 	switch (window_placement) {
 		case 0: { // default
 
 			args.push_back("-p");
-			args.push_back(itos(screen_rect.position.x) + "x" + itos(screen_rect.position.y));
+			args.push_back(itos(screen_rect.pos.x) + "x" + itos(screen_rect.pos.y));
 		} break;
 		case 1: { // centered
-			Vector2 pos = screen_rect.position + ((screen_rect.size - desired_size) / 2).floor();
+			Vector2 pos = screen_rect.pos + ((screen_rect.size - desired_size) / 2).floor();
 			args.push_back("-p");
 			args.push_back(itos(pos.x) + "x" + itos(pos.y));
 		} break;
 		case 2: { // custom pos
-			Vector2 pos = EditorSettings::get_singleton()->get("run/window_placement/rect_custom_position");
-			pos += screen_rect.position;
+			Vector2 pos = EditorSettings::get_singleton()->get("game_window_placement/rect_custom_position");
+			pos += screen_rect.pos;
 			args.push_back("-p");
 			args.push_back(itos(pos.x) + "x" + itos(pos.y));
 		} break;
 		case 3: { // force maximized
-			Vector2 pos = screen_rect.position;
+			Vector2 pos = screen_rect.pos;
 			args.push_back("-p");
 			args.push_back(itos(pos.x) + "x" + itos(pos.y));
 			args.push_back("-mx");
@@ -118,7 +121,7 @@ Error EditorRun::run(const String &p_scene, const String p_custom_args, const Li
 		} break;
 		case 4: { // force fullscreen
 
-			Vector2 pos = screen_rect.position;
+			Vector2 pos = screen_rect.pos;
 			args.push_back("-p");
 			args.push_back(itos(pos.x) + "x" + itos(pos.y));
 			args.push_back("-f");
@@ -139,14 +142,10 @@ Error EditorRun::run(const String &p_scene, const String p_custom_args, const Li
 		args.push_back(bpoints);
 	}
 
-	if (p_scene != "") {
-		args.push_back(p_scene);
-	}
-
 	if (p_custom_args != "") {
 		Vector<String> cargs = p_custom_args.split(" ", false);
 		for (int i = 0; i < cargs.size(); i++) {
-			args.push_back(cargs[i].replace(" ", "%20"));
+			args.push_back(cargs[i].replace("$scene", p_scene).replace(" ", "%20"));
 		}
 	}
 

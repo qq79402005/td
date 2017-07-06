@@ -42,7 +42,7 @@ class EditorPlugin;
 
 class EditorSettings : public Resource {
 
-	GDCLASS(EditorSettings, Resource);
+	OBJ_TYPE(EditorSettings, Resource);
 
 private:
 	_THREAD_SAFE_CLASS_
@@ -159,17 +159,12 @@ public:
 	bool save_text_editor_theme();
 	bool save_text_editor_theme_as(String p_file);
 
-	Vector<String> get_script_templates(const String &p_extension);
-
 	void add_shortcut(const String &p_name, Ref<ShortCut> &p_shortcut);
-	bool is_shortcut(const String &p_name, const Ref<InputEvent> &p_event) const;
+	bool is_shortcut(const String &p_name, const InputEvent &p_event) const;
 	Ref<ShortCut> get_shortcut(const String &p_name) const;
 	void get_shortcut_list(List<String> *r_shortcuts);
 
 	void set_optimize_save(bool p_optimize);
-
-	Variant get_project_metadata(const String &p_section, const String &p_key, Variant p_default);
-	void set_project_metadata(const String &p_section, const String &p_key, Variant p_data);
 
 	EditorSettings();
 	~EditorSettings();

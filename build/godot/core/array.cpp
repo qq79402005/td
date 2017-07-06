@@ -28,7 +28,6 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "array.h"
-
 #include "hashfuncs.h"
 #include "object.h"
 #include "variant.h"
@@ -38,6 +37,7 @@ struct ArrayPrivate {
 
 	SafeRefCount refcount;
 	Vector<Variant> array;
+	bool shared;
 };
 
 void Array::_ref(const Array &p_from) const {
@@ -55,7 +55,20 @@ void Array::_ref(const Array &p_from) const {
 
 	_unref();
 
-	_p = p_from._p;
+	if (_fp->shared) {
+
+		_p = p_from._p;
+
+	} else {
+
+		_p = memnew(ArrayPrivate);
+		_p->shared = false;
+		_p->refcount.init();
+		_p->array = _fp->array;
+
+		if (_fp->refcount.unref())
+			memdelete(_fp);
+	}
 }
 
 void Array::_unref() const {
@@ -90,6 +103,11 @@ bool Array::empty() const {
 void Array::clear() {
 
 	_p->array.clear();
+}
+
+bool Array::is_shared() const {
+
+	return _p->shared;
 }
 
 bool Array::operator==(const Array &p_array) const {
@@ -262,25 +280,15 @@ void Array::push_front(const Variant &p_value) {
 	_p->array.insert(0, p_value);
 }
 
-Variant Array::pop_back() {
+void Array::pop_back() {
 
-	if (!_p->array.empty()) {
-		int n = _p->array.size() - 1;
-		Variant ret = _p->array.get(n);
-		_p->array.resize(n);
-		return ret;
-	}
-	return Variant();
+	if (!_p->array.empty())
+		_p->array.resize(_p->array.size() - 1);
 }
+void Array::pop_front() {
 
-Variant Array::pop_front() {
-
-	if (!_p->array.empty()) {
-		Variant ret = _p->array.get(0);
+	if (!_p->array.empty())
 		_p->array.remove(0);
-		return ret;
-	}
-	return Variant();
 }
 
 Array::Array(const Array &p_from) {
@@ -288,10 +296,11 @@ Array::Array(const Array &p_from) {
 	_p = NULL;
 	_ref(p_from);
 }
-Array::Array() {
+Array::Array(bool p_shared) {
 
 	_p = memnew(ArrayPrivate);
 	_p->refcount.init();
+	_p->shared = p_shared;
 }
 Array::~Array() {
 

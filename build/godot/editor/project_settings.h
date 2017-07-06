@@ -41,21 +41,13 @@
 //#include "project_export_settings.h"
 
 class ProjectSettings : public AcceptDialog {
-	GDCLASS(ProjectSettings, AcceptDialog);
-
-	enum InputType {
-		INPUT_KEY,
-		INPUT_JOY_BUTTON,
-		INPUT_JOY_MOTION,
-		INPUT_MOUSE_BUTTON
-	};
+	OBJ_TYPE(ProjectSettings, AcceptDialog);
 
 	TabContainer *tab_container;
 
 	Timer *timer;
-	InputType add_type;
+	InputEvent::Type add_type;
 	String add_at;
-	int edit_idx;
 
 	EditorData *data;
 	UndoRedo *undo_redo;
@@ -85,7 +77,7 @@ class ProjectSettings : public AcceptDialog {
 	bool setting;
 	bool updating_translations;
 
-	Ref<InputEventKey> last_wait_for_key;
+	InputEvent last_wait_for_key;
 
 	EditorFileDialog *translation_file_open;
 	Tree *translation_list;
@@ -106,8 +98,7 @@ class ProjectSettings : public AcceptDialog {
 	void _item_del();
 	void _update_actions();
 	void _save();
-	void _add_item(int p_item, Ref<InputEvent> p_exiting_event = NULL);
-	void _edit_item(Ref<InputEvent> p_exiting_event);
+	void _add_item(int p_item);
 
 	void _action_adds(String);
 	void _action_add();
@@ -116,11 +107,10 @@ class ProjectSettings : public AcceptDialog {
 	void _item_checked(const String &p_item, bool p_check);
 	void _action_selected();
 	void _action_edited();
-	void _action_activated();
 	void _action_button_pressed(Object *p_obj, int p_column, int p_id);
-	void _wait_for_key(const Ref<InputEvent> &p_event);
+	void _wait_for_key(const InputEvent &p_event);
 	void _press_a_key_confirm();
-	void _show_last_added(const Ref<InputEvent> &p_event, const String &p_name);
+	void _show_last_added(const InputEvent &p_event, const String &p_name);
 
 	void _settings_prop_edited(const String &p_name);
 	void _settings_changed();

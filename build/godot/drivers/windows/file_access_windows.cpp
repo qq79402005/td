@@ -115,16 +115,7 @@ void FileAccessWindows::close() {
 		//int rename_error = _wrename((save_path+".tmp").c_str(),save_path.c_str());
 
 		bool rename_error;
-
-#ifdef UWP_ENABLED
-		// UWP has no PathFileExists, so we check attributes instead
-		DWORD fileAttr;
-
-		fileAttr = GetFileAttributesW(save_path.c_str());
-		if (INVALID_FILE_ATTRIBUTES == fileAttr) {
-#else
 		if (!PathFileExistsW(save_path.c_str())) {
-#endif
 			//creating new file
 			rename_error = _wrename((save_path + ".tmp").c_str(), save_path.c_str()) != 0;
 		} else {

@@ -20,7 +20,6 @@ flags = {
     'p': False,
     'o': True,
     'i': False,
-    'a': True,
 }
 flag_descriptions = {
     'c': 'Toggle colors when outputting.',
@@ -32,7 +31,6 @@ flag_descriptions = {
     'p': 'Toggle showing percentage as well as counts.',
     'o': 'Toggle overall column.',
     'i': 'Toggle collapse of class items columns.',
-    'a': 'Toggle showing all items.',
 }
 long_flags = {
     'colors': 'c',
@@ -60,8 +58,6 @@ long_flags = {
 
     'items': 'i',
     'collapse': 'i',
-
-    'all': 'a',
 }
 table_columns = ['name', 'brief_description', 'description', 'methods', 'constants', 'members', 'signals']
 table_column_names = ['Name', 'Brief Desc.', 'Desc.', 'Methods', 'Constants', 'Members', 'Signals']
@@ -206,7 +202,7 @@ class ClassStatus:
         output['overall'] = (description_progress + items_progress).to_colored_string('{percent}%', '{pad_percent}{s}')
 
         if self.name.startswith('Total'):
-            output['url'] = color('url', 'http://docs.godotengine.org/en/latest/classes/')
+            output['url'] = color('url', 'http://docs.godotengine.org/en/latest/classes/_classes.html')
             if flags['s']:
                 output['comment'] = color('part_good', 'ALL OK')
         else:
@@ -358,11 +354,12 @@ for cn in input_class_list:
     validate_tag(c, 'class')
     status = ClassStatus.generate_for_class(c)
 
-    total_status = total_status + status
-
-    if (flags['b'] and status.is_ok()) or (flags['g'] and not status.is_ok()) or (not flags['a']):
+    if flags['b'] and status.is_ok():
+        continue
+    if flags['g'] and not status.is_ok():
         continue
 
+    total_status = total_status + status
     out = status.make_output()
     row = []
     for column in table_columns:
@@ -381,11 +378,11 @@ for cn in input_class_list:
 #                              Print output table                              #
 ################################################################################
 
-if len(table) == 1 and flags['a']:
+if len(table) == 1:
     print(color('part_big_problem', 'No classes suitable for printing!'))
     sys.exit(0)
 
-if len(table) > 2 or not flags['a']:
+if len(table) > 2:
     total_status.name = 'Total = {0}'.format(len(table) - 1)
     out = total_status.make_output()
     row = []

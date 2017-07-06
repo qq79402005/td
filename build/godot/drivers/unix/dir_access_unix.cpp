@@ -45,19 +45,19 @@ DirAccess *DirAccessUnix::create_fs() {
 	return memnew(DirAccessUnix);
 }
 
-Error DirAccessUnix::list_dir_begin() {
+bool DirAccessUnix::list_dir_begin() {
 
 	list_dir_end(); //close any previous dir opening!
 
-	//char real_current_dir_name[2048]; //is this enough?!
+	//	char real_current_dir_name[2048]; //is this enough?!
 	//getcwd(real_current_dir_name,2048);
 	//chdir(curent_path.utf8().get_data());
 	dir_stream = opendir(current_dir.utf8().get_data());
 	//chdir(real_current_dir_name);
 	if (!dir_stream)
-		return ERR_CANT_OPEN; //error!
+		return true; //error!
 
-	return OK;
+	return false;
 }
 
 bool DirAccessUnix::file_exists(String p_file) {

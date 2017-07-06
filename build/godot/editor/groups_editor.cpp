@@ -33,7 +33,6 @@
 #include "scene/gui/box_container.h"
 #include "scene/gui/label.h"
 #include "scene/resources/packed_scene.h"
-
 void GroupsEditor::_add_group(const String &p_group) {
 
 	if (!node)
@@ -147,9 +146,9 @@ void GroupsEditor::set_current(Node *p_node) {
 
 void GroupsEditor::_bind_methods() {
 
-	ClassDB::bind_method("_add_group", &GroupsEditor::_add_group);
-	ClassDB::bind_method("_remove_group", &GroupsEditor::_remove_group);
-	ClassDB::bind_method("update_tree", &GroupsEditor::update_tree);
+	ObjectTypeDB::bind_method("_add_group", &GroupsEditor::_add_group);
+	ObjectTypeDB::bind_method("_remove_group", &GroupsEditor::_remove_group);
+	ObjectTypeDB::bind_method("update_tree", &GroupsEditor::update_tree);
 }
 
 GroupsEditor::GroupsEditor() {

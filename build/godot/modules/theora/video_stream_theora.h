@@ -44,7 +44,7 @@
 
 class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 
-	GDCLASS(VideoStreamPlaybackTheora, VideoStreamPlayback);
+	OBJ_TYPE(VideoStreamPlaybackTheora, VideoStreamPlayback);
 
 	enum {
 		MAX_FRAMES = 4,
@@ -52,7 +52,7 @@ class VideoStreamPlaybackTheora : public VideoStreamPlayback {
 
 	//Image frames[MAX_FRAMES];
 	Image::Format format;
-	PoolVector<uint8_t> frame_data;
+	DVector<uint8_t> frame_data;
 	int frames_pending;
 	FileAccess *file;
 	String file_name;
@@ -160,7 +160,7 @@ public:
 
 class VideoStreamTheora : public VideoStream {
 
-	GDCLASS(VideoStreamTheora, VideoStream);
+	OBJ_TYPE(VideoStreamTheora, VideoStream);
 
 	String file;
 	int audio_track;

@@ -37,12 +37,12 @@ void Navigation2D::_navpoly_link(int p_id) {
 	NavMesh &nm = navpoly_map[p_id];
 	ERR_FAIL_COND(nm.linked);
 
-	PoolVector<Vector2> vertices = nm.navpoly->get_vertices();
+	DVector<Vector2> vertices = nm.navpoly->get_vertices();
 	int len = vertices.size();
 	if (len == 0)
 		return;
 
-	PoolVector<Vector2>::Read r = vertices.read();
+	DVector<Vector2>::Read r = vertices.read();
 
 	for (int i = 0; i < nm.navpoly->get_polygon_count(); i++) {
 
@@ -205,7 +205,7 @@ void Navigation2D::_navpoly_unlink(int p_id) {
 	nm.linked = false;
 }
 
-int Navigation2D::navpoly_create(const Ref<NavigationPolygon> &p_mesh, const Transform2D &p_xform, Object *p_owner) {
+int Navigation2D::navpoly_create(const Ref<NavigationPolygon> &p_mesh, const Matrix32 &p_xform, Object *p_owner) {
 
 	int id = last_id++;
 	NavMesh nm;
@@ -220,7 +220,7 @@ int Navigation2D::navpoly_create(const Ref<NavigationPolygon> &p_mesh, const Tra
 	return id;
 }
 
-void Navigation2D::navpoly_set_transform(int p_id, const Transform2D &p_xform) {
+void Navigation2D::navpoly_set_transform(int p_id, const Matrix32 &p_xform) {
 
 	ERR_FAIL_COND(!navpoly_map.has(p_id));
 	NavMesh &nm = navpoly_map[p_id];
@@ -414,7 +414,7 @@ Vector<Vector2> Navigation2D::get_simple_path(const Vector2 &p_start, const Vect
 	while (!found_route) {
 
 		if (open_list.size() == 0) {
-			//print_line("NOU OPEN LIST");
+			//	print_line("NOU OPEN LIST");
 			break;
 		}
 		//check open list
@@ -763,13 +763,13 @@ Object *Navigation2D::get_closest_point_owner(const Vector2 &p_point) {
 
 void Navigation2D::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("navpoly_create", "mesh:NavigationPolygon", "xform", "owner"), &Navigation2D::navpoly_create, DEFVAL(Variant()));
-	ClassDB::bind_method(D_METHOD("navpoly_set_transform", "id", "xform"), &Navigation2D::navpoly_set_transform);
-	ClassDB::bind_method(D_METHOD("navpoly_remove", "id"), &Navigation2D::navpoly_remove);
+	ObjectTypeDB::bind_method(_MD("navpoly_create", "mesh:NavigationPolygon", "xform", "owner"), &Navigation2D::navpoly_create, DEFVAL(Variant()));
+	ObjectTypeDB::bind_method(_MD("navpoly_set_transform", "id", "xform"), &Navigation2D::navpoly_set_transform);
+	ObjectTypeDB::bind_method(_MD("navpoly_remove", "id"), &Navigation2D::navpoly_remove);
 
-	ClassDB::bind_method(D_METHOD("get_simple_path", "start", "end", "optimize"), &Navigation2D::get_simple_path, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("get_closest_point", "to_point"), &Navigation2D::get_closest_point);
-	ClassDB::bind_method(D_METHOD("get_closest_point_owner", "to_point"), &Navigation2D::get_closest_point_owner);
+	ObjectTypeDB::bind_method(_MD("get_simple_path", "start", "end", "optimize"), &Navigation2D::get_simple_path, DEFVAL(true));
+	ObjectTypeDB::bind_method(_MD("get_closest_point", "to_point"), &Navigation2D::get_closest_point);
+	ObjectTypeDB::bind_method(_MD("get_closest_point_owner", "to_point"), &Navigation2D::get_closest_point_owner);
 }
 
 Navigation2D::Navigation2D() {

@@ -36,9 +36,9 @@
 
 class PhysicsBody : public CollisionObject {
 
-	GDCLASS(PhysicsBody, CollisionObject);
+	OBJ_TYPE(PhysicsBody, CollisionObject);
 
-	uint32_t collision_layer;
+	uint32_t layer_mask;
 	uint32_t collision_mask;
 
 	void _set_layers(uint32_t p_mask);
@@ -54,14 +54,14 @@ public:
 	virtual Vector3 get_angular_velocity() const;
 	virtual float get_inverse_mass() const;
 
-	void set_collision_layer(uint32_t p_layer);
-	uint32_t get_collision_layer() const;
+	void set_layer_mask(uint32_t p_mask);
+	uint32_t get_layer_mask() const;
 
 	void set_collision_mask(uint32_t p_mask);
 	uint32_t get_collision_mask() const;
 
-	void set_collision_layer_bit(int p_bit, bool p_value);
-	bool get_collision_layer_bit(int p_bit) const;
+	void set_layer_mask_bit(int p_bit, bool p_value);
+	bool get_layer_mask_bit(int p_bit) const;
 
 	void set_collision_mask_bit(int p_bit, bool p_value);
 	bool get_collision_mask_bit(int p_bit) const;
@@ -74,7 +74,7 @@ public:
 
 class StaticBody : public PhysicsBody {
 
-	GDCLASS(StaticBody, PhysicsBody);
+	OBJ_TYPE(StaticBody, PhysicsBody);
 
 	Vector3 constant_linear_velocity;
 	Vector3 constant_angular_velocity;
@@ -104,7 +104,7 @@ public:
 
 class RigidBody : public PhysicsBody {
 
-	GDCLASS(RigidBody, PhysicsBody);
+	OBJ_TYPE(RigidBody, PhysicsBody);
 
 public:
 	enum Mode {
@@ -261,7 +261,7 @@ VARIANT_ENUM_CAST(RigidBody::AxisLock);
 
 class KinematicBody : public PhysicsBody {
 
-	GDCLASS(KinematicBody, PhysicsBody);
+	OBJ_TYPE(KinematicBody, PhysicsBody);
 
 	float margin;
 	bool collide_static;
@@ -275,13 +275,6 @@ class KinematicBody : public PhysicsBody {
 	Vector3 collider_vel;
 	ObjectID collider;
 	int collider_shape;
-	Vector3 travel;
-
-	Vector3 move_and_slide_floor_velocity;
-	bool move_and_slide_on_floor;
-	bool move_and_slide_on_ceiling;
-	bool move_and_slide_on_wall;
-	Array move_and_slide_colliders;
 
 	Variant _get_collider() const;
 
@@ -302,10 +295,6 @@ public:
 
 	bool can_teleport_to(const Vector3 &p_position);
 	bool is_colliding() const;
-
-	Vector3 get_travel() const; // Set by move and others. Consider unreliable except immediately after a move call.
-	void revert_motion();
-
 	Vector3 get_collision_pos() const;
 	Vector3 get_collision_normal() const;
 	Vector3 get_collider_velocity() const;
@@ -326,12 +315,6 @@ public:
 
 	void set_collision_margin(float p_margin);
 	float get_collision_margin() const;
-
-	Vector3 move_and_slide(const Vector3 &p_linear_velocity, const Vector3 &p_floor_direction = Vector3(0, 0, 0), const Vector3 &p_ceil_direction = Vector3(0, 0, 0), float p_slope_stop_min_velocity = 5, int p_max_bounces = 4, float p_floor_max_angle = Math::deg2rad((float)45), float p_ceil_max_angle = Math::deg2rad((float)45));
-	bool is_move_and_slide_on_floor() const;
-	bool is_move_and_slide_on_wall() const;
-	bool is_move_and_slide_on_ceiling() const;
-	Array get_move_and_slide_colliders() const;
 
 	KinematicBody();
 	~KinematicBody();

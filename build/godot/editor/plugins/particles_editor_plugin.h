@@ -41,7 +41,7 @@
 
 class ParticlesEditor : public Control {
 
-	GDCLASS(ParticlesEditor, Control);
+	OBJ_TYPE(ParticlesEditor, Control);
 
 	Panel *panel;
 	MenuButton *options;
@@ -57,9 +57,6 @@ class ParticlesEditor : public Control {
 	SpinBox *emission_amount;
 	OptionButton *emission_fill;
 
-	ConfirmationDialog *generate_aabb;
-	SpinBox *generate_seconds;
-
 	enum Menu {
 
 		MENU_OPTION_GENERATE_AABB,
@@ -69,9 +66,8 @@ class ParticlesEditor : public Control {
 
 	};
 
-	PoolVector<Face3> geometry;
+	DVector<Face3> geometry;
 
-	void _generate_aabb();
 	void _generate_emission_points();
 	void _resource_seleted(const String &p_res);
 	void _node_selected(const NodePath &p_path);
@@ -94,7 +90,7 @@ public:
 
 class ParticlesEditorPlugin : public EditorPlugin {
 
-	GDCLASS(ParticlesEditorPlugin, EditorPlugin);
+	OBJ_TYPE(ParticlesEditorPlugin, EditorPlugin);
 
 	ParticlesEditor *particles_editor;
 	EditorNode *editor;

@@ -28,11 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "settings_config_dialog.h"
-
 #include "editor_file_system.h"
 #include "editor_node.h"
 #include "editor_settings.h"
-#include "global_config.h"
+#include "globals.h"
 #include "os/keyboard.h"
 #include "scene/gui/margin_container.h"
 
@@ -56,7 +55,7 @@ void EditorSettingsDialog::_settings_property_edited(const String &p_name) {
 
 	// Small usability workaround to update the text color settings when the
 	// color theme is changed
-	if (full_name == "text_editor/theme/color_theme") {
+	if (full_name == "text_editor/color_theme") {
 		property_editor->get_property_editor()->update_tree();
 	}
 }
@@ -89,13 +88,7 @@ void EditorSettingsDialog::popup_edit_settings() {
 	search_box->grab_focus();
 
 	_update_shortcuts();
-
-	// Restore valid window bounds or pop up at default size.
-	if (EditorSettings::get_singleton()->has("interface/dialogs/editor_settings_bounds")) {
-		popup(EditorSettings::get_singleton()->get("interface/dialogs/editor_settings_bounds"));
-	} else {
-		popup_centered_ratio(0.7);
-	}
+	popup_centered_ratio(0.7);
 }
 
 void EditorSettingsDialog::_clear_search_box() {
@@ -121,14 +114,10 @@ void EditorSettingsDialog::_filter_shortcuts(const String &p_filter) {
 
 void EditorSettingsDialog::_notification(int p_what) {
 
-	switch (p_what) {
-		case NOTIFICATION_ENTER_TREE: {
-			clear_button->set_icon(get_icon("Close", "EditorIcons"));
-			shortcut_clear_button->set_icon(get_icon("Close", "EditorIcons"));
-		} break;
-		case NOTIFICATION_POPUP_HIDE: {
-			EditorSettings::get_singleton()->set("interface/dialogs/editor_settings_bounds", get_rect());
-		} break;
+	if (p_what == NOTIFICATION_ENTER_TREE) {
+
+		clear_button->set_icon(get_icon("Close", "EditorIcons"));
+		shortcut_clear_button->set_icon(get_icon("Close", "EditorIcons"));
 	}
 }
 
@@ -148,7 +137,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 		if (!sc->has_meta("original"))
 			continue;
 
-		Ref<InputEvent> original = sc->get_meta("original");
+		InputEvent original = sc->get_meta("original");
 
 		String section_name = E->get().get_slice("/", 0);
 
@@ -170,7 +159,7 @@ void EditorSettingsDialog::_update_shortcuts() {
 
 			item->set_text(0, sc->get_name());
 			item->set_text(1, sc->get_as_text());
-			if (!sc->is_shortcut(original) && !(sc->get_shortcut().is_null() && original.is_null())) {
+			if (!sc->is_shortcut(original) && !(sc->get_shortcut().type == InputEvent::NONE && original.type == InputEvent::NONE)) {
 				item->add_button(1, get_icon("Reload", "EditorIcons"), 2);
 			}
 			item->add_button(1, get_icon("Edit", "EditorIcons"), 0);
@@ -199,7 +188,7 @@ void EditorSettingsDialog::_shortcut_button_pressed(Object *p_item, int p_column
 
 	if (p_idx == 0) {
 		press_a_key_label->set_text(TTR("Press a Key.."));
-		last_wait_for_key = Ref<InputEventKey>();
+		last_wait_for_key = InputEvent();
 		press_a_key->popup_centered(Size2(250, 80) * EDSCALE);
 		press_a_key->grab_focus();
 		press_a_key->get_ok()->set_focus_mode(FOCUS_NONE);
@@ -212,7 +201,7 @@ void EditorSettingsDialog::_shortcut_button_pressed(Object *p_item, int p_column
 
 		UndoRedo *ur = EditorNode::get_singleton()->get_undo_redo();
 		ur->create_action("Erase Shortcut");
-		ur->add_do_method(sc.ptr(), "set_shortcut", Ref<InputEvent>());
+		ur->add_do_method(sc.ptr(), "set_shortcut", InputEvent());
 		ur->add_undo_method(sc.ptr(), "set_shortcut", sc->get_shortcut());
 		ur->add_do_method(this, "_update_shortcuts");
 		ur->add_undo_method(this, "_update_shortcuts");
@@ -223,7 +212,7 @@ void EditorSettingsDialog::_shortcut_button_pressed(Object *p_item, int p_column
 		if (!sc.is_valid())
 			return; //pointless, there is nothing
 
-		Ref<InputEvent> original = sc->get_meta("original");
+		InputEvent original = sc->get_meta("original");
 
 		UndoRedo *ur = EditorNode::get_singleton()->get_undo_redo();
 		ur->create_action("Restore Shortcut");
@@ -237,21 +226,19 @@ void EditorSettingsDialog::_shortcut_button_pressed(Object *p_item, int p_column
 	}
 }
 
-void EditorSettingsDialog::_wait_for_key(const Ref<InputEvent> &p_event) {
+void EditorSettingsDialog::_wait_for_key(const InputEvent &p_event) {
 
-	Ref<InputEventKey> k = p_event;
+	if (p_event.type == InputEvent::KEY && p_event.key.pressed && p_event.key.scancode != 0) {
 
-	if (k.is_valid() && k->is_pressed() && k->get_scancode() != 0) {
-
-		last_wait_for_key = k;
-		String str = keycode_get_string(k->get_scancode()).capitalize();
-		if (k->get_metakey())
+		last_wait_for_key = p_event;
+		String str = keycode_get_string(p_event.key.scancode).capitalize();
+		if (p_event.key.mod.meta)
 			str = TTR("Meta+") + str;
-		if (k->get_shift())
+		if (p_event.key.mod.shift)
 			str = TTR("Shift+") + str;
-		if (k->get_alt())
+		if (p_event.key.mod.alt)
 			str = TTR("Alt+") + str;
-		if (k->get_control())
+		if (p_event.key.mod.control)
 			str = TTR("Control+") + str;
 
 		press_a_key_label->set_text(str);
@@ -261,16 +248,13 @@ void EditorSettingsDialog::_wait_for_key(const Ref<InputEvent> &p_event) {
 
 void EditorSettingsDialog::_press_a_key_confirm() {
 
-	if (last_wait_for_key.is_null())
+	if (last_wait_for_key.type != InputEvent::KEY)
 		return;
 
-	Ref<InputEventKey> ie;
-	ie.instance();
-	ie->set_scancode(last_wait_for_key->get_scancode());
-	ie->set_shift(last_wait_for_key->get_shift());
-	ie->set_control(last_wait_for_key->get_control());
-	ie->set_alt(last_wait_for_key->get_alt());
-	ie->set_metakey(last_wait_for_key->get_metakey());
+	InputEvent ie;
+	ie.type = InputEvent::KEY;
+	ie.key.scancode = last_wait_for_key.key.scancode;
+	ie.key.mod = last_wait_for_key.key.mod;
 
 	Ref<ShortCut> sc = EditorSettings::get_singleton()->get_shortcut(shortcut_configured);
 
@@ -287,27 +271,25 @@ void EditorSettingsDialog::_press_a_key_confirm() {
 
 void EditorSettingsDialog::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_settings_save"), &EditorSettingsDialog::_settings_save);
-	ClassDB::bind_method(D_METHOD("_settings_changed"), &EditorSettingsDialog::_settings_changed);
-	ClassDB::bind_method(D_METHOD("_settings_property_edited"), &EditorSettingsDialog::_settings_property_edited);
-	ClassDB::bind_method(D_METHOD("_clear_search_box"), &EditorSettingsDialog::_clear_search_box);
-	ClassDB::bind_method(D_METHOD("_clear_shortcut_search_box"), &EditorSettingsDialog::_clear_shortcut_search_box);
-	ClassDB::bind_method(D_METHOD("_shortcut_button_pressed"), &EditorSettingsDialog::_shortcut_button_pressed);
-	ClassDB::bind_method(D_METHOD("_filter_shortcuts"), &EditorSettingsDialog::_filter_shortcuts);
-	ClassDB::bind_method(D_METHOD("_update_shortcuts"), &EditorSettingsDialog::_update_shortcuts);
-	ClassDB::bind_method(D_METHOD("_press_a_key_confirm"), &EditorSettingsDialog::_press_a_key_confirm);
-	ClassDB::bind_method(D_METHOD("_wait_for_key"), &EditorSettingsDialog::_wait_for_key);
+	ObjectTypeDB::bind_method(_MD("_settings_save"), &EditorSettingsDialog::_settings_save);
+	ObjectTypeDB::bind_method(_MD("_settings_changed"), &EditorSettingsDialog::_settings_changed);
+	ObjectTypeDB::bind_method(_MD("_settings_property_edited"), &EditorSettingsDialog::_settings_property_edited);
+	ObjectTypeDB::bind_method(_MD("_clear_search_box"), &EditorSettingsDialog::_clear_search_box);
+	ObjectTypeDB::bind_method(_MD("_clear_shortcut_search_box"), &EditorSettingsDialog::_clear_shortcut_search_box);
+	ObjectTypeDB::bind_method(_MD("_shortcut_button_pressed"), &EditorSettingsDialog::_shortcut_button_pressed);
+	ObjectTypeDB::bind_method(_MD("_filter_shortcuts"), &EditorSettingsDialog::_filter_shortcuts);
+	ObjectTypeDB::bind_method(_MD("_update_shortcuts"), &EditorSettingsDialog::_update_shortcuts);
+	ObjectTypeDB::bind_method(_MD("_press_a_key_confirm"), &EditorSettingsDialog::_press_a_key_confirm);
+	ObjectTypeDB::bind_method(_MD("_wait_for_key"), &EditorSettingsDialog::_wait_for_key);
 }
 
 EditorSettingsDialog::EditorSettingsDialog() {
 
 	set_title(TTR("Editor Settings"));
-	set_resizable(true);
 
 	tabs = memnew(TabContainer);
-	tabs->set_tab_align(TabContainer::ALIGN_LEFT);
 	add_child(tabs);
-	//set_child_rect(tabs);
+	set_child_rect(tabs);
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	tabs->add_child(vbc);
@@ -380,8 +362,12 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	l->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_BEGIN, 30);
 	press_a_key_label = l;
 	press_a_key->add_child(l);
-	press_a_key->connect("gui_input", this, "_wait_for_key");
+	press_a_key->connect("input_event", this, "_wait_for_key");
 	press_a_key->connect("confirmed", this, "_press_a_key_confirm");
+	//Button *load = memnew( Button );
+
+	//load->set_text("Load..");
+	//hbc->add_child(load);
 
 	//get_ok()->set_text("Apply");
 	set_hide_on_ok(true);

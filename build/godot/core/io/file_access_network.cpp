@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 #include "file_access_network.h"
-#include "global_config.h"
+#include "globals.h"
 #include "io/ip.h"
 #include "marshalls.h"
 #include "os/os.h"
@@ -189,7 +189,7 @@ Error FileAccessNetworkClient::connect(const String &p_host, int p_port, const S
 	}
 
 	DEBUG_PRINT("IP: " + String(ip) + " port " + itos(p_port));
-	Error err = client->connect_to_host(ip, p_port);
+	Error err = client->connect(ip, p_port);
 	ERR_FAIL_COND_V(err, err);
 	while (client->get_status() == StreamPeerTCP::STATUS_CONNECTING) {
 		//DEBUG_PRINT("trying to connect....");
@@ -299,7 +299,7 @@ Error FileAccessNetwork::_open(const String &p_path, int p_mode_flags) {
 	last_page = -1;
 	last_page_buff = NULL;
 
-	//buffers.clear();
+	//	buffers.clear();
 	nc->unlock_mutex();
 	DEBUG_PRINT("OPEN POST");
 	DEBUG_TIME("open_post");
@@ -404,7 +404,7 @@ int FileAccessNetwork::get_buffer(uint8_t *p_dst, int p_length) const {
 		p_length = total_size - pos;
 	}
 
-	//FileAccessNetworkClient *nc = FileAccessNetworkClient::singleton;
+	//	FileAccessNetworkClient *nc = FileAccessNetworkClient::singleton;
 
 	uint8_t *buff = last_page_buff;
 
@@ -493,13 +493,6 @@ uint64_t FileAccessNetwork::_get_modified_time(const String &p_file) {
 	return exists_modtime;
 }
 
-void FileAccessNetwork::configure() {
-
-	GLOBAL_DEF("network/remote_fs/page_size", 65536);
-	GLOBAL_DEF("network/remote_fs/page_read_ahead", 4);
-	GLOBAL_DEF("network/remote_fs/max_pages", 20);
-}
-
 FileAccessNetwork::FileAccessNetwork() {
 
 	eof_flag = false;
@@ -513,9 +506,9 @@ FileAccessNetwork::FileAccessNetwork() {
 	id = nc->last_id++;
 	nc->accesses[id] = this;
 	nc->unlock_mutex();
-	page_size = GLOBAL_GET("network/remote_fs/page_size");
-	read_ahead = GLOBAL_GET("network/remote_fs/page_read_ahead");
-	max_pages = GLOBAL_GET("network/remote_fs/max_pages");
+	page_size = GLOBAL_DEF("remote_fs/page_size", 65536);
+	read_ahead = GLOBAL_DEF("remote_fs/page_read_ahead", 4);
+	max_pages = GLOBAL_DEF("remote_fs/max_pages", 20);
 	last_activity_val = 0;
 	waiting_on_page = -1;
 	last_page = -1;

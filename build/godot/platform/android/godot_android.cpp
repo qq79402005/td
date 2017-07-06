@@ -36,7 +36,7 @@
 #include <GLES2/gl2.h>
 
 #include "file_access_android.h"
-#include "global_config.h"
+#include "globals.h"
 #include "main/main.h"
 #include "os_android.h"
 #include <android/log.h>
@@ -57,7 +57,7 @@ JNIEXPORT jstring JNICALL Java_org_godotengine_godot_Godot_getGlobal(JNIEnv *env
 
 class JNISingleton : public Object {
 
-	GDCLASS(JNISingleton, Object);
+	OBJ_TYPE(JNISingleton, Object);
 
 	struct MethodData {
 
@@ -145,7 +145,7 @@ public:
 				} break;
 				case Variant::STRING_ARRAY: {
 
-					PoolVector<String> sarray = *p_args[i];
+					DVector<String> sarray = *p_args[i];
 					jobjectArray arr = env->NewObjectArray(sarray.size(), env->FindClass("java/lang/String"), env->NewStringUTF(""));
 
 					for (int j = 0; j < sarray.size(); j++) {
@@ -157,18 +157,18 @@ public:
 				} break;
 				case Variant::INT_ARRAY: {
 
-					PoolVector<int> array = *p_args[i];
+					DVector<int> array = *p_args[i];
 					jintArray arr = env->NewIntArray(array.size());
-					PoolVector<int>::Read r = array.read();
+					DVector<int>::Read r = array.read();
 					env->SetIntArrayRegion(arr, 0, array.size(), r.ptr());
 					v[i].l = arr;
 
 				} break;
 				case Variant::REAL_ARRAY: {
 
-					PoolVector<float> array = *p_args[i];
+					DVector<float> array = *p_args[i];
 					jfloatArray arr = env->NewFloatArray(array.size());
-					PoolVector<float>::Read r = array.read();
+					DVector<float>::Read r = array.read();
 					env->SetFloatArrayRegion(arr, 0, array.size(), r.ptr());
 					v[i].l = arr;
 
@@ -215,7 +215,7 @@ public:
 				jobjectArray arr = (jobjectArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int stringCount = env->GetArrayLength(arr);
-				PoolVector<String> sarr;
+				DVector<String> sarr;
 
 				for (int i = 0; i < stringCount; i++) {
 					jstring string = (jstring)env->GetObjectArrayElement(arr, i);
@@ -231,12 +231,12 @@ public:
 				jintArray arr = (jintArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				PoolVector<int> sarr;
+				DVector<int> sarr;
 				sarr.resize(fCount);
 
-				PoolVector<int>::Write w = sarr.write();
+				DVector<int>::Write w = sarr.write();
 				env->GetIntArrayRegion(arr, 0, fCount, w.ptr());
-				w = PoolVector<int>::Write();
+				w = DVector<int>::Write();
 				ret = sarr;
 			} break;
 			case Variant::REAL_ARRAY: {
@@ -244,12 +244,12 @@ public:
 				jfloatArray arr = (jfloatArray)env->CallObjectMethodA(instance, E->get().method, v);
 
 				int fCount = env->GetArrayLength(arr);
-				PoolVector<float> sarr;
+				DVector<float> sarr;
 				sarr.resize(fCount);
 
-				PoolVector<float>::Write w = sarr.write();
+				DVector<float>::Write w = sarr.write();
 				env->GetFloatArrayRegion(arr, 0, fCount, w.ptr());
-				w = PoolVector<float>::Write();
+				w = DVector<float>::Write();
 				ret = sarr;
 			} break;
 			default: {
@@ -296,6 +296,7 @@ struct engine {
 
 	ASensorManager *sensorManager;
 	const ASensor *accelerometerSensor;
+	const ASensor *gravitySensor;
 	const ASensor *magnetometerSensor;
 	const ASensor *gyroscopeSensor;
 	ASensorEventQueue *sensorEventQueue;
@@ -509,11 +510,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
 				} break;
 				case AMOTION_EVENT_ACTION_MOVE: {
 					engine->os->process_touch(1, 0, touchvec);
-					/*
-					for(int i=0;i<event.getPointerCount();i++) {
-						System.out.printf("%d - moved to: %f,%f\n",i, event.getX(i),event.getY(i));
-					}
-					*/
+					//for(int i=0;i<event.getPointerCount();i++) {
+					//	System.out.printf("%d - moved to: %f,%f\n",i, event.getX(i),event.getY(i));
+					//}
 				} break;
 				case AMOTION_EVENT_ACTION_POINTER_UP: {
 
@@ -527,11 +526,9 @@ static int32_t engine_handle_input(struct android_app *app, AInputEvent *event) 
 				case AMOTION_EVENT_ACTION_CANCEL:
 				case AMOTION_EVENT_ACTION_UP: {
 					engine->os->process_touch(2, 0, touchvec);
-					/*
-					for(int i=0;i<event.getPointerCount();i++) {
-						System.out.printf("%d - up! %f,%f\n",i, event.getX(i),event.getY(i));
-					}
-					*/
+					//for(int i=0;i<event.getPointerCount();i++) {
+					//	System.out.printf("%d - up! %f,%f\n",i, event.getX(i),event.getY(i));
+					//}
 				} break;
 			}
 
@@ -608,7 +605,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 		} break;
 		case APP_CMD_INIT_WINDOW:
 			//The window is being shown, get it ready.
-			//LOGI("INIT WINDOW");
+			//	LOGI("INIT WINDOW");
 			if (engine->app->window != NULL) {
 
 				if (engine->os == NULL) {
@@ -616,14 +613,14 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 					//do initialization here, when there's OpenGL! hackish but the only way
 					engine->os = new OS_Android(_gfx_init, engine);
 
-					//char *args[]={"-test","gui",NULL};
+					//	char *args[]={"-test","gui",NULL};
 					__android_log_print(ANDROID_LOG_INFO, "godot", "pre asdasd setup...");
 #if 0
 				Error err  = Main::setup("apk",2,args);
 #else
 					Error err = Main::setup("apk", 0, NULL);
 
-					String modules = GlobalConfig::get_singleton()->get("android/modules");
+					String modules = Globals::get_singleton()->get("android/modules");
 					Vector<String> mods = modules.split(",", false);
 					mods.push_back("GodotOS");
 					__android_log_print(ANDROID_LOG_INFO, "godot", "mod count: %i", mods.size());
@@ -687,7 +684,7 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 			break;
 		case APP_CMD_TERM_WINDOW:
 			// The window is being hidden or closed, clean it up.
-			//LOGI("TERM WINDOW");
+			//    LOGI("TERM WINDOW");
 			engine_term_display(engine);
 			break;
 		case APP_CMD_GAINED_FOCUS:
@@ -698,6 +695,14 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 				// We'd like to get 60 events per second (in us).
 				ASensorEventQueue_setEventRate(engine->sensorEventQueue,
 						engine->accelerometerSensor, (1000L / 60) * 1000);
+			}
+			// and start monitoring our gravity vector
+			if (engine->gravitySensor != NULL) {
+				ASensorEventQueue_enableSensor(engine->sensorEventQueue,
+						engine->gravitySensor);
+				// We'd like to get 60 events per second (in us).
+				ASensorEventQueue_setEventRate(engine->sensorEventQueue,
+						engine->gravitySensor, (1000L / 60) * 1000);
 			}
 			// Also start monitoring the magnetometer.
 			if (engine->magnetometerSensor != NULL) {
@@ -723,6 +728,10 @@ static void engine_handle_cmd(struct android_app *app, int32_t cmd) {
 			if (engine->accelerometerSensor != NULL) {
 				ASensorEventQueue_disableSensor(engine->sensorEventQueue,
 						engine->accelerometerSensor);
+			}
+			if (engine->gravitySensor != NULL) {
+				ASensorEventQueue_disableSensor(engine->sensorEventQueue,
+						engine->gravitySensor);
 			}
 			if (engine->magnetometerSensor != NULL) {
 				ASensorEventQueue_disableSensor(engine->sensorEventQueue,
@@ -759,6 +768,8 @@ void android_main(struct android_app *state) {
 	engine.sensorManager = ASensorManager_getInstance();
 	engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
 			ASENSOR_TYPE_ACCELEROMETER);
+	engine.gravitySensor = ASensorManager_getDefaultSensor(engine.sensorManager,
+			ASENSOR_TYPE_GRAVITY);
 	engine.magnetometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
 			ASENSOR_TYPE_MAGNETIC_FIELD);
 	engine.gyroscopeSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
@@ -789,7 +800,7 @@ void android_main(struct android_app *state) {
 			// Process this event.
 
 			if (source != NULL) {
-				// LOGI("process\n");
+				//	 LOGI("process\n");
 				source->process(state, source);
 			} else {
 				nullmax--;
@@ -800,7 +811,7 @@ void android_main(struct android_app *state) {
 			// If a sensor has data, process it now.
 			// LOGI("events\n");
 			if (ident == LOOPER_ID_USER) {
-				if (engine.accelerometerSensor != NULL || engine.magnetometerSensor != NULL || engine.gyroscopeSensor != NULL) {
+				if (engine.accelerometerSensor != NULL || engine.gravitySensor != NULL || engine.magnetometerSensor != NULL || engine.gyroscopeSensor != NULL) {
 					ASensorEvent event;
 					while (ASensorEventQueue_getEvents(engine.sensorEventQueue,
 								   &event, 1) > 0) {
@@ -809,6 +820,10 @@ void android_main(struct android_app *state) {
 							if (event.acceleration != NULL) {
 								engine.os->process_accelerometer(Vector3(event.acceleration.x, event.acceleration.y,
 										event.acceleration.z));
+							}
+							if (event.gravity != NULL) {
+								engine.os->process_gravitymeter(Vector3(event.gravity.x, event.gravity.y,
+										event.gravity.z));
 							}
 							if (event.magnetic != NULL) {
 								engine.os->process_magnetometer(Vector3(event.magnetic.x, event.magnetic.y,
@@ -837,10 +852,10 @@ void android_main(struct android_app *state) {
 				return;
 			}
 
-			//     LOGI("end\n");
+			//	     LOGI("end\n");
 		}
 
-		// LOGI("engine animating? %i\n",engine.animating);
+		//	 LOGI("engine animating? %i\n",engine.animating);
 
 		if (engine.animating) {
 			//do os render
@@ -859,7 +874,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_Godot_registerSingleton(JNIEnv
 	s->set_instance(env->NewGlobalRef(p_object));
 	jni_singletons[singname] = s;
 
-	GlobalConfig::get_singleton()->add_singleton(GlobalConfig::Singleton(singname, s));
+	Globals::get_singleton()->add_singleton(Globals::Singleton(singname, s));
 }
 
 static Variant::Type get_jni_type(const String &p_type) {
@@ -926,7 +941,7 @@ JNIEXPORT jstring JNICALL Java_org_godotengine_godot_Godot_getGlobal(JNIEnv *env
 
 	String js = env->GetStringUTFChars(path, NULL);
 
-	return env->NewStringUTF(GlobalConfig::get_singleton()->get(js).operator String().utf8().get_data());
+	return env->NewStringUTF(Globals::get_singleton()->get(js).operator String().utf8().get_data());
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_Godot_registerMethod(JNIEnv *env, jobject obj, jstring sname, jstring name, jstring ret, jobjectArray args) {

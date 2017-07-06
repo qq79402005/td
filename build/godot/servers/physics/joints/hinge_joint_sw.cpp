@@ -30,21 +30,7 @@
 
 /*
 Adapted to Godot from the Bullet library.
-*/
-
-/*
-Bullet Continuous Collision Detection and Physics Library
-Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
-
-This software is provided 'as-is', without any express or implied warranty.
-In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose,
-including commercial applications, and to alter it and redistribute it freely,
-subject to the following restrictions:
-
-1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
-2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
-3. This notice may not be removed or altered from any source distribution.
+See corresponding header file for licensing info.
 */
 
 #include "hinge_joint_sw.h"
@@ -125,7 +111,7 @@ HingeJointSW::HingeJointSW(BodySW *rbA, BodySW *rbB, const Vector3 &pivotInA, co
 		rbAxisA1 = rbAxisA2.cross(axisInA);
 	}
 
-	m_rbAFrame.basis = Basis(rbAxisA1.x, rbAxisA2.x, axisInA.x,
+	m_rbAFrame.basis = Matrix3(rbAxisA1.x, rbAxisA2.x, axisInA.x,
 			rbAxisA1.y, rbAxisA2.y, axisInA.y,
 			rbAxisA1.z, rbAxisA2.z, axisInA.z);
 
@@ -134,7 +120,7 @@ HingeJointSW::HingeJointSW(BodySW *rbA, BodySW *rbB, const Vector3 &pivotInA, co
 	Vector3 rbAxisB2 = axisInB.cross(rbAxisB1);
 
 	m_rbBFrame.origin = pivotInB;
-	m_rbBFrame.basis = Basis(rbAxisB1.x, rbAxisB2.x, -axisInB.x,
+	m_rbBFrame.basis = Matrix3(rbAxisB1.x, rbAxisB2.x, -axisInB.x,
 			rbAxisB1.y, rbAxisB2.y, -axisInB.y,
 			rbAxisB1.z, rbAxisB2.z, -axisInB.z);
 
@@ -157,7 +143,7 @@ HingeJointSW::HingeJointSW(BodySW *rbA, BodySW *rbB, const Vector3 &pivotInA, co
 	B->add_constraint(this, 1);
 }
 
-bool HingeJointSW::setup(real_t p_step) {
+bool HingeJointSW::setup(float p_step) {
 
 	m_appliedImpulse = real_t(0.);
 
@@ -177,10 +163,10 @@ bool HingeJointSW::setup(real_t p_step) {
 
 		for (int i = 0; i < 3; i++) {
 			memnew_placement(&m_jac[i], JacobianEntrySW(
-												A->get_principal_inertia_axes().transposed(),
-												B->get_principal_inertia_axes().transposed(),
-												pivotAInW - A->get_transform().origin - A->get_center_of_mass(),
-												pivotBInW - B->get_transform().origin - B->get_center_of_mass(),
+												A->get_transform().basis.transposed(),
+												B->get_transform().basis.transposed(),
+												pivotAInW - A->get_transform().origin,
+												pivotBInW - B->get_transform().origin,
 												normal[i],
 												A->get_inv_inertia(),
 												A->get_inv_mass(),
@@ -204,27 +190,27 @@ bool HingeJointSW::setup(real_t p_step) {
 	Vector3 hingeAxisWorld = A->get_transform().basis.xform(m_rbAFrame.basis.get_axis(2));
 
 	memnew_placement(&m_jacAng[0], JacobianEntrySW(jointAxis0,
-										   A->get_principal_inertia_axes().transposed(),
-										   B->get_principal_inertia_axes().transposed(),
+										   A->get_transform().basis.transposed(),
+										   B->get_transform().basis.transposed(),
 										   A->get_inv_inertia(),
 										   B->get_inv_inertia()));
 
 	memnew_placement(&m_jacAng[1], JacobianEntrySW(jointAxis1,
-										   A->get_principal_inertia_axes().transposed(),
-										   B->get_principal_inertia_axes().transposed(),
+										   A->get_transform().basis.transposed(),
+										   B->get_transform().basis.transposed(),
 										   A->get_inv_inertia(),
 										   B->get_inv_inertia()));
 
 	memnew_placement(&m_jacAng[2], JacobianEntrySW(hingeAxisWorld,
-										   A->get_principal_inertia_axes().transposed(),
-										   B->get_principal_inertia_axes().transposed(),
+										   A->get_transform().basis.transposed(),
+										   B->get_transform().basis.transposed(),
 										   A->get_inv_inertia(),
 										   B->get_inv_inertia()));
 
 	// Compute limit information
 	real_t hingeAngle = get_hinge_angle();
 
-	//print_line("angle: "+rtos(hingeAngle));
+	//	print_line("angle: "+rtos(hingeAngle));
 	//set bias, sign, clear accumulator
 	m_correction = real_t(0.);
 	m_limitSign = real_t(0.);
@@ -236,15 +222,15 @@ bool HingeJointSW::setup(real_t p_step) {
 		print_line("hi: "+rtos(m_upperLimit));
 	}*/
 
-	//if (m_lowerLimit < m_upperLimit)
+	//	if (m_lowerLimit < m_upperLimit)
 	if (m_useLimit && m_lowerLimit <= m_upperLimit) {
-		//if (hingeAngle <= m_lowerLimit*m_limitSoftness)
+		//		if (hingeAngle <= m_lowerLimit*m_limitSoftness)
 		if (hingeAngle <= m_lowerLimit) {
 			m_correction = (m_lowerLimit - hingeAngle);
 			m_limitSign = 1.0f;
 			m_solveLimit = true;
 		}
-		//else if (hingeAngle >= m_upperLimit*m_limitSoftness)
+		//		else if (hingeAngle >= m_upperLimit*m_limitSoftness)
 		else if (hingeAngle >= m_upperLimit) {
 			m_correction = m_upperLimit - hingeAngle;
 			m_limitSign = -1.0f;
@@ -260,7 +246,7 @@ bool HingeJointSW::setup(real_t p_step) {
 	return true;
 }
 
-void HingeJointSW::solve(real_t p_step) {
+void HingeJointSW::solve(float p_step) {
 
 	Vector3 pivotAInW = A->get_transform().xform(m_rbAFrame.origin);
 	Vector3 pivotBInW = B->get_transform().xform(m_rbBFrame.origin);
@@ -403,7 +389,7 @@ real_t HingeJointSW::get_hinge_angle() {
 	return atan2fast(swingAxis.dot(refAxis0), swingAxis.dot(refAxis1));
 }
 
-void HingeJointSW::set_param(PhysicsServer::HingeJointParam p_param, real_t p_value) {
+void HingeJointSW::set_param(PhysicsServer::HingeJointParam p_param, float p_value) {
 
 	switch (p_param) {
 
@@ -418,7 +404,7 @@ void HingeJointSW::set_param(PhysicsServer::HingeJointParam p_param, real_t p_va
 	}
 }
 
-real_t HingeJointSW::get_param(PhysicsServer::HingeJointParam p_param) const {
+float HingeJointSW::get_param(PhysicsServer::HingeJointParam p_param) const {
 
 	switch (p_param) {
 

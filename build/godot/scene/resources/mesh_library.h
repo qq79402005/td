@@ -38,8 +38,8 @@
 
 class MeshLibrary : public Resource {
 
-	GDCLASS(MeshLibrary, Resource);
-	RES_BASE_EXTENSION("meshlib");
+	OBJ_TYPE(MeshLibrary, Resource);
+	RES_BASE_EXTENSION("gt");
 
 	struct Item {
 		String name;

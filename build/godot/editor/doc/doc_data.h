@@ -66,9 +66,7 @@ public:
 
 		String name;
 		String type;
-		String brief_description;
 		String description;
-		String setter, getter;
 		bool operator<(const PropertyDoc &p_prop) const {
 			return name < p_prop.name;
 		}
@@ -95,7 +93,6 @@ public:
 
 public:
 	void merge_from(const DocData &p_data);
-	void remove_from(const DocData &p_data);
 	void generate(bool p_basic_types = false);
 	Error load(const String &p_path);
 	Error save(const String &p_path);

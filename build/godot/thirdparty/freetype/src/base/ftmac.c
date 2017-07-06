@@ -8,7 +8,7 @@
 /*  This file is for Mac OS X only; see builds/mac/ftoldmac.c for          */
 /*  classic platforms built by MPW.                                        */
 /*                                                                         */
-/*  Copyright 1996-2017 by                                                 */
+/*  Copyright 1996-2016 by                                                 */
 /*  Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg.     */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -71,9 +71,6 @@
 #include FT_INTERNAL_STREAM_H
 #include "ftbase.h"
 
-
-#ifdef FT_MACINTOSH
-
   /* This is for Mac OS X.  Without redefinition, OS_INLINE */
   /* expands to `static inline' which doesn't survive the   */
   /* -ansi compilation flag of GCC.                         */
@@ -120,6 +117,8 @@
 #define PREFER_LWFN  1
 #endif
 
+
+#ifdef FT_MACINTOSH
 
   /* This function is deprecated because FSSpec is deprecated in Mac OS X  */
   FT_EXPORT_DEF( FT_Error )
@@ -606,7 +605,7 @@
     for (;;)
     {
       post_data = Get1Resource( TTAG_POST, res_id++ );
-      if ( !post_data )
+      if ( post_data == NULL )
         break;  /* we are done */
 
       code = (*post_data)[0];
@@ -645,7 +644,7 @@
     for (;;)
     {
       post_data = Get1Resource( TTAG_POST, res_id++ );
-      if ( !post_data )
+      if ( post_data == NULL )
         break;  /* we are done */
 
       post_size = (FT_ULong)GetHandleSize( post_data ) - 2;
@@ -656,7 +655,7 @@
         if ( last_code != -1 )
         {
           /* we are done adding a chunk, fill in the size field */
-          if ( size_p )
+          if ( size_p != NULL )
           {
             *size_p++ = (FT_Byte)(   pfb_chunk_size         & 0xFF );
             *size_p++ = (FT_Byte)( ( pfb_chunk_size >> 8  ) & 0xFF );
@@ -744,7 +743,7 @@
 
 
     sfnt = GetResource( TTAG_sfnt, sfnt_id );
-    if ( !sfnt )
+    if ( sfnt == NULL )
       return FT_THROW( Invalid_Handle );
 
     sfnt_size = (FT_ULong)GetHandleSize( sfnt );
@@ -822,7 +821,7 @@
       return FT_THROW( Cannot_Open_Resource );
 
     num_faces_in_res = 0;
-    for ( res_index = 1; ; res_index++ )
+    for ( res_index = 1; ; ++res_index )
     {
       short  num_faces_in_fond;
 
@@ -943,14 +942,13 @@
     /* if it works, fine.                                           */
 
     error = FT_New_Face_From_Suitcase( library, pathname, face_index, aface );
-    if ( error )
-    {
-      /* let it fall through to normal loader (.ttf, .otf, etc.); */
-      /* we signal this by returning no error and no FT_Face      */
-      *aface = NULL;
-    }
+    if ( error == 0 )
+      return error;
 
-    return FT_Err_Ok;
+    /* let it fall through to normal loader (.ttf, .otf, etc.); */
+    /* we signal this by returning no error and no FT_Face      */
+    *aface = NULL;
+    return 0;
   }
 
 
@@ -984,13 +982,12 @@
     /* try resourcefork based font: LWFN, FFIL */
     error = FT_New_Face_From_Resource( library, (UInt8 *)pathname,
                                        face_index, aface );
-    if ( error || *aface )
+    if ( error != 0 || *aface != NULL )
       return error;
 
     /* let it fall through to normal loader (.ttf, .otf, etc.) */
     args.flags    = FT_OPEN_PATHNAME;
     args.pathname = (char*)pathname;
-
     return FT_Open_Face( library, &args, face_index, aface );
   }
 
@@ -1030,7 +1027,7 @@
       error = FT_THROW( Cannot_Open_Resource );
 
     error = FT_New_Face_From_Resource( library, pathname, face_index, aface );
-    if ( error || *aface )
+    if ( error != 0 || *aface != NULL )
       return error;
 
     /* fallback to datafork font */
@@ -1077,12 +1074,7 @@
 #endif
   }
 
-#else /* !FT_MACINTOSH */
-
-  /* ANSI C doesn't like empty source files */
-  typedef int  _ft_mac_dummy;
-
-#endif /* !FT_MACINTOSH */
+#endif /* FT_MACINTOSH */
 
 
 /* END */

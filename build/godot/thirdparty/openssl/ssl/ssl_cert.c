@@ -315,7 +315,7 @@ CERT *ssl_cert_dup(CERT *cert)
                 OPENSSL_malloc(cert->pkeys[i].serverinfo_length);
             if (ret->pkeys[i].serverinfo == NULL) {
                 SSLerr(SSL_F_SSL_CERT_DUP, ERR_R_MALLOC_FAILURE);
-                goto err;
+                return NULL;
             }
             ret->pkeys[i].serverinfo_length =
                 cert->pkeys[i].serverinfo_length;
@@ -392,7 +392,9 @@ CERT *ssl_cert_dup(CERT *cert)
 
     return (ret);
 
+#if !defined(OPENSSL_NO_DH) || !defined(OPENSSL_NO_ECDH)
  err:
+#endif
 #ifndef OPENSSL_NO_RSA
     if (ret->rsa_tmp != NULL)
         RSA_free(ret->rsa_tmp);
@@ -412,7 +414,6 @@ CERT *ssl_cert_dup(CERT *cert)
 #endif
 
     ssl_cert_clear_certs(ret);
-    OPENSSL_free(ret);
 
     return NULL;
 }

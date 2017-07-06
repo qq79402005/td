@@ -35,7 +35,7 @@
 
 class CollisionPolygon : public Spatial {
 
-	GDCLASS(CollisionPolygon, Spatial);
+	OBJ_TYPE(CollisionPolygon, Spatial);
 
 public:
 	enum BuildMode {
@@ -45,7 +45,7 @@ public:
 
 protected:
 	float depth;
-	Rect3 aabb;
+	AABB aabb;
 	BuildMode build_mode;
 	Vector<Point2> polygon;
 
@@ -73,7 +73,7 @@ public:
 	void set_polygon(const Vector<Point2> &p_polygon);
 	Vector<Point2> get_polygon() const;
 
-	virtual Rect3 get_item_rect() const;
+	virtual AABB get_item_rect() const;
 
 	int get_collision_object_first_shape() const { return shape_from; }
 	int get_collision_object_last_shape() const { return shape_to; }

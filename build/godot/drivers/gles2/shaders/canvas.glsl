@@ -30,8 +30,10 @@ uniform highp mat4 light_local_matrix;
 uniform vec2 light_pos;
 varying vec4 light_uv_interp;
 
+#if defined(NORMAL_USED)
 varying vec4 local_rot;
 uniform vec2 normal_flip;
+#endif
 
 #ifdef USE_SHADOWS
 varying highp vec2 pos;
@@ -84,8 +86,10 @@ VERTEX_SHADER_CODE
 	pos=outvec.xy;
 #endif
 
+#if defined(NORMAL_USED)
 	local_rot.xy=normalize( (modelview_matrix * ( extra_matrix * vec4(1.0,0.0,0.0,0.0) )).xy  )*normal_flip.x;
 	local_rot.zw=normalize( (modelview_matrix * ( extra_matrix * vec4(0.0,1.0,0.0,0.0) )).xy  )*normal_flip.y;
+#endif
 
 #endif
 
@@ -101,9 +105,8 @@ precision mediump float;
 precision mediump int;
 #endif
 
-
-uniform sampler2D texture; // texunit:0
-uniform sampler2D normal_texture; // texunit:0
+ // texunit:0
+uniform sampler2D texture;
 
 varying vec2 uv_interp;
 varying vec4 color_interp;
@@ -154,7 +157,9 @@ uniform float light_height;
 varying vec4 light_uv_interp;
 uniform float light_outside_alpha;
 
+#if defined(NORMAL_USED)
 varying vec4 local_rot;
+#endif
 
 #ifdef USE_SHADOWS
 
@@ -184,19 +189,19 @@ FRAGMENT_SHADER_GLOBALS
 void main() {
 
 	vec4 color = color_interp;
+#if defined(NORMAL_USED)
+	vec3 normal = vec3(0.0,0.0,1.0);
+#endif
 
 #ifdef USE_DISTANCE_FIELD
 	const float smoothing = 1.0/32.0;
-	float distance = textureLod(texture, uv_interp,0.0).a;
+	float distance = texture2D(texture, uv_interp).a;
 	color.a = smoothstep(0.5 - smoothing, 0.5 + smoothing, distance) * color.a;
 #else
 	color *= texture2D( texture,  uv_interp );
 
 #endif
 
-	vec3 normal;
-	normal.xy = textureLod( normal_texture,  uv_interp, 0.0 ).xy * 2.0 - 1.0;
-	normal.z = sqrt(1.0-dot(normal.xy,normal.xy));
 
 #if defined(ENABLE_SCREEN_UV)
 	vec2 screen_uv = gl_FragCoord.xy*screen_uv_mult;
@@ -231,7 +236,9 @@ FRAGMENT_SHADER_CODE
 
 	vec2 light_vec = light_uv_interp.zw;; //for shadow and normal mapping
 
+#if defined(NORMAL_USED)
 	normal.xy =  mat2(local_rot.xy,local_rot.zw) * normal.xy;
+#endif
 
 	float att=1.0;
 
@@ -256,8 +263,10 @@ LIGHT_SHADER_CODE
 
 #else
 
+#if defined(NORMAL_USED)
 		vec3 light_normal = normalize(vec3(light_vec,-light_height));
 		light*=max(dot(-light_normal,normal),0.0);
+#endif
 
 		color*=light;
 /*
@@ -310,7 +319,7 @@ LIGHT_SHADER_CODE
 
 #ifdef USE_DEPTH_SHADOWS
 
-#define SHADOW_DEPTH(m_tex,m_uv) (texture2D((m_tex),(m_uv)).r)
+#define SHADOW_DEPTH(m_tex,m_uv) (texture2D((m_tex),(m_uv)).z)
 
 #else
 
@@ -383,9 +392,8 @@ LIGHT_SHADER_CODE
 
 //use lighting
 #endif
-	//color.rgb*=color.a;
+//	color.rgb*=color.a;
 	gl_FragColor = color;
-
 
 }
 
