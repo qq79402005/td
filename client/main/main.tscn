@@ -68,6 +68,8 @@ script/script = ExtResource( 1 )
 [node name="terrain" type="Node" parent="."]
 
 script/script = ExtResource( 2 )
+terrain_width = 256
+terrain_height = 256
 
 [node name="DirectionalLight" type="DirectionalLight" parent="terrain"]
 
