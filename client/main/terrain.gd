@@ -2,12 +2,12 @@ extends Node
 
 var tiles = []
 var tile_view_range = int(2)
-var height_color_ranges = [Vector2(-1.0, -5.3), Vector2(-4.7, -0.3), Vector2(0.3, 4.7), Vector2(5.3, 1.0)]
-var height_colors = [Vector4(1.0, 0.0, 0.0, 0.0), Vector4(0.0, 1.0, 0.0, 0.0),Vector4(0.0, 0.0, 1.0, 0.0),Vector4(0.0, 0.0, 0.0, 1.0)]
+var height_color_ranges = [Vector2(-1.2, -0.6), Vector2(-0.4, -0.1), Vector2(0.1, 0.4), Vector2(0.6, 1.2)]
+var height_colors = [Color(1.0, 0.0, 0.0, 0.0), Color(0.0, 1.0, 0.0, 0.0),Color(0.0, 0.0, 1.0, 0.0),Color(0.0, 0.0, 0.0, 1.0)]
 
-export(int) var terrain_width = 8
-export(int) var terrain_height = 8
-export(int) var noise_seed = 666
+export(int) var terrain_width = 256
+export(int) var terrain_height = 256
+export(int) var noise_seed = 321
 export(int) var noise_octaves = 4
 export(int) var noise_period = 64
 export(int) var noise_persistance = 0.5
@@ -36,7 +36,11 @@ func get_item(x, z):
 	return -1
 	
 func get_height( xpos, ypos):
-	return fractal_noise.get_noise_2d(xpos, ypos)
+	var noise_height = fractal_noise.get_noise_2d(xpos, ypos)
+	var x = clamp(xpos, 0.0, terrain_width) / terrain_width * 2.0 - 1.0
+	var y = clamp(ypos, 0.0, terrain_height) / terrain_height * 2.0 - 1.0
+	var falloff = max(abs(x), abs(y))
+	return noise_height - pow(falloff,8)
 	
 func update_terrain_tile():
 	var x_pos = int(get_main_character_pos().x / tile_size)
@@ -125,19 +129,26 @@ func gen_tile_mesh(tile, pos):
 	tile.set_mesh(mesh)
 	
 func get_color_by_height(height):
-	var idx = int(0)
-	while idx < height_color_ranges.size():
-		if(height>height_color_ranges[idx].y):
-			idx+=1
-	
-	if height>-1 and height<=-0.5:
+	if height<=-0.5:
 		return Color(1.0, 0.0, 0.0, 0.0)
 	elif height>-0.5 and height<=0:
 		return Color(0.0, 1.0, 0.0, 0.0)
 	elif height>0.0 and height<=0.5:
 		return Color(0.0, 0.0, 1.0, 0.0)
-	elif height>0.5 and height<=1.0:
+	else:
 		return Color(0.0, 0.0, 0.0, 1.0)
+	#for idx in range(height_color_ranges.size()):
+	#	if(height>height_color_ranges[idx].x and height<height_color_ranges[idx].y) :
+	#		return height_colors[idx]
+
+	#var idx = int(0)		
+	#for i in range(height_color_ranges.size()):
+	#	if(height>height_color_ranges[i].y):
+	#		idx+=1		
+	
+	#var len = height_color_rangesds[idx+1].x - height_color_ranges[idx].y
+	#var ratio = (height - height_color_ranges[idx].y)/len
+	#return height_colors[idx].linear_interpolate(height_colors[idx+1],ratio)
 	
 func get_main_character_pos():
 	var main_character = get_tree().get_root().get_node("root/characters/actor0")

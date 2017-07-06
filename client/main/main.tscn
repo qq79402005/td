@@ -4,7 +4,7 @@
 [ext_resource path="res://main/terrain.gd" type="Script" id=2]
 [ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=3]
 [ext_resource path="res://main/Ground_noise.tex" type="Texture" id=4]
-[ext_resource path="res://main/mini_cave_noise.tex" type="Texture" id=5]
+[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=5]
 [ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=6]
 [ext_resource path="res://main/cha_move.gd" type="Script" id=7]
 [ext_resource path="res://main/TouchPick.gd" type="Script" id=8]
@@ -24,7 +24,7 @@ uniform texture  grass_tex;
 uniform texture  sand_tex;
 uniform texture  tex3;
 
-vec3 finalColor = tex(stone_tex, UV).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b + tex(tex3, UV).rgb * COLOR.a;
+vec3 finalColor = tex(stone_tex, UV * 0.25+TIME*vec2(0.1,0.1)).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b + tex(tex3, UV).rgb * COLOR.a;
 
 DIFFUSE = col.rgb * finalColor;",
 "fragment_ofs": 0,
