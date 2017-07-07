@@ -73,7 +73,6 @@ __meta__ = {
 
 [node name="ParallaxBackground" type="ParallaxBackground" parent="."]
 
-editor/display_folded = true
 layer = -1
 offset = Vector2( 0, 0 )
 rotation = 0.0
@@ -87,14 +86,13 @@ scroll/ignore_camera_zoom = false
 
 [node name="layer_bg" type="ParallaxLayer" parent="ParallaxBackground"]
 
-editor/display_folded = true
 motion/scale = Vector2( 1, 1 )
 motion/offset = Vector2( 0, 0 )
 motion/mirroring = Vector2( 0, 0 )
 
 [node name="Sprite" type="Sprite" parent="ParallaxBackground/layer_bg"]
 
-transform/pos = Vector2( 590.071, 308.631 )
+transform/pos = Vector2( 588.266, 313.144 )
 transform/scale = Vector2( 0.6, 0.6 )
 texture = ExtResource( 3 )
 
