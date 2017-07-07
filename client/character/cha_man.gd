@@ -15,3 +15,7 @@ func fire_ball():
 	else:
 		bullet.set_translation(Vector3(1.5,0.5,0))
 	get_parent().add_child(bullet)
+
+# 脚步声
+func foot_step(idx):
+	get_node("SamplerPlayer2D").play("foot_step");

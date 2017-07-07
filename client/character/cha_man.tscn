@@ -1,22 +1,22 @@
-[gd_scene load_steps=24 format=1]
+[gd_scene load_steps=25 format=1]
 
 [ext_resource path="res://character/cha_man.gd" type="Script" id=1]
 [ext_resource path="res://character/enemy13_motion-hd_004.png" type="Texture" id=2]
 [ext_resource path="res://character/enemy13_motion-hd_005.png" type="Texture" id=3]
 [ext_resource path="res://character/enemy13_motion-hd_006.png" type="Texture" id=4]
 [ext_resource path="res://character/enemy13_motion-hd_007.png" type="Texture" id=5]
-[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=6]
-[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=7]
-[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=8]
-[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=9]
-[ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=10]
-[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=11]
-[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=12]
-[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=13]
-[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=14]
-[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=15]
-[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=16]
-[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=17]
+[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=6]
+[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=7]
+[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=8]
+[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=9]
+[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=10]
+[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=11]
+[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=12]
+[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=13]
+[ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=14]
+[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=15]
+[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=16]
+[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=17]
 
 [sub_resource type="SpriteFrames" id=1]
 
@@ -28,17 +28,17 @@ animations = [ {
 }, {
 "frames": [ ExtResource( 6 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ],
 "loop": true,
-"name": "attack",
+"name": "die",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ) ],
 "loop": true,
-"name": "run",
+"name": "attack",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 14 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
 "loop": true,
-"name": "die",
+"name": "run",
 "speed": 5.0
 } ]
 
@@ -166,6 +166,21 @@ tracks/1/keys = {
 "update": 0,
 "values": [ 0, 1, 2, 3 ]
 }
+tracks/2/type = "method"
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/imported = false
+tracks/2/keys = {
+"times": FloatArray( 0.2 ),
+"transitions": FloatArray( 1 ),
+"values": [ {
+"args": [  ],
+"method": ""
+} ]
+}
+
+[sub_resource type="SampleLibrary" id=7]
+
 
 [node name="cha_man" type="Spatial"]
 
@@ -202,8 +217,8 @@ flags/transparent = true
 flags/shaded = false
 flags/alpha_cut = 0
 frames = SubResource( 1 )
-animation = "attack"
-frame = 3
+animation = "run"
+frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
@@ -219,5 +234,16 @@ playback/active = true
 playback/speed = 1.0
 blend_times = [  ]
 autoplay = ""
+
+[node name="SamplePlayer2D" type="SamplePlayer2D" parent="."]
+
+params/volume_db = 0.0
+params/pitch_scale = 1.0
+params/attenuation/min_distance = 1.0
+params/attenuation/max_distance = 2048.0
+params/attenuation/distance_exp = 1.0
+config/polyphony = 1
+config/samples = SubResource( 7 )
+config/pitch_random = 0.0
 
 
