@@ -208,8 +208,8 @@ layers = 1
 params/enabled = true
 params/editor_only = false
 params/bake_mode = 0
-params/energy = 5.0
-colors/diffuse = Color( 0.910156, 0.106659, 0.106659, 1 )
+params/energy = 1.8
+colors/diffuse = Color( 1, 0.913725, 0.870588, 1 )
 colors/specular = Color( 1, 1, 1, 1 )
 shadow/shadow = false
 shadow/darkening = 0.0
@@ -220,7 +220,7 @@ shadow/blur_passes = 1.0
 projector = null
 operator = 0
 params/radius = 8.0
-params/attenuation = 0.594604
+params/attenuation = 1.93187
 
 [node name="ui" type="Node2D" parent="."]
 

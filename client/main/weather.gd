@@ -8,8 +8,8 @@ func _ready():
 
 func _process(delta):
 	elapsed_time += delta;
-	if(elapsed_time > 3.0):
-		get_node("snow").set_hidden(false)
+	#if(elapsed_time > 3.0):
+	#	get_node("snow").set_hidden(false)
 		
 	#if(elapsed_time>20.0):
 		#hide_all()
