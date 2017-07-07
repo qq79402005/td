@@ -58,8 +58,8 @@ func update_terrain_tile():
 			tiles.remove(i)
 			self.remove_child(tile)
 			tile.queue_free()
-		else:
-			i+=1
+
+		i+=1
 
 func add_terrain_tile(x_coord, z_coord):
 	var pos = Vector3(x_coord*tile_size,0,z_coord*tile_size)
