@@ -10,6 +10,12 @@ func _fixed_process(delta):
 		queue_free()
 		
 	move(advance_dir*delta*advance_speed)
+	
+	if is_colliding():
+		var collider = get_collider()
+		collider.on_test()
+		
+		queue_free()
 
 func _ready():
 	set_fixed_process(true)
