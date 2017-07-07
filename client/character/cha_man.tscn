@@ -68,6 +68,18 @@ tracks/1/keys = {
 "update": 0,
 "values": [ 0, 3 ]
 }
+tracks/2/type = "method"
+tracks/2/path = NodePath(".")
+tracks/2/interp = 1
+tracks/2/imported = false
+tracks/2/keys = {
+"times": FloatArray( 0.4 ),
+"transitions": FloatArray( 1 ),
+"values": [ {
+"args": [  ],
+"method": "fire_ball"
+} ]
+}
 
 [sub_resource type="Animation" id=3]
 
