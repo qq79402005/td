@@ -45,6 +45,7 @@ region_rect = Rect2( 0, 0, 0, 0 )
 
 [node name="StaticBody" type="StaticBody" parent="."]
 
+editor/display_folded = true
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 input/ray_pickable = true
 input/capture_on_drag = false

@@ -13,7 +13,7 @@ func _fixed_process(delta):
 	
 	if is_colliding():
 		var collider = get_collider()
-		collider.on_test()
+		collider.on_collision("fire")
 		
 		queue_free()
 
