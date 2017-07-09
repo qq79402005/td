@@ -29,21 +29,21 @@ def gen_protocol_java( file):
 def gen_protocol_godot(file):
     protocol_name = os.path.splitext(file)[0]
 
-    gd_file = open(gd_save_path + protocol_name + ".pb.gd", "w+")
+    gd_file_name = gd_save_path + protocol_name + ".pb.gd"
+    gd_file = open( gd_file_name, "w+")
     gd_file.writelines("extends Node\n\n")
 
     with open(file) as data_file:
         data = json.load(data_file) 
         for key in data.keys():
-            gd_file.writelines("var " + key + " = int(0)\n")
-
-            print(key)
-        #print(data["account"])
+            gd_file.writelines("var " + key + " = " + data[key] +"(0)\n")
 
     gd_file.writelines("\n")
     gd_file.writelines("func _ready():\n")
     gd_file.writelines("\tpass\n")
     gd_file.close()
+
+    print("generate " + gd_file_name + " succeed")
 
 dirs = os.listdir(root_path)
 for file in dirs:
