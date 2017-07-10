@@ -45,10 +45,22 @@ public class SocketServer {
 		port = 8700;
 	}
 	
-	//public static void main(String[] args){
+	public static void main(String[] args){
+		
+		protocol.login login_msg = new protocol.login();
+		login_msg.account = 2;
+		login_msg.password = 3;
+		byte[] buffer = login_msg.data();
+		
+		protocol.login login_msg2 = new protocol.login();
+		login_msg2.parse_data(buffer);
+		
+		System.out.println(login_msg2.account);
+		//test
+		
 		//SocketServer server = getInstance();
 		//server.start();
-	//}
+	}
 
 	public void start() {
 		ServerBootstrap bootstrap = new ServerBootstrap();

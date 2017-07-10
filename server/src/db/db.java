@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 
 // data base manager
 public class db {
-	public static void main(String args[]){
+	/*public static void main(String args[]){
 		Connection c = null;
 		try{
 			Class.forName("org.postgresql.Driver");
@@ -18,5 +18,5 @@ public class db {
 			e.printStackTrace();
 			System.out.println("error");
 		}
-	}
+	}*/
 }

@@ -11,11 +11,12 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg){
 		try{
-			/*ByteBuf in = (ByteBuf)msg;
+			ByteBuf in = (ByteBuf)msg;		
+			
 			while(in.isReadable()){
 				System.out.print((char)in.readByte());
 				System.out.flush();
-			}*/
+			}
 			System.out.println(msg.toString());
 			System.out.println("Received msg form ip ");
 		} finally{
