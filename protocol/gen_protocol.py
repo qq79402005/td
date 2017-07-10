@@ -23,7 +23,8 @@ def gen_protocol_java( file, id):
     java_file_name = java_save_path + protocol_name + ".java"
     java_file = open(java_file_name, "w+")
     java_file.writelines("package protocol;\n\n")
-    java_file.writelines("import java.nio.ByteBuffer;\n\n")
+    java_file.writelines("import io.netty.buffer.ByteBuf;\n")
+    java_file.writelines("import io.netty.buffer.Unpooled;\n\n")
     java_file.writelines("public class " + protocol_name + " {\n\n")
 
     data_file = open(file)
@@ -50,25 +51,24 @@ def gen_protocol_java( file, id):
 
     # data
     java_file.writelines("\n")
-    java_file.writelines("\tpublic byte[] data(){\n")
-    java_file.writelines("\t\tByteBuffer byteBuffer = ByteBuffer.allocate(8+length());\n")
-    java_file.writelines("\t\tbyteBuffer.putInt(id());\n")
-    java_file.writelines("\t\tbyteBuffer.putInt(length());\n")
+    java_file.writelines("\tpublic ByteBuf data(){\n")
+    java_file.writelines("\t\tByteBuf byteBuffer = Unpooled.buffer(8+length());\n")
+    java_file.writelines("\t\tbyteBuffer.writeInt(id());\n")
+    java_file.writelines("\t\tbyteBuffer.writeInt(length());\n")
     for key in data.keys():
-        java_file.writelines("\t\tbyteBuffer.putInt(%s);\n" % key)
+        java_file.writelines("\t\tbyteBuffer.writeInt(%s);\n" % key)
 
-    java_file.writelines("\t\treturn byteBuffer.array();\n")
+    java_file.writelines("\t\treturn byteBuffer;\n")
     java_file.writelines("\t}\n")
 
     # parse_data
     java_file.writelines("\n")
-    java_file.writelines("\tpublic boolean parse_data(byte[] byteArray){\n")
-    java_file.writelines("\t\tByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);\n")
-    java_file.writelines("\t\tint msg_id = byteBuffer.getInt();\n")
-    java_file.writelines("\t\tint msg_length = byteBuffer.getInt();\n")
+    java_file.writelines("\tpublic boolean parse_data(ByteBuf byteBuffer){\n")
+    java_file.writelines("\t\tint msg_id = byteBuffer.readInt();\n")
+    java_file.writelines("\t\tint msg_length = byteBuffer.readInt();\n")
     java_file.writelines("\t\tif(msg_id==id() && msg_length==length()){\n")
     for key in data.keys():
-        java_file.writelines("\t\t\t%s = byteBuffer.getInt();\n" % key)
+        java_file.writelines("\t\t\t%s = byteBuffer.readInt();\n" % key)
     
     java_file.writelines("\t\t\treturn true;\n")
     java_file.writelines("\t\t}\n")
@@ -76,6 +76,7 @@ def gen_protocol_java( file, id):
     java_file.writelines("\t\t\treturn false;\n")
     java_file.writelines("\t\t}\n")
     java_file.writelines("\t}\n")
+
     # end
     java_file.writelines("}\n")
     java_file.close()
@@ -99,8 +100,50 @@ def gen_protocol_godot(file, id):
     gd_file.writelines("\n")
     gd_file.writelines("func _ready():\n")
     gd_file.writelines("\tpass\n\n")
-    gd_file.writelines("func get_id():\n")
+
+    # id
+    gd_file.writelines("func id():\n")
     gd_file.writelines("\treturn %d\n" % id)
+
+    # length
+    length = 0
+    for key in data.keys():
+        if data[key]=='int':
+            length += 4
+
+    gd_file.writelines("\n")
+    gd_file.writelines("func length():\n")
+    gd_file.writelines("\treturn %d\n" % length)
+    gd_file.writelines("\n")
+
+    # send data
+    gd_file.writelines("func send(stream):\n")
+    #gd_file.writelines("\tvar rawArray = RawArray()\n")
+    gd_file.writelines("\tstream.put_32(int(id()))\n")
+    gd_file.writelines("\tstream.put_32(int(length()))\n")
+    for key in data.keys():
+        gd_file.writelines("\tstream.put_32(%s)\n" % key)
+
+    #gd_file.writelines("\treturn rawArray")
+    gd_file.writelines("\n")
+
+    # parse data
+    gd_file.writelines("\n")
+    gd_file.writelines("func parse_data( rawArray):\n")
+    gd_file.writelines("\t\tByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);\n")
+    gd_file.writelines("\t\tint msg_id = byteBuffer.getInt();\n")
+    gd_file.writelines("\t\tint msg_length = byteBuffer.getInt();\n")
+    gd_file.writelines("\t\tif(msg_id==id() && msg_length==length()){\n")
+    for key in data.keys():
+        gd_file.writelines("\t\t\t%s = byteBuffer.getInt();\n" % key)
+    
+    gd_file.writelines("\t\t\treturn true;\n")
+    gd_file.writelines("\t\t}\n")
+    gd_file.writelines("\t\telse {\n")
+    gd_file.writelines("\t\t\treturn false;\n")
+    gd_file.writelines("\t\t}\n")
+    gd_file.writelines("\t}\n")
+
     gd_file.close()
 
     print("generate " + gd_file_name + " succeed")
