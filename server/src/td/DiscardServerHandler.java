@@ -11,17 +11,23 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg){
 		try{
-			ByteBuf in = (ByteBuf)msg;		
+			System.out.println("received data from");
 			
-			while(in.isReadable()){
-				System.out.print((char)in.readByte());
-				System.out.flush();
-			}
-			System.out.println(msg.toString());
-			System.out.println("Received msg form ip ");
+			ByteBuf buff = (ByteBuf)msg;
+			while(buff.isReadable()){		
+				protocol.login login_msg = new protocol.login();
+				if(login_msg.parse_data(buff)) {
+					System.out.println("parse login_msg succeed");
+				}
+			}		
 		} finally{
 			ReferenceCountUtil.release(msg);
 		}
+	}
+	
+	@Override
+	public void channelReadComplete(ChannelHandlerContext ctx) {
+		ctx.flush();
 	}
 	
 	@Override

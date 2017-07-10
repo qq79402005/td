@@ -1,6 +1,7 @@
 package protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 public class login {
 
@@ -15,22 +16,27 @@ public class login {
 		 return 8;
 	}
 
-	public byte[] data(){
-		ByteBuffer byteBuffer = ByteBuffer.allocate(8+length());
-		byteBuffer.putInt(id());
-		byteBuffer.putInt(length());
-		byteBuffer.putInt(account);
-		byteBuffer.putInt(password);
-		return byteBuffer.array();
+	public ByteBuf data(){
+		ByteBuf byteBuffer = Unpooled.buffer(8+length());
+		byteBuffer.writeInt(id());
+		byteBuffer.writeInt(length());
+		byteBuffer.writeInt(account);
+		byteBuffer.writeInt(password);
+		return byteBuffer;
 	}
 
-	public boolean parse_data(byte[] byteArray){
-		ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
-		int msg_id = byteBuffer.getInt();
-		int msg_length = byteBuffer.getInt();
+	public boolean parse_data(ByteBuf byteBuffer){
+		int msg_id = byteBuffer.readInt();
+		int msg_length = byteBuffer.readInt();
 		if(msg_id==id() && msg_length==length()){
-			account = byteBuffer.getInt();
-			password = byteBuffer.getInt();
+			account = byteBuffer.readInt();
+			password = byteBuffer.readInt();
+			
+			System.out.println(msg_id);
+			System.out.println(msg_length);
+			System.out.println(account);
+			System.out.println(password);
+			
 			return true;
 		}
 		else {

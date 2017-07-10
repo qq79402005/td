@@ -46,20 +46,8 @@ public class SocketServer {
 	}
 	
 	public static void main(String[] args){
-		
-		protocol.login login_msg = new protocol.login();
-		login_msg.account = 2;
-		login_msg.password = 3;
-		byte[] buffer = login_msg.data();
-		
-		protocol.login login_msg2 = new protocol.login();
-		login_msg2.parse_data(buffer);
-		
-		System.out.println(login_msg2.account);
-		//test
-		
-		//SocketServer server = getInstance();
-		//server.start();
+		SocketServer server = getInstance();
+		server.start();
 	}
 
 	public void start() {
@@ -75,8 +63,6 @@ public class SocketServer {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception{
 				ChannelPipeline pipeline = ch.pipeline();
-				pipeline.addLast(new StringDecoder(CharsetUtil.UTF_8));
-				pipeline.addLast(new StringEncoder(CharsetUtil.UTF_8));
 				pipeline.addLast(new DiscardServerHandler());
 			}
 		});
@@ -98,7 +84,5 @@ public class SocketServer {
 	public void shut(){
 		workGroup.shutdownGracefully();
 		bossGroup.shutdownGracefully();
-		
-		//ChannelMgr.getInstance().closeAllChannel();
 	}
 }

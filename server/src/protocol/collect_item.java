@@ -1,6 +1,7 @@
 package protocol;
 
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 
 public class collect_item {
 
@@ -16,24 +17,23 @@ public class collect_item {
 		 return 12;
 	}
 
-	public byte[] data(){
-		ByteBuffer byteBuffer = ByteBuffer.allocate(8+length());
-		byteBuffer.putInt(id());
-		byteBuffer.putInt(length());
-		byteBuffer.putInt(count);
-		byteBuffer.putInt(type);
-		byteBuffer.putInt(id);
-		return byteBuffer.array();
+	public ByteBuf data(){
+		ByteBuf byteBuffer = Unpooled.buffer(8+length());
+		byteBuffer.writeInt(id());
+		byteBuffer.writeInt(length());
+		byteBuffer.writeInt(count);
+		byteBuffer.writeInt(type);
+		byteBuffer.writeInt(id);
+		return byteBuffer;
 	}
 
-	public boolean parse_data(byte[] byteArray){
-		ByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);
-		int msg_id = byteBuffer.getInt();
-		int msg_length = byteBuffer.getInt();
+	public boolean parse_data(ByteBuf byteBuffer){
+		int msg_id = byteBuffer.readInt();
+		int msg_length = byteBuffer.readInt();
 		if(msg_id==id() && msg_length==length()){
-			count = byteBuffer.getInt();
-			type = byteBuffer.getInt();
-			id = byteBuffer.getInt();
+			count = byteBuffer.readInt();
+			type = byteBuffer.readInt();
+			id = byteBuffer.readInt();
 			return true;
 		}
 		else {
