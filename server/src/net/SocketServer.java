@@ -1,4 +1,4 @@
-package td;
+package net;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -63,7 +63,7 @@ public class SocketServer {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception{
 				ChannelPipeline pipeline = ch.pipeline();
-				pipeline.addLast(new DiscardServerHandler());
+				pipeline.addLast(new SocketServerHandler());
 			}
 		});
 		
