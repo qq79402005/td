@@ -17,9 +17,9 @@ func _ready():
 func _process(delta):
 	elapsedTime = elapsedTime + delta;	
 	if streamPeerTCP.is_connected() and elapsedTime>2:	
-		var login_msg = preload("res://global/protocol/collect_item.pb.gd").new()
-		login_msg.count = 45678
-		login_msg.type = 9
+		var login_msg = preload("res://global/protocol/login.pb.gd").new()
+		login_msg.account = 45678
+		login_msg.password = 9
 		login_msg.send(streamPeerTCP)
 		elapsedTime = 0.0
 		

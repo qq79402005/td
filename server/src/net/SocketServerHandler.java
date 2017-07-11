@@ -12,14 +12,16 @@ public class SocketServerHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg){
 		try{	
 			ByteBuf buff = (ByteBuf)msg;
-/*			while(buff.isReadable()){				
-				protocol.login login_msg = new protocol.login();
-				if(login_msg.parse_data(buff)) {
-					System.out.println("parse login_msg succeed");
+			while(buff.isReadable()){
+				int id = buff.readInt();
+				int len = buff.readInt();
+				if(id==2) {
+					protocol.login login_msg = new protocol.login();
+					login_msg.parse_data(buff);
+					
+					System.out.println(login_msg.account);
 				}
-			}*/
-			ByteBuf resp = Unpooled.copiedBuffer(buff);
-			ctx.write(resp);
+			}
 		} finally{
 			ReferenceCountUtil.release(msg);
 		}

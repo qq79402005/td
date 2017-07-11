@@ -1,6 +1,8 @@
 package net;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -10,6 +12,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 import io.netty.util.CharsetUtil;
 
 import java.io.IOException;
@@ -63,6 +66,12 @@ public class SocketServer {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception{
 				ChannelPipeline pipeline = ch.pipeline();
+				
+				ByteBuf delimiter = Unpooled.buffer(2);
+				delimiter.writeByte(64);
+				delimiter.writeByte(64);
+				
+				pipeline.addLast(new DelimiterBasedFrameDecoder(1024, true, delimiter));
 				pipeline.addLast(new SocketServerHandler());
 			}
 		});

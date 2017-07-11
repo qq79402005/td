@@ -3,10 +3,11 @@ package protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-public class login {
+public class login extends message {
 
 	public int account = 0;
 	public int password = 0;
+	@Override
 
 	public int id(){
 		 return 2;
@@ -22,19 +23,14 @@ public class login {
 		byteBuffer.writeInt(length());
 		byteBuffer.writeInt(account);
 		byteBuffer.writeInt(password);
+		byteBuffer.writeByte(64);
+		byteBuffer.writeByte(64);
 		return byteBuffer;
 	}
 
-	public boolean parse_data(ByteBuf byteBuffer){
-		int msg_id = byteBuffer.readInt();
-		int msg_length = byteBuffer.readInt();
-		if(msg_id==id() && msg_length==length()){
-			account = byteBuffer.readInt();
-			password = byteBuffer.readInt();
-			return true;
-		}
-		else {
-			return false;
-		}
+	@Override
+	public void parse_data(ByteBuf byteBuffer){
+		account = byteBuffer.readInt();
+		password = byteBuffer.readInt();
 	}
 }

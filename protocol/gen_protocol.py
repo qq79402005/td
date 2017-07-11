@@ -25,7 +25,7 @@ def gen_protocol_java( file, id):
     java_file.writelines("package protocol;\n\n")
     java_file.writelines("import io.netty.buffer.ByteBuf;\n")
     java_file.writelines("import io.netty.buffer.Unpooled;\n\n")
-    java_file.writelines("public class " + protocol_name + " {\n\n")
+    java_file.writelines("public class " + protocol_name + " extends message {\n\n")
 
     data_file = open(file)
     data = json.load(data_file) 
@@ -33,6 +33,7 @@ def gen_protocol_java( file, id):
         java_file.writelines("\tpublic " + data[key] +" " + key + " = 0;\n")
 
     # get_id
+    java_file.writelines("\t@Override\n")
     java_file.writelines("\n")
     java_file.writelines("\tpublic int id(){\n")
     java_file.writelines("\t\t return %d;\n" % id)
@@ -58,23 +59,18 @@ def gen_protocol_java( file, id):
     for key in data.keys():
         java_file.writelines("\t\tbyteBuffer.writeInt(%s);\n" % key)
 
+    java_file.writelines("\t\tbyteBuffer.writeByte(64);\n")
+    java_file.writelines("\t\tbyteBuffer.writeByte(64);\n")
     java_file.writelines("\t\treturn byteBuffer;\n")
     java_file.writelines("\t}\n")
 
     # parse_data
     java_file.writelines("\n")
-    java_file.writelines("\tpublic boolean parse_data(ByteBuf byteBuffer){\n")
-    java_file.writelines("\t\tint msg_id = byteBuffer.readInt();\n")
-    java_file.writelines("\t\tint msg_length = byteBuffer.readInt();\n")
-    java_file.writelines("\t\tif(msg_id==id() && msg_length==length()){\n")
+    java_file.writelines("\t@Override\n")
+    java_file.writelines("\tpublic void parse_data(ByteBuf byteBuffer){\n")
     for key in data.keys():
-        java_file.writelines("\t\t\t%s = byteBuffer.readInt();\n" % key)
+        java_file.writelines("\t\t%s = byteBuffer.readInt();\n" % key)
     
-    java_file.writelines("\t\t\treturn true;\n")
-    java_file.writelines("\t\t}\n")
-    java_file.writelines("\t\telse {\n")
-    java_file.writelines("\t\t\treturn false;\n")
-    java_file.writelines("\t\t}\n")
     java_file.writelines("\t}\n")
 
     # end
@@ -149,6 +145,31 @@ def gen_protocol_godot(file, id):
     gd_file.close()
 
     print("generate " + gd_file_name + " succeed")
+
+
+def generate_msg_jave_base_class():
+    java_file_name = java_save_path + "message.java"
+    java_file = open(java_file_name, "w+")
+    java_file.writelines("package protocol;\n\n")
+    java_file.writelines("import io.netty.buffer.ByteBuf;\n")
+    java_file.writelines("import io.netty.buffer.Unpooled;\n\n")
+    java_file.writelines("public class message {\n\n")
+
+    # get_id
+    java_file.writelines("\tpublic int id(){\n")
+    java_file.writelines("\t\t return %d;\n" % 0)
+    java_file.writelines("\t}\n")
+
+    # pass data
+    java_file.writelines("\tpublic void parse_data(ByteBuf byteBuffer){\n")
+    java_file.writelines("\t\tSystem.out.println(\"parse_data method hasn't implementation.\");\n")
+    java_file.writelines("\t}\n")
+
+    # end
+    java_file.writelines("}\n")
+    java_file.close()
+
+generate_msg_jave_base_class()
 
 dirs = os.listdir(root_path)
 id = 1
