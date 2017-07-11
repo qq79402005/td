@@ -2,6 +2,8 @@
 #define BYTE_BUF_H
 
 #include <reference.h>
+#include <dvector.h>
+#include <io/stream_peer.h>
 
 // C++ wrapper for ByteBuf
 class ByteBuf : public Reference 
@@ -14,18 +16,17 @@ public:
 
 	void resize(int size);
 
-    void writeInt32(int value);
+    void writeInt32(int32_t p_val);
     int readInt32();
 
-	//DVector<uint8_t> rawArray();
+	DVector<uint8_t>& rawArray();
 
 protected:
     static void _bind_methods();
 
     int     readIdx;
     int     writeIdx;
-	int			   data_size;
-	unsigned char* data;
+	DVector<uint8_t> data;
 };
 
 #endif // OPENSIMPLEX_NOISE_H
