@@ -16,10 +16,10 @@ public:
 
 	void resize(int size);
 
-    void writeInt32(int32_t p_val);
-    int readInt32();
+    void write_i32(int32_t p_val);
+    int32_t read_i32();
 
-	DVector<uint8_t>& rawArray();
+	DVector<uint8_t>& raw_data();
 
 protected:
     static void _bind_methods();

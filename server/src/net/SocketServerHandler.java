@@ -1,7 +1,7 @@
 package net;
 
 import io.netty.buffer.ByteBuf;
-
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
@@ -10,16 +10,16 @@ public class SocketServerHandler extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg){
-		try{
-			System.out.println("received data from");
-			
+		try{	
 			ByteBuf buff = (ByteBuf)msg;
-			while(buff.isReadable()){				
+			/*while(buff.isReadable()){				
 				protocol.login login_msg = new protocol.login();
 				if(login_msg.parse_data(buff)) {
 					System.out.println("parse login_msg succeed");
 				}
-			}		
+			}*/
+			ByteBuf resp = Unpooled.copiedBuffer(buff);
+			ctx.write(resp);
 		} finally{
 			ReferenceCountUtil.release(msg);
 		}

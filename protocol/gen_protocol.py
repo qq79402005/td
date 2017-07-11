@@ -118,31 +118,28 @@ def gen_protocol_godot(file, id):
 
     # send data
     gd_file.writelines("func send(stream):\n")
-    gd_file.writelines("\tvar buf = ByteBuf()\n")
-    gd_file.writelines("\tbuf.write_int32(int(id()))\n")
-    gd_file.writelines("\tbuf.write_int32(int(length()))\n")
+    gd_file.writelines("\tvar buf = ByteBuf.new()\n")
+    gd_file.writelines("\tbuf.resize(8+length())\n")
+    gd_file.writelines("\tbuf.write_i32(int(id()))\n")
+    gd_file.writelines("\tbuf.write_i32(int(length()))\n")
     for key in data.keys():
-        gd_file.writelines("\tbuf.write_int32(%s)\n" % key)
+        gd_file.writelines("\tbuf.write_i32(%s)\n" % key)
 
     gd_file.writelines("\tstream.put_data(buf.raw_data())")
     gd_file.writelines("\n")
 
     # parse data
     gd_file.writelines("\n")
-    gd_file.writelines("func parse_data( rawArray):\n")
-    gd_file.writelines("\t\tByteBuffer byteBuffer = ByteBuffer.wrap(byteArray);\n")
-    gd_file.writelines("\t\tint msg_id = byteBuffer.getInt();\n")
-    gd_file.writelines("\t\tint msg_length = byteBuffer.getInt();\n")
-    gd_file.writelines("\t\tif(msg_id==id() && msg_length==length()){\n")
+    gd_file.writelines("func parse_data( byteBuffer):\n")
+    gd_file.writelines("\tvar msg_id = byteBuffer.read_i32();\n")
+    gd_file.writelines("\tvar msg_length = byteBuffer.read_i32();\n")
+    gd_file.writelines("\tif msg_id==id() and msg_length==length():\n")
     for key in data.keys():
-        gd_file.writelines("\t\t\t%s = byteBuffer.getInt();\n" % key)
+        gd_file.writelines("\t\t%s = byteBuffer.read_i32();\n" % key)
     
-    gd_file.writelines("\t\t\treturn true;\n")
-    gd_file.writelines("\t\t}\n")
-    gd_file.writelines("\t\telse {\n")
-    gd_file.writelines("\t\t\treturn false;\n")
-    gd_file.writelines("\t\t}\n")
-    gd_file.writelines("\t}\n")
+    gd_file.writelines("\t\treturn true;\n")
+    gd_file.writelines("\telse:\n")
+    gd_file.writelines("\t\treturn false;\n")
 
     gd_file.close()
 
