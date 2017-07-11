@@ -12,7 +12,7 @@ public class SocketServerHandler extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg){
 		try{	
 			ByteBuf buff = (ByteBuf)msg;
-			/*while(buff.isReadable()){				
+/*			while(buff.isReadable()){				
 				protocol.login login_msg = new protocol.login();
 				if(login_msg.parse_data(buff)) {
 					System.out.println("parse login_msg succeed");

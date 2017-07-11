@@ -101,6 +101,10 @@ def gen_protocol_godot(file, id):
     gd_file.writelines("func _ready():\n")
     gd_file.writelines("\tpass\n\n")
 
+    # name
+    gd_file.writelines("func name():\n")
+    gd_file.writelines("\treturn '%s'\n" % protocol_name)
+
     # id
     gd_file.writelines("func id():\n")
     gd_file.writelines("\treturn %d\n" % id)
@@ -119,27 +123,28 @@ def gen_protocol_godot(file, id):
     # send data
     gd_file.writelines("func send(stream):\n")
     gd_file.writelines("\tvar buf = ByteBuf.new()\n")
-    gd_file.writelines("\tbuf.resize(8+length())\n")
     gd_file.writelines("\tbuf.write_i32(int(id()))\n")
     gd_file.writelines("\tbuf.write_i32(int(length()))\n")
     for key in data.keys():
         gd_file.writelines("\tbuf.write_i32(%s)\n" % key)
 
+    gd_file.writelines("\tbuf.write_byte(64)\n")
+    gd_file.writelines("\tbuf.write_byte(64)\n")
     gd_file.writelines("\tstream.put_data(buf.raw_data())")
     gd_file.writelines("\n")
 
     # parse data
     gd_file.writelines("\n")
     gd_file.writelines("func parse_data( byteBuffer):\n")
-    gd_file.writelines("\tvar msg_id = byteBuffer.read_i32();\n")
-    gd_file.writelines("\tvar msg_length = byteBuffer.read_i32();\n")
-    gd_file.writelines("\tif msg_id==id() and msg_length==length():\n")
+    #gd_file.writelines("\tvar msg_id = byteBuffer.read_i32();\n")
+    #gd_file.writelines("\tvar msg_length = byteBuffer.read_i32();\n")
+    #gd_file.writelines("\tif msg_id==id() and msg_length==length():\n")
     for key in data.keys():
-        gd_file.writelines("\t\t%s = byteBuffer.read_i32();\n" % key)
+        gd_file.writelines("\t%s = byteBuffer.read_i32();\n" % key)
     
-    gd_file.writelines("\t\treturn true;\n")
-    gd_file.writelines("\telse:\n")
-    gd_file.writelines("\t\treturn false;\n")
+    #gd_file.writelines("\t\treturn true;\n")
+    #gd_file.writelines("\telse:\n")
+    #gd_file.writelines("\t\treturn false;\n")
 
     gd_file.close()
 

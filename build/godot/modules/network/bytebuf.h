@@ -14,8 +14,7 @@ public:
     ByteBuf();
     ~ByteBuf();
 
-	void resize(int size);
-
+	void write_byte(uint8_t p_val);
     void write_i32(int32_t p_val);
     int32_t read_i32();
 
