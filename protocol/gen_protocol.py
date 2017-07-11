@@ -118,13 +118,13 @@ def gen_protocol_godot(file, id):
 
     # send data
     gd_file.writelines("func send(stream):\n")
-    #gd_file.writelines("\tvar rawArray = RawArray()\n")
-    gd_file.writelines("\tstream.put_32(int(id()))\n")
-    gd_file.writelines("\tstream.put_32(int(length()))\n")
+    gd_file.writelines("\tvar buf = ByteBuf()\n")
+    gd_file.writelines("\tbuf.write_int32(int(id()))\n")
+    gd_file.writelines("\tbuf.write_int32(int(length()))\n")
     for key in data.keys():
-        gd_file.writelines("\tstream.put_32(%s)\n" % key)
+        gd_file.writelines("\tbuf.write_int32(%s)\n" % key)
 
-    #gd_file.writelines("\treturn rawArray")
+    gd_file.writelines("\tstream.put_data(buf.raw_data())")
     gd_file.writelines("\n")
 
     # parse data

@@ -42,7 +42,7 @@ public class SocketServer {
 	}
 	
 	private void initData(){
-		port = 8700;
+		port = 8800;
 	}
 	
 	public static void main(String[] args){

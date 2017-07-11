@@ -5,18 +5,23 @@ var elapsedTime = 0
 
 func _ready():
 	streamPeerTCP = StreamPeerTCP.new()
-	streamPeerTCP.connect('localhost', 8700)
-	
+	streamPeerTCP.connect('localhost', 8800)
 	set_process(true)
 	
 func _process(delta):
 	elapsedTime = elapsedTime + delta;	
-	if streamPeerTCP.is_connected() and elapsedTime>2:
-		streamPeerTCP.put_var('hello, I am godot engine')
+	if streamPeerTCP.is_connected() and elapsedTime>5:	
+		var login_msg = preload("res://global/protocol/login.pb.gd").new()
+		login_msg.account = 1
+		login_msg.password = 2	
+		login_msg.send(streamPeerTCP)
+	
 		elapsedTime = 0.0
 		
-		var availableByte = streamPeerTCP.get_available_bytes()
-		if availableByte > 0:
-			var data = streamPeerTCP.get_data(availableByte)
-			print(data)
+		var availablePacketCount = packetPeerStream.get_available_packet_count()
+		if availablePacketCount > 0:
+			var data = packetPeerStream.get_packet()
+			var login_msg = preload("res://global/protocol/login.pb.gd").new()
+			if login_msg.parse_data(data):		
+				print(login_msg.account)
 		

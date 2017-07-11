@@ -31,12 +31,6 @@ public class login {
 		if(msg_id==id() && msg_length==length()){
 			account = byteBuffer.readInt();
 			password = byteBuffer.readInt();
-			
-			System.out.println(msg_id);
-			System.out.println(msg_length);
-			System.out.println(account);
-			System.out.println(password);
-			
 			return true;
 		}
 		else {

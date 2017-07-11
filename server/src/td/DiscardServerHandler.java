@@ -14,7 +14,7 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 			System.out.println("received data from");
 			
 			ByteBuf buff = (ByteBuf)msg;
-			while(buff.isReadable()){		
+			while(buff.isReadable()){				
 				protocol.login login_msg = new protocol.login();
 				if(login_msg.parse_data(buff)) {
 					System.out.println("parse login_msg succeed");
