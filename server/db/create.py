@@ -1,7 +1,7 @@
 import psycopg2
 import sys
 
-dbName   = "alab_web"
+dbName   = "td"
 userName = 'postgres'
 userPW   = 'Q19870816q'
 
@@ -59,9 +59,8 @@ def createTable(tableName, sqlCMD):
     return
 
 # create db
-# createDB()
+#createDB()
 
 # create table pageView if not exist
-createTable('pageview', '(Id serial PRIMARY KEY, Http VARCHAR(128),Num INT)')
 createTable('account', '(Id serial, account VARCHAR(128) PRIMARY KEY, password VARCHAR(128), info json)')
 
