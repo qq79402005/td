@@ -1,6 +1,7 @@
 package net;
 
 import io.netty.channel.ChannelHandlerContext;
+import player.Player;
 
 interface ProtocolProcess {
 	public void on_accept(protocol.message proto, ChannelHandlerContext ctx);
@@ -14,9 +15,9 @@ interface ProtocolProcess {
 class login_process implements ProtocolProcess{
 	@Override
 	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
-		protocol.login msg = (protocol.login)proto;
-		
-
+		protocol.login msg = (protocol.login)proto;		
+		Player player = Player.get(msg.account, ctx);
+		player.sendBackpackInfo();
 	}
 }
 
@@ -25,6 +26,6 @@ class collect_item_process implements ProtocolProcess{
 	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
 		protocol.collect_item msg = (protocol.collect_item)proto;
 		
-		// do something
+		System.out.println(ctx.name());
 	}
 }

@@ -19,4 +19,11 @@ public class db {
 			System.out.println("error");
 		}
 	}*/
+	public db() {
+		
+	}
+	
+	public boolean isPlayerExist(int id) {
+		return true;
+	}
 }

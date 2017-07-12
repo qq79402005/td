@@ -15,4 +15,8 @@ func _on_back_pressed():
 
 
 func _on_enter_pressed():
+	# login
+	get_node("/root/network").login()
+	
+	# change scene
 	get_node("/root/global").setScene("res://main/main.tscn")

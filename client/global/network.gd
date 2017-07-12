@@ -16,16 +16,16 @@ func _ready():
 	
 func _process(delta):
 	elapsedTime = elapsedTime + delta;	
-	if streamPeerTCP.is_connected() and elapsedTime>2:	
-		var login_msg = preload("res://global/protocol/login.pb.gd").new()
-		login_msg.account = 45678
-		login_msg.password = 9
-		login_msg.send(streamPeerTCP)
-		var collect_msg = preload("res://global/protocol/collect_item.pb.gd").new()
-		collect_msg.type = -5678
-		collect_msg.send(streamPeerTCP)
-		
-		elapsedTime = 0.0
+	#if streamPeerTCP.is_connected() and elapsedTime>2:	
+	#	var login_msg = preload("res://global/protocol/login.pb.gd").new()
+	#	login_msg.account = 45678
+	#	login_msg.password = 9
+	#	login_msg.send(streamPeerTCP)
+	#	var collect_msg = preload("res://global/protocol/collect_item.pb.gd").new()
+	#	collect_msg.type = -5678
+	#	collect_msg.send(streamPeerTCP)
+	#	
+	elapsedTime = 0.0
 		
 	# parse msg	
 	var availableBytes = streamPeerTCP.get_available_bytes()
@@ -64,14 +64,20 @@ func process_net_package(buf):
 	var msg_cb = msg_bind[msg_id][1]	
 	msg.parse_data(buf)
 	msg_cb.call_func(msg)
+	
+func login():
+	if streamPeerTCP.is_connected():	
+		var login_msg = preload("res://global/protocol/login.pb.gd").new()
+		login_msg.account = 1
+		login_msg.password = 9
+		login_msg.send(streamPeerTCP)
 
 func bind_msgs():
-	bind(preload("res://global/protocol/login.pb.gd"))
-	bind(preload("res://global/protocol/collect_item.pb.gd"))
+	bind(preload("res://global/protocol/backpack_num.pb.gd"))
+	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
 		
-func on_msg_login( msg):
-	print(msg.account)
+func on_msg_backpack_num( msg):
+	print("caocaocao")
 	
-func on_msg_collect_item(msg):
-	print("collect_item")
-	print(msg.type)
+func on_msg_backpack_cell( msg):
+	print("hahaha")
