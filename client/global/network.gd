@@ -21,6 +21,10 @@ func _process(delta):
 		login_msg.account = 45678
 		login_msg.password = 9
 		login_msg.send(streamPeerTCP)
+		var collect_msg = preload("res://global/protocol/collect_item.pb.gd").new()
+		collect_msg.type = -5678
+		collect_msg.send(streamPeerTCP)
+		
 		elapsedTime = 0.0
 		
 	# parse msg	

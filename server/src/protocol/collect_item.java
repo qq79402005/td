@@ -14,6 +14,7 @@ public class collect_item extends message {
 		 return 1;
 	}
 
+	@Override
 	public int length(){
 		 return 12;
 	}

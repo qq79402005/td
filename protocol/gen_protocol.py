@@ -46,6 +46,7 @@ def gen_protocol_java( file, id):
             length += 4
 
     java_file.writelines("\n")
+    java_file.writelines("\t@Override\n")
     java_file.writelines("\tpublic int length(){\n")
     java_file.writelines("\t\t return %d;\n" % length)
     java_file.writelines("\t}\n")
@@ -160,7 +161,14 @@ def generate_msg_jave_base_class():
     java_file.writelines("\t\t return %d;\n" % 0)
     java_file.writelines("\t}\n")
 
+    # length
+    java_file.writelines("\n")
+    java_file.writelines("\tpublic int length(){\n")
+    java_file.writelines("\t\t return %d;\n" % 0)
+    java_file.writelines("\t}\n")
+
     # pass data
+    java_file.writelines("\n")
     java_file.writelines("\tpublic void parse_data(ByteBuf byteBuffer){\n")
     java_file.writelines("\t\tSystem.out.println(\"parse_data method hasn't implementation.\");\n")
     java_file.writelines("\t}\n")
