@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.ResultSet;
-import player.Player;
 
 // data base manager
 public class db {
@@ -82,8 +81,19 @@ public class db {
 		}
 	}
 	
-	public void savePlayer(Player player) {
-		
+	public void savePlayer(String account, String name, String json) {
+		try {
+			Statement st = con.createStatement();
+			
+			String sql = String.format("UPDATA player SET info=\'%s\' WHERE account=\'%s\' AND name=\'%s\';", json, account, name);
+			
+			System.out.println("db:" + sql);
+			st.executeUpdate(sql);
+			st.close();
+			
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void getPlayerInfo(int id) {

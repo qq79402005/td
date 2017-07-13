@@ -1,13 +1,12 @@
 package player;
 
-import db.db;
 import java.util.ArrayList;
 
-class cell{
+class Cell{
 	int		item_id;
 	int		item_num;
 	
-	cell(){
+	Cell(){
 		item_id = 0;
 		item_num = 0;
 	}
@@ -15,7 +14,7 @@ class cell{
 
 public class Backpack {
 	public int 				  cell_number = 15;
-	protected ArrayList<cell> cells;
+	protected ArrayList<Cell> cells;
 	
 	public Backpack() {
 		
@@ -23,10 +22,19 @@ public class Backpack {
 	
 	public void init(String account) {
 		//db.instance().getPlayerInfo(account);
+		//cell
 	}
 	
-	// used for save to db
-	public void str() {
+	// used for save to database
+	public String toJson() {	
+		String cellsInfo= "";
+		for( int i=0; i<cells.size(); i++) {
+			//Cell cell = cells[i];
+			
+			//cellsInfo +=
+		}
 		
+		String backPackJson = String.format("\"backpack\":{\"num\":%d,\"cells\":{%s}", cell_number, cellsInfo);
+		return backPackJson;
 	}
 }
