@@ -10,10 +10,10 @@
 [ext_resource path="res://main/TouchPick.gd" type="Script" id=8]
 [ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=9]
 [ext_resource path="res://main/cha_package.gd" type="Script" id=10]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=11]
-[ext_resource path="res://character/shoot/energy.png" type="Texture" id=12]
+[ext_resource path="res://main/ui/ui.gd" type="Script" id=11]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=12]
 [ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=13]
-[ext_resource path="res://ui/backpack/backpack.tscn" type="PackedScene" id=14]
+[ext_resource path="res://ui/bag/bag.tscn" type="PackedScene" id=14]
 [ext_resource path="res://main/weather.gd" type="Script" id=15]
 [ext_resource path="res://launch/bg_plain.png" type="Texture" id=16]
 
@@ -226,11 +226,11 @@ params/attenuation = 1.93187
 
 [node name="ui" type="CanvasLayer" parent="."]
 
-editor/display_folded = true
 layer = 1
 offset = Vector2( 0, 0 )
 rotation = 0.0
 scale = Vector2( 1, 1 )
+script/script = ExtResource( 11 )
 
 [node name="back" type="Button" parent="ui"]
 
@@ -244,46 +244,18 @@ margin/left = 41.0
 margin/top = 83.0
 margin/right = 191.0
 margin/bottom = 40.0
-custom_fonts/font = ExtResource( 11 )
+custom_fonts/font = ExtResource( 12 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 text = "Back"
 flat = false
 
-[node name="Particles2D" type="Particles2D" parent="ui/back"]
-
-transform/pos = Vector2( 32.6489, 8.16223 )
-config/amount = 32
-config/lifetime = 4.0
-config/process_mode = 1
-config/texture = ExtResource( 12 )
-params/direction = 90.0
-params/spread = 40.0
-params/linear_velocity = 20.0
-params/spin_velocity = 0.0
-params/orbit_velocity = 0.0
-params/gravity_direction = 0.0
-params/gravity_strength = 9.8
-params/radial_accel = 0.0
-params/tangential_accel = 0.0
-params/damping = 0.0
-params/initial_angle = 0.0
-params/initial_size = 1.0
-params/final_size = 1.0
-params/hue_variation = 0.0
-params/anim_speed_scale = 1.0
-params/anim_initial_pos = 0.0
-color/color = Color( 0.816406, 0.127563, 0.127563, 1 )
-__meta__ = {
-"_edit_lock_": true
-}
-
 [node name="item_operate" parent="ui" instance=ExtResource( 13 )]
 
 visibility/visible = false
 
-[node name="backpack" type="Button" parent="ui"]
+[node name="backpack_button" type="Button" parent="ui"]
 
 anchor/left = 1
 anchor/top = 1
@@ -293,20 +265,21 @@ focus/ignore_mouse = false
 focus/stop_mouse = true
 size_flags/horizontal = 2
 size_flags/vertical = 2
-margin/left = -761.0
-margin/top = -418.0
-margin/right = -912.0
-margin/bottom = -489.0
-custom_fonts/font = ExtResource( 11 )
+margin/left = 193.0
+margin/top = 121.0
+margin/right = 42.0
+margin/bottom = 50.0
+custom_fonts/font = ExtResource( 12 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 text = "Backpack"
 flat = false
 
-[node name="backpack 2" parent="ui" instance=ExtResource( 14 )]
+[node name="big bag" parent="ui" instance=ExtResource( 14 )]
 
 visibility/visible = false
+name = "Big Bag"
 
 [node name="weather" type="Node2D" parent="."]
 
@@ -331,5 +304,7 @@ expand = true
 stretch_mode = 3
 
 [connection signal="pressed" from="ui/back" to="." method="_on_back_pressed"]
+
+[connection signal="pressed" from="ui/backpack_button" to="ui" method="_on_backpack_button_pressed"]
 
 
