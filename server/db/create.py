@@ -63,4 +63,5 @@ def createTable(tableName, sqlCMD):
 
 # create table pageView if not exist
 createTable('account', '(Id serial, account VARCHAR(128) PRIMARY KEY, password VARCHAR(128), info json)')
+createTable('player', '(Id serial, account VARCHAR(128) PRIMARY KEY, name VARCHAR(128), info json)')
 

@@ -33,7 +33,12 @@ func _process(delta):
 	update_terrain_tile()
 
 func get_item(x, z):
-	return -1
+	var x_pos = int(x / tile_size)
+	var z_pos = int(z / tile_size)
+	
+	var tile = get_tile(x_pos, z_pos)
+	if tile!=null:
+		return tile.get_item(x-x_pos*tile_size, z-z_pos*tile_size)
 	
 func get_height( xpos, ypos):
 	var noise_height = fractal_noise.get_noise_2d(xpos, ypos)
@@ -80,6 +85,14 @@ func is_tile_exist(x_coord, z_coord):
 			return true
 			
 	return false
+	
+func get_tile(x_coord, z_coord):
+	for tile in tiles:
+		var g_pos = tile.get_global_transform().origin / tile_size
+		if abs(g_pos.x-x_coord)<1 and abs(g_pos.z-z_coord)<1:
+			return tile
+			
+	return null
 	
 func gen_tile_mesh(tile, pos):
 	var surfTool = SurfaceTool.new()
@@ -151,7 +164,7 @@ func get_color_by_height(height):
 	#return height_colors[idx].linear_interpolate(height_colors[idx+1],ratio)
 	
 func get_main_character_pos():
-	var main_character = get_tree().get_root().get_node("root/characters/actor0")
+	var main_character = get_tree().get_root().get_node("level/characters/actor0")
 	if main_character:
 		return main_character.get_translation()
 	else:

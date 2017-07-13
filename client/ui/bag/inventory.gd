@@ -241,23 +241,36 @@ class Slot:
 		menu = null
 
 func _ready():
+	set_slot_size(size)
+	
+func set_slot_size(slot_size):
+	clear_slots()
+	
 	ItemDatabase = get_node("/root/item_database")
-	if size < 1:
+	if slot_size < 1:
 		queue_free()
 		return
 	# First child should be a label
 	get_child(0).set_text(name)
-	for i in range(size):
+	for i in range(slot_size):
 		var slot = Slot.new(self)
 		slot.set_name("slot_"+str(i))
 		add_child(slot)
 		slots.append(slot)
 		slot.set_pos(Vector2(6+(SLOT_SIZE + 5)*(i%5), 25+top_space+(SLOT_SIZE + 5)*(i/5)))
 	var cols = 5
-	if size < 5:
-		cols = size
-	var rows = (size-1)/5 + 1
-	collapse(collapsed)
+	if slot_size < 5:
+		cols = slot_size
+	var rows = (slot_size-1)/5 + 1
+	collapse(collapsed)	
+	
+	#self.set_size(self.())
+	
+func clear_slots():
+	for slot in slots:
+		self.remove_child(slot)
+		
+	slots.clear()	
 
 func collapse(c):
 	collapsed = c
@@ -354,6 +367,7 @@ func add_items(n, c):
 	var itemdesc = ItemDatabase.get_item(n)
 	if itemdesc == null:
 		return false
+		
 	return add_stack(ObjectStack.new(itemdesc, c))
 
 # Remove items (by name, count)

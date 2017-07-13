@@ -46,6 +46,9 @@ func can_stack(s):
 
 func stack(s):
 	if s.item == item:
+		if count >= 10 :
+			return false;
+		
 		count += s.count
 		layout()
 		return true

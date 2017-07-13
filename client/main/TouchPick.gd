@@ -10,8 +10,9 @@ func _ready():
 	scene_rotate_y = get_parent().get_rotation_deg().y
 	set_process_input(true)
 	set_fixed_process(true)
-	
+
 func _input(event):
+#func _unhandled_input(event):
 	if(event.type==InputEvent.MOUSE_BUTTON and event.pressed and event.button_index==1):
 		ray_from = self.project_ray_origin(event.pos)
 		ray_to = ray_from + self.project_ray_normal(event.pos) * ray_length
@@ -25,19 +26,20 @@ func _fixed_process(delta):
 	if is_touch:
 		var space_state = get_world().get_direct_space_state()
 		var result = space_state.intersect_ray(ray_from, ray_to)
-		if not result.empty():
-			print("hit a point", result.position)
-			
-			var item = -1# get_tree().get_root().get_node("root/terrain/terrain_tile").get_item(int(result.position.x), int(result.position.z))
-			#print(item)
+		if not result.empty():		
+			var item = get_tree().get_root().get_node("level/terrain").get_item(int(result.position.x), int(result.position.z))
+			print(item)
 			
 			#show ui
 			if(item!=-1):
 				var screen_point = self.unproject_position(result.position)
-				get_tree().get_root().get_node("root/ui/item_operate").show(screen_point)
+				get_tree().get_root().get_node("level/ui/item_operate").show(screen_point)
 			else:
+				# collect
+				get_node("/root/network").collect_item()
+				
 				get_parent().set_target_pos(result.position)
-				get_tree().get_root().get_node("root/ui/item_operate").set_hidden(true)
+				get_tree().get_root().get_node("level/ui/item_operate").set_hidden(true)
 			
 		is_touch = false
 	

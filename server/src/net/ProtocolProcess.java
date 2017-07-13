@@ -16,7 +16,8 @@ class login_process implements ProtocolProcess{
 	@Override
 	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
 		protocol.login msg = (protocol.login)proto;		
-		Player player = Player.get(msg.account, ctx);
+		Player player = Player.get(ctx);
+		player.setAccount("qq79402005", "aqi");
 		player.sendBackpackInfo();
 	}
 }
@@ -26,6 +27,7 @@ class collect_item_process implements ProtocolProcess{
 	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
 		protocol.collect_item msg = (protocol.collect_item)proto;
 		
-		System.out.println(ctx.name());
+		Player player = Player.get(ctx);
+		player.collectItem(msg.id, msg.count, msg.type);
 	}
 }

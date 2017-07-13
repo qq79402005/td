@@ -71,13 +71,21 @@ func login():
 		login_msg.account = 1
 		login_msg.password = 9
 		login_msg.send(streamPeerTCP)
+		
+func collect_item():
+	if streamPeerTCP.is_connected():	
+		var collect_item_msg = preload("res://global/protocol/collect_item.pb.gd").new()
+		collect_item_msg.id = 1
+		collect_item_msg.count = 1
+		collect_item_msg.type = 1
+		collect_item_msg.send(streamPeerTCP)
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))
 	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
 		
 func on_msg_backpack_num( msg):
-	print("caocaocao")
+	get_tree().get_root().get_node("level/ui/big bag").set_slot_size(msg.num)
 	
 func on_msg_backpack_cell( msg):
-	print("hahaha")
+	get_tree().get_root().get_node("level/ui/big bag").add_items( "Yellow GoBot", 1)
