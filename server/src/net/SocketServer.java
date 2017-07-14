@@ -1,5 +1,7 @@
 package net;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.buffer.ByteBuf;
@@ -10,19 +12,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.util.CharsetUtil;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketAddress;
-
-//import org.slf4j.Logger;
 
 public class SocketServer {
 	
@@ -48,7 +39,17 @@ public class SocketServer {
 		port = 8800;
 	}
 	
-	public static void main(String[] args){
+	public static void main(String[] args){	
+		// 数据保存计时器
+		Timer dbSaveTimer = new Timer();
+		dbSaveTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				player.Player.update();
+			}
+		}, 5*60*1000, 5*50*1000);
+		
+		// 启动服务
 		SocketServer server = getInstance();
 		server.start();
 	}
@@ -88,7 +89,6 @@ public class SocketServer {
 			System.out.println("bind port failed");
 		}
 	}
-	
 	
 	public void shut(){
 		workGroup.shutdownGracefully();

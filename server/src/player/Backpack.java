@@ -1,20 +1,27 @@
 package player;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import com.google.gson.Gson;
 
 class Cell{
-	int		item_id;
-	int		item_num;
+	public int		item_id;
+	public int		item_num;
 	
 	Cell(){
 		item_id = 0;
 		item_num = 0;
 	}
+	
+	Cell(int id, int num){
+		item_id = id;
+		item_num = num;
+	}
 }
 
 public class Backpack {
 	public int 				  cell_number = 15;
-	protected ArrayList<Cell> cells;
+	public ArrayList<Cell> 	  cells = new ArrayList<Cell>();
 	
 	public Backpack() {
 		
@@ -27,14 +34,10 @@ public class Backpack {
 	
 	// used for save to database
 	public String toJson() {	
-		String cellsInfo= "";
-		for( int i=0; i<cells.size(); i++) {
-			//Cell cell = cells[i];
-			
-			//cellsInfo +=
-		}
+		Gson gson = new Gson();
+		String json = gson.toJson(this);
 		
-		String backPackJson = String.format("\"backpack\":{\"num\":%d,\"cells\":{%s}", cell_number, cellsInfo);
+		String backPackJson = String.format("\"backpack\":%s", json);
 		return backPackJson;
 	}
 }
