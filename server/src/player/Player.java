@@ -43,8 +43,7 @@ public class Player {
 			return players.get(ctxID);
 		}
 		else {
-			Player player = new Player(ctx);
-			players.put(ctxID, player);
+			Player player = new Player(ctx);		
 			
 			return player;
 		}		
@@ -65,6 +64,8 @@ public class Player {
 			
 			// init this player
 			loadFromDB();
+			
+			players.put(mChannelCtx.hashCode(), this);
 		}
 	}
 	
@@ -79,6 +80,18 @@ public class Player {
 				
 				break;
 			}
+		}
+	}
+	
+	public static void disconnectPlayer(ChannelHandlerContext ctx) {
+		if( players.containsKey(ctx.hashCode())) {
+			Player player = players.get(ctx.hashCode());
+
+			System.out.println(String.format("Player [%s] offline, CurrentPlayers [%d]", player.mName, players.size()-1));
+			
+			player.saveToDB();
+			player.mChannelCtx.disconnect();	
+			players.remove(ctx.hashCode());
 		}
 	}
 	
@@ -109,26 +122,11 @@ public class Player {
 	}
 	
 	public void collectItem(int id, int count, int type) {
-		// add to bag
-		
-		// send to client
-		protocol.backpack_cell bp_cell = new protocol.backpack_cell();
-		bp_cell.index = 0;
-		bp_cell.item_id = 1;
-		bp_cell.item_num = 15;
-		mChannelCtx.write(bp_cell.data());
+		mInfo.backpack.collectItem(id, count, type, mChannelCtx);
 	}
 	
 	// send info to client
 	public void sendBackpackInfo(){
-		protocol.backpack_num bp_num = new protocol.backpack_num();
-		bp_num.num = mInfo.backpack.cell_number;
-		mChannelCtx.write( bp_num.data());
-		
-		protocol.backpack_cell bp_cell = new protocol.backpack_cell();
-		bp_cell.index = 0;
-		bp_cell.item_id = 1;
-		bp_cell.item_num = 15;
-		mChannelCtx.write(bp_cell.data());
+		mInfo.backpack.sendBackpackInfo(mChannelCtx);
 	}
 }

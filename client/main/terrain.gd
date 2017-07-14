@@ -76,7 +76,7 @@ func add_terrain_tile(x_coord, z_coord):
 		self.add_child(tile)
 		tiles.append(tile)
 		
-		print("append tile:", pos)
+		#print("append tile:", pos)
 	
 func is_tile_exist(x_coord, z_coord):
 	for tile in tiles:

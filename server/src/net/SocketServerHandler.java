@@ -54,6 +54,14 @@ public class SocketServerHandler extends ChannelInboundHandlerAdapter {
 	}
 	
 	@Override
+	public void channelInactive(ChannelHandlerContext ctx)throws Exception {
+		// channel失效异常，客户端下线或者强制退出等触发。
+		player.Player.disconnectPlayer(ctx);
+		
+		//super.channelInactive(ctx);
+	}
+	
+	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause){
 		// Close the connection when an exception is raised
 		cause.printStackTrace();

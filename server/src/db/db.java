@@ -71,7 +71,7 @@ public class db {
 		try {
 			Statement st = con.createStatement();
 			
-			String sql = String.format("UPDATA player SET info=\'%s\' WHERE account=\'%s\' AND name=\'%s\';", json, account, name);		
+			String sql = String.format("UPDATE player SET info=\'%s\' WHERE account=\'%s\' AND name=\'%s\';", json, account, name);		
 			System.out.println("db:" + sql);
 			st.executeUpdate(sql);
 			st.close();
@@ -94,9 +94,7 @@ public class db {
 			}
 			rs.close();
 			st.close();
-				
-
-			
+					
 		}catch(Exception e){
 			e.printStackTrace();
 		}

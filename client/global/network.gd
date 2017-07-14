@@ -11,7 +11,7 @@ var cur_package = ByteBuf.new()
 func _ready():
 	bind_msgs()
 	streamPeerTCP = StreamPeerTCP.new()
-	streamPeerTCP.connect('localhost', 8800)
+	streamPeerTCP.connect('localhost', 8700)
 	set_process(true)
 	
 func _process(delta):
@@ -71,6 +71,7 @@ func login():
 		login_msg.account = 1
 		login_msg.password = 9
 		login_msg.send(streamPeerTCP)
+		print("+++++++++++++++++++++++++++")
 		
 func collect_item():
 	if streamPeerTCP.is_connected():	
@@ -79,13 +80,16 @@ func collect_item():
 		collect_item_msg.count = 1
 		collect_item_msg.type = 1
 		collect_item_msg.send(streamPeerTCP)
+		print("---------------------")
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))
 	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
 		
 func on_msg_backpack_num( msg):
+	print("hahahahah")
 	get_tree().get_root().get_node("level/ui/big bag").set_slot_size(msg.num)
 	
 func on_msg_backpack_cell( msg):
-	get_tree().get_root().get_node("level/ui/big bag").add_items( "Yellow GoBot", 1)
+	print("hihihih");
+	get_tree().get_root().get_node("level/ui/big bag").add_items( "Yellow GoBot", msg.item_num)

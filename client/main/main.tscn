@@ -143,6 +143,7 @@ visibility/visible = false
 
 [node name="big bag" parent="ui" instance=ExtResource( 5 )]
 
+visibility/visible = false
 anchor/left = 1
 anchor/top = 1
 anchor/right = 1

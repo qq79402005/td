@@ -2,7 +2,7 @@ extends TextureFrame
 
 export(int)    var itemid = 0
 
-const ObjectStack  = preload("res://object_stack.gd")
+const ObjectStack  = preload("res://ui/bag/object_stack.gd")
 
 func _ready():
 	# Initialization here
