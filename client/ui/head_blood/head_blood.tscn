@@ -1,0 +1,95 @@
+[gd_scene load_steps=5 format=1]
+
+[ext_resource path="res://ui/head_blood/strip_bg01.tex" type="Texture" id=1]
+[ext_resource path="res://ui/head_blood/strip_red.tex" type="Texture" id=2]
+[ext_resource path="res://ui/head_blood/strip_blue.tex" type="Texture" id=3]
+[ext_resource path="res://ui/head_blood/logo_02.tex" type="Texture" id=4]
+
+[node name="head_blood" type="Control"]
+
+rect/scale = Vector2( 0.3, 0.3 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 23.0
+margin/top = 13.0
+margin/right = 323.0
+margin/bottom = 61.0
+
+[node name="blood" type="TextureProgress" parent="."]
+
+rect/scale = Vector2( 0.7, 1 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 25.0
+margin/top = 20.0
+margin/right = 1213.0
+margin/bottom = 165.0
+range/min = 0.0
+range/max = 100.0
+range/step = 1.0
+range/page = 0.0
+range/value = 100.0
+range/exp_edit = false
+range/rounded = false
+texture/under = ExtResource( 1 )
+texture/over = null
+texture/progress = ExtResource( 2 )
+radial_fill/fill_degrees = 360.0
+radial_fill/center_offset = Vector2( 0, 0 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="mana" type="TextureProgress" parent="."]
+
+rect/scale = Vector2( 0.7, 1 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 25.0
+margin/top = 100.0
+margin/right = 1166.0
+margin/bottom = 208.0
+range/min = 0.0
+range/max = 100.0
+range/step = 1.0
+range/page = 0.0
+range/value = 100.0
+range/exp_edit = false
+range/rounded = false
+texture/under = ExtResource( 1 )
+texture/over = null
+texture/progress = ExtResource( 3 )
+radial_fill/fill_degrees = 360.0
+radial_fill/center_offset = Vector2( 0, 0 )
+__meta__ = {
+"_edit_lock_": true
+}
+
+[node name="head" type="TextureButton" parent="."]
+
+rect/scale = Vector2( 0.5, 0.5 )
+focus/ignore_mouse = false
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = -23.0
+margin/top = -1.0
+margin/right = 421.0
+margin/bottom = 442.0
+toggle_mode = false
+enabled_focus_mode = 2
+shortcut = null
+textures/normal = ExtResource( 4 )
+params/resize_mode = 0
+params/stretch_mode = 0
+__meta__ = {
+"_edit_lock_": true
+}
+
+
