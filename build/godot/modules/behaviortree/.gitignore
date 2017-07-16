@@ -1,0 +1,8 @@
+*.o
+*.orig
+*.swp
+*.swo
+*.pyc
+unittest.run
+.fscache
+.ycm_extra_conf.py
