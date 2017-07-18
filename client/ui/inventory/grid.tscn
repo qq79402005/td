@@ -1,11 +1,10 @@
 [gd_scene load_steps=3 format=1]
 
-[ext_resource path="res://ui/inventory/frame.tex" type="Texture" id=1]
-[ext_resource path="res://ui/inventory/frame_violet.tex" type="Texture" id=2]
+[ext_resource path="res://ui/inventory/equipbg_1.tex" type="Texture" id=1]
+[ext_resource path="res://fonts/comic.fnt" type="BitmapFont" id=2]
 
-[node name="TextureFrame" type="TextureFrame"]
+[node name="bg" type="TextureFrame"]
 
-editor/display_folded = true
 focus/ignore_mouse = true
 focus/stop_mouse = true
 size_flags/horizontal = 2
@@ -20,21 +19,36 @@ __meta__ = {
 "_edit_lock_": true
 }
 
-[node name="TextureButton" type="TextureButton" parent="."]
+[node name="icon" type="TextureButton" parent="."]
 
 focus/ignore_mouse = false
 focus/stop_mouse = true
 size_flags/horizontal = 2
 size_flags/vertical = 2
-margin/left = 27.0
-margin/top = 24.0
-margin/right = 319.0
-margin/bottom = 316.0
+margin/left = 0.0
+margin/top = 0.0
+margin/right = 60.0
+margin/bottom = 60.0
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
-textures/normal = ExtResource( 2 )
 params/resize_mode = 0
 params/stretch_mode = 0
+
+[node name="label" type="Label" parent="icon"]
+
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 0
+margin/left = 37.0
+margin/top = 39.0
+margin/right = 57.0
+margin/bottom = 58.0
+custom_fonts/font = ExtResource( 2 )
+custom_colors/font_color = Color( 0.949768, 0.959544, 0.964844, 1 )
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
 
 

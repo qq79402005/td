@@ -34,10 +34,10 @@ func _fixed_process(delta):
 			if(item!=-1):
 				var screen_point = self.unproject_position(result.position)
 				get_tree().get_root().get_node("level/ui/item_operate").show(screen_point)
-			else:
+				
 				# collect
 				get_node("/root/network").collect_item()
-				
+			else:		
 				get_parent().set_target_pos(result.position)
 				get_tree().get_root().get_node("level/ui/item_operate").set_hidden(true)
 			
