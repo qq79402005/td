@@ -58,7 +58,8 @@ func move_to_target_pos(delta):
 	if len>0 :
 		var move_len = min(delta*speed, len)
 		dir = dir.normalized()
-		self.set_translation(cur_pos + move_len * dir)
+		var dest_pos = cur_pos + move_len * dir	
+		self.set_translation(dest_pos)
 		
 		# mirror
 		set_player_state(PS_MOVE, "run", false)
