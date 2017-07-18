@@ -6,4 +6,4 @@ func _ready():
 
 # return to up scene
 func _on_back_pressed():
-	get_node("/root/global").setScene("res://select/select.tscn")
+	get_node("/root/global").setScene("res://launch/launch.tscn")
