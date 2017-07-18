@@ -1,67 +1,25 @@
 [gd_scene load_steps=24 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
-[ext_resource path="res://main/ui/ui.gd" type="Script" id=2]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=3]
-[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/root/sack-canvas.png" type="Texture" id=5]
-[ext_resource path="res://ui/head_blood/head_blood.tscn" type="PackedScene" id=6]
-[ext_resource path="res://ui/inventory/inventory.tscn" type="PackedScene" id=7]
-[ext_resource path="res://main/cha_move.gd" type="Script" id=8]
-[ext_resource path="res://main/TouchPick.gd" type="Script" id=9]
-[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=10]
-[ext_resource path="res://main/cha_package.gd" type="Script" id=11]
-[ext_resource path="res://main/terrain.gd" type="Script" id=12]
-[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=13]
-[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=14]
-[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=15]
-[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=16]
-[ext_resource path="res://main/weather.gd" type="Script" id=17]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=18]
+[ext_resource path="res://main/weather.gd" type="Script" id=2]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=3]
+[ext_resource path="res://main/ui/ui.gd" type="Script" id=4]
+[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=5]
+[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=6]
+[ext_resource path="res://ui/root/sack-canvas.png" type="Texture" id=7]
+[ext_resource path="res://ui/head_blood/head_blood.tscn" type="PackedScene" id=8]
+[ext_resource path="res://ui/inventory/inventory.tscn" type="PackedScene" id=9]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=10]
+[ext_resource path="res://main/TouchPick.gd" type="Script" id=11]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=12]
+[ext_resource path="res://main/cha_package.gd" type="Script" id=13]
+[ext_resource path="res://main/terrain.gd" type="Script" id=14]
+[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=15]
+[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=16]
+[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=17]
+[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=18]
 
-[sub_resource type="MaterialShader" id=1]
-
-_code = {
-"fragment": "uniform color    col;
-uniform texture  stone_tex;
-uniform texture  grass_tex;
-uniform texture  sand_tex;
-uniform texture  tex3;
-
-vec3 finalColor = tex(stone_tex, UV * 0.25+TIME*vec2(0.1,0.1)).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b + tex(tex3, UV).rgb * COLOR.a;
-
-DIFFUSE = col.rgb * finalColor;",
-"fragment_ofs": 0,
-"light": "",
-"light_ofs": 0,
-"vertex": "",
-"vertex_ofs": 0
-}
-
-[sub_resource type="ShaderMaterial" id=2]
-
-flags/visible = true
-flags/double_sided = false
-flags/invert_faces = false
-flags/unshaded = false
-flags/on_top = false
-flags/lightmap_on_uv2 = true
-flags/colarray_is_srgb = false
-params/blend_mode = 0
-params/depth_draw = 1
-params/line_width = 9.09178e-039
-shader/shader = SubResource( 1 )
-shader_param/col = Color( 1, 1, 1, 1 )
-shader_param/stone_tex = ExtResource( 15 )
-shader_param/grass_tex = ExtResource( 13 )
-shader_param/sand_tex = ExtResource( 14 )
-shader_param/tex3 = ExtResource( 16 )
-
-[sub_resource type="PlaneShape" id=3]
-
-plane = Plane( 0, 1, 0, 0 )
-
-[sub_resource type="CanvasItemShader" id=4]
+[sub_resource type="CanvasItemShader" id=1]
 
 _code = {
 "fragment": "// based on http://www.glslsandbox.com/e#39801.0 by Catzpaw(Thanks!)
@@ -102,22 +60,88 @@ COLOR = vec4(vec3(c) + texscreen(SCREEN_UV), 1.0);",
 "vertex_ofs": 0
 }
 
-[sub_resource type="CanvasItemMaterial" id=5]
+[sub_resource type="CanvasItemMaterial" id=2]
 
-shader/shader = SubResource( 4 )
+shader/shader = SubResource( 1 )
 shader/shading_mode = 0
+
+[sub_resource type="MaterialShader" id=3]
+
+_code = {
+"fragment": "uniform color    col;
+uniform texture  stone_tex;
+uniform texture  grass_tex;
+uniform texture  sand_tex;
+uniform texture  tex3;
+
+vec3 finalColor = tex(stone_tex, UV * 0.25+TIME*vec2(0.1,0.1)).rgb * COLOR.r + tex(grass_tex, UV).rgb * COLOR.g + tex(sand_tex, UV).rgb*COLOR.b + tex(tex3, UV).rgb * COLOR.a;
+
+DIFFUSE = col.rgb * finalColor;",
+"fragment_ofs": 0,
+"light": "",
+"light_ofs": 0,
+"vertex": "",
+"vertex_ofs": 0
+}
+
+[sub_resource type="ShaderMaterial" id=4]
+
+flags/visible = true
+flags/double_sided = false
+flags/invert_faces = false
+flags/unshaded = false
+flags/on_top = false
+flags/lightmap_on_uv2 = true
+flags/colarray_is_srgb = false
+params/blend_mode = 0
+params/depth_draw = 1
+params/line_width = 9.09178e-039
+shader/shader = SubResource( 3 )
+shader_param/col = Color( 1, 1, 1, 1 )
+shader_param/stone_tex = ExtResource( 17 )
+shader_param/grass_tex = ExtResource( 15 )
+shader_param/sand_tex = ExtResource( 16 )
+shader_param/tex3 = ExtResource( 18 )
+
+[sub_resource type="PlaneShape" id=5]
+
+plane = Plane( 0, 1, 0, 0 )
 
 [node name="level" type="Node"]
 
 script/script = ExtResource( 1 )
 
+[node name="weather" type="Node2D" parent="."]
+
+transform/pos = Vector2( 32.8092, 28.7082 )
+script/script = ExtResource( 2 )
+
+[node name="snow" type="TextureFrame" parent="weather"]
+
+visibility/visible = false
+material/material = SubResource( 2 )
+anchor/right = 1
+anchor/bottom = 1
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 3
+size_flags/vertical = 3
+margin/left = 1.0
+margin/top = 3.0
+margin/right = -964.0
+margin/bottom = -532.0
+texture = ExtResource( 3 )
+expand = true
+stretch_mode = 3
+
 [node name="ui" type="CanvasLayer" parent="."]
 
+editor/display_folded = true
 layer = 1
 offset = Vector2( 0, 0 )
 rotation = 0.0
 scale = Vector2( 1, 1 )
-script/script = ExtResource( 2 )
+script/script = ExtResource( 4 )
 
 [node name="back" type="Button" parent="ui"]
 
@@ -131,14 +155,14 @@ margin/left = 41.0
 margin/top = 83.0
 margin/right = 191.0
 margin/bottom = 40.0
-custom_fonts/font = ExtResource( 3 )
+custom_fonts/font = ExtResource( 5 )
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
 text = "Back"
 flat = false
 
-[node name="item_operate" parent="ui" instance=ExtResource( 4 )]
+[node name="item_operate" parent="ui" instance=ExtResource( 6 )]
 
 visibility/visible = false
 
@@ -160,13 +184,13 @@ margin/bottom = -320.0
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
-textures/normal = ExtResource( 5 )
+textures/normal = ExtResource( 7 )
 params/resize_mode = 0
 params/stretch_mode = 0
 
-[node name="head_blood" parent="ui" instance=ExtResource( 6 )]
+[node name="head_blood" parent="ui" instance=ExtResource( 8 )]
 
-[node name="big bag" parent="ui" instance=ExtResource( 7 )]
+[node name="big bag" parent="ui" instance=ExtResource( 9 )]
 
 visibility/visible = false
 margin/left = 298.0
@@ -179,7 +203,7 @@ margin/bottom = 573.0
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
-script/script = ExtResource( 8 )
+script/script = ExtResource( 10 )
 speed = 2.5
 
 [node name="Camera" type="Camera" parent="characters/actor0"]
@@ -196,13 +220,13 @@ visible_layers = 1048575
 environment = null
 h_offset = 0.0
 v_offset = 0.0
-script/script = ExtResource( 9 )
+script/script = ExtResource( 11 )
 
-[node name="cha_man" parent="characters/actor0" instance=ExtResource( 10 )]
+[node name="cha_man" parent="characters/actor0" instance=ExtResource( 12 )]
 
 [node name="cha_package" type="Node" parent="characters/actor0"]
 
-script/script = ExtResource( 11 )
+script/script = ExtResource( 13 )
 
 [node name="OmniLight" type="OmniLight" parent="characters/actor0"]
 
@@ -223,20 +247,19 @@ shadow/esm_multiplier = 60.0
 shadow/blur_passes = 1.0
 projector = null
 operator = 0
-params/radius = 8.0
+params/radius = 5.5
 params/attenuation = 1.93187
 
 [node name="terrain" type="Node" parent="."]
 
-editor/display_folded = true
-script/script = ExtResource( 12 )
+script/script = ExtResource( 14 )
 terrain_width = 256
 terrain_height = 256
 noise_seed = 666
 noise_octaves = 4
 noise_period = 64
 noise_persistance = 0.5
-material = SubResource( 2 )
+material = SubResource( 4 )
 tile_size = 16
 tex_warp_size = 4
 
@@ -271,7 +294,7 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 input/ray_pickable = true
 input/capture_on_drag = false
 shape_count = 1
-shapes/0/shape = SubResource( 3 )
+shapes/0/shape = SubResource( 5 )
 shapes/0/transform = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
 shapes/0/trigger = false
 collision/layers = 1
@@ -285,33 +308,9 @@ constant_angular_velocity = Vector3( 0, 0, 0 )
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
-shape = SubResource( 3 )
+shape = SubResource( 5 )
 trigger = false
 _update_shape_index = 0
-
-[node name="weather" type="Node2D" parent="."]
-
-editor/display_folded = true
-transform/pos = Vector2( 32.8092, 28.7082 )
-script/script = ExtResource( 17 )
-
-[node name="snow" type="TextureFrame" parent="weather"]
-
-visibility/visible = false
-material/material = SubResource( 5 )
-anchor/right = 1
-anchor/bottom = 1
-focus/ignore_mouse = true
-focus/stop_mouse = true
-size_flags/horizontal = 3
-size_flags/vertical = 3
-margin/left = 1.0
-margin/top = 3.0
-margin/right = -964.0
-margin/bottom = -532.0
-texture = ExtResource( 18 )
-expand = true
-stretch_mode = 3
 
 [connection signal="pressed" from="ui/back" to="." method="_on_back_pressed"]
 

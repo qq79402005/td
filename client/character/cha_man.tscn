@@ -1,36 +1,74 @@
-[gd_scene load_steps=27 format=1]
+[gd_scene load_steps=28 format=1]
 
 [ext_resource path="res://character/cha_man.gd" type="Script" id=1]
-[ext_resource path="res://character/enemy13_motion-hd_004.png" type="Texture" id=2]
-[ext_resource path="res://character/enemy13_motion-hd_005.png" type="Texture" id=3]
-[ext_resource path="res://character/enemy13_motion-hd_006.png" type="Texture" id=4]
-[ext_resource path="res://character/enemy13_motion-hd_007.png" type="Texture" id=5]
-[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=6]
-[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=7]
-[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=8]
-[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=9]
+[ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=2]
+[ext_resource path="res://character/enemy13_motion-hd_004.png" type="Texture" id=3]
+[ext_resource path="res://character/enemy13_motion-hd_005.png" type="Texture" id=4]
+[ext_resource path="res://character/enemy13_motion-hd_006.png" type="Texture" id=5]
+[ext_resource path="res://character/enemy13_motion-hd_007.png" type="Texture" id=6]
+[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=7]
+[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=8]
+[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=9]
 [ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=10]
 [ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=11]
 [ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=12]
 [ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=13]
-[ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=14]
-[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=15]
-[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=16]
-[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=17]
+[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=14]
+[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=15]
+[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=16]
+[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=17]
 [ext_resource path="res://sound/fire_sound.smp" type="Sample" id=18]
 [ext_resource path="res://sound/foot_step_grass.smp" type="Sample" id=19]
+
+[sub_resource type="FixedMaterial" id=8]
+
+flags/visible = true
+flags/double_sided = true
+flags/invert_faces = false
+flags/unshaded = false
+flags/on_top = false
+flags/lightmap_on_uv2 = false
+flags/colarray_is_srgb = false
+params/blend_mode = 0
+params/depth_draw = 1
+params/line_width = 0.0
+fixed_flags/use_alpha = true
+fixed_flags/use_color_array = false
+fixed_flags/use_point_size = false
+fixed_flags/discard_alpha = false
+fixed_flags/use_xy_normalmap = false
+params/diffuse = Color( 1, 1, 1, 1 )
+params/specular = Color( 0, 0, 0, 1 )
+params/emission = Color( 0, 0, 0, 1 )
+params/specular_exp = 40
+params/detail_mix = 1.0
+params/normal_depth = 1
+params/shader = 0
+params/shader_param = 0.5
+params/glow = 0
+params/point_size = 1.0
+uv_xform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+textures/diffuse = ExtResource( 2 )
+textures/diffuse_tc = 0
+textures/detail_tc = 0
+textures/specular_tc = 0
+textures/emission_tc = 0
+textures/specular_exp_tc = 0
+textures/glow_tc = 0
+textures/normal_tc = 0
+textures/shade_param_tc = 0
 
 [sub_resource type="SpriteFrames" id=1]
 
 animations = [ {
-"frames": [ ExtResource( 2 ), ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ) ],
+"frames": [ ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ) ],
 "loop": true,
 "name": "idle",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 6 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ],
+"frames": [ ExtResource( 2 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ],
 "loop": true,
-"name": "die",
+"name": "run",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ) ],
@@ -40,7 +78,7 @@ animations = [ {
 }, {
 "frames": [ ExtResource( 14 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
 "loop": true,
-"name": "run",
+"name": "die",
 "speed": 5.0
 } ]
 
@@ -220,7 +258,7 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43155, 0, 0 )
 layers = 1
 geometry/visible = true
-geometry/material_override = null
+geometry/material_override = SubResource( 8 )
 geometry/cast_shadow = 0
 geometry/receive_shadows = true
 geometry/range_begin = 0.0
