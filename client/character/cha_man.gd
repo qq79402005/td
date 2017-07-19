@@ -22,4 +22,3 @@ func fire_ball():
 # 脚步声
 func foot_step(idx):
 	get_node("SamplePlayer2D").play("foot_step_grass")
-	print("foot_step")

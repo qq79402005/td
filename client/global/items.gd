@@ -4,7 +4,9 @@ var items = Array()
 
 class Item:
 	var id = 0
-	var icon = Texture("")
+	var name = String("")
+	var type = String("")
+	var icon = String("")
 	var res  = String("")
 	
 	func _init():
@@ -15,14 +17,29 @@ func _ready():
 	parser.open("res://global/cfg/items.xml")
 	while not parser.read():
 		if "item" == parser.get_node_name():
+			var item = Item.new()
 			for i in range(parser.get_attribute_count()):
 				var att_name = parser.get_attribute_name(i)
-				if att_name == "res":
-					var att_value = parser.get_attribute_value(i)
-					print(att_name, ":", att_value)
-					#items.append(Item.new())
-					
-	#print(items.size())
+				if att_name == "id":
+					item.id = parser.get_attribute_value(i).to_int()
+				elif att_name == "name":
+					item.name = parser.get_attribute_value(i)
+				elif att_name == "type":
+					item.type = parser.get_attribute_value(i)
+				elif att_name == "icon":
+					item.icon = parser.get_attribute_value(i)
+				elif att_name == "res":
+					item.res = parser.get_attribute_value(i)
+		
+			items.append(item)
 	
+func get_item_count():
+	return items.size()
+	
+func get_item_by_index( idx):
+	return items[idx]
+
 func get_item_icon( id):
 	pass
+	
+	

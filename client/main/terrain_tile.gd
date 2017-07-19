@@ -41,16 +41,7 @@ func get_item(x, z):
 		return -1
 		
 func init_flower_list():
-	flowers.append(preload("res://actor/tools/axe.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_1.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_2.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_3.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_4.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_5.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_6.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_7.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_8.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_9.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_10.tscn"))
-	flowers.append(preload("res://actor/marble_trees/marble_tree.tscn"))
-
+	var items = get_node("/root/items")
+	for i in range(items.get_item_count()):
+		var item = items.get_item_by_index(i)
+		flowers.append(load(item.res))

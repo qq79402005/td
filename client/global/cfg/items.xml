@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-	<item id="0" name="flower_0" type="flower" icon="" res="res://actor/flowers/flower_0.tscn" />
+	<!--item id="0" name="flower_0" type="flower" icon="" res="res://actor/flowers/flower_0.tscn" /-->
 	<item id="1" name="flower_1" type="flower" icon="" res="res://actor/flowers/flower_1.tscn" />
 	<item id="2" name="flower_2" type="flower" icon="" res="res://actor/flowers/flower_2.tscn" />
 	<item id="3" name="flower_3" type="flower" icon="" res="res://actor/flowers/flower_3.tscn" />
@@ -10,4 +10,5 @@
 	<item id="7" name="flower_7" type="flower" icon="" res="res://actor/flowers/flower_7.tscn" />
 	<item id="8" name="flower_8" type="flower" icon="" res="res://actor/flowers/flower_8.tscn" />
 	<item id="9" name="flower_9" type="flower" icon="" res="res://actor/flowers/flower_9.tscn" />
+	<item id="10" name="marble" type="tree" icon="" res="res://actor/marble_trees/marble_tree.tscn" />
 </items>

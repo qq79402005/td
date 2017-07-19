@@ -28,7 +28,6 @@ func _fixed_process(delta):
 		var result = space_state.intersect_ray(ray_from, ray_to)
 		if not result.empty():		
 			var item = get_tree().get_root().get_node("level/terrain").get_item(int(result.position.x), int(result.position.z))
-			print(item)
 			
 			#show ui
 			if(item!=-1):
