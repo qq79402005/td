@@ -20,7 +20,7 @@
 [ext_resource path="res://sound/fire_sound.smp" type="Sample" id=18]
 [ext_resource path="res://sound/foot_step_grass.smp" type="Sample" id=19]
 
-[sub_resource type="FixedMaterial" id=8]
+[sub_resource type="FixedMaterial" id=1]
 
 flags/visible = true
 flags/double_sided = true
@@ -58,7 +58,7 @@ textures/glow_tc = 0
 textures/normal_tc = 0
 textures/shade_param_tc = 0
 
-[sub_resource type="SpriteFrames" id=1]
+[sub_resource type="SpriteFrames" id=2]
 
 animations = [ {
 "frames": [ ExtResource( 3 ), ExtResource( 4 ), ExtResource( 5 ), ExtResource( 6 ) ],
@@ -82,9 +82,8 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[sub_resource type="Animation" id=2]
+[sub_resource type="Animation" id=3]
 
-resource/name = "attack"
 length = 0.8
 loop = false
 step = 0.1
@@ -131,9 +130,8 @@ tracks/3/keys = {
 } ]
 }
 
-[sub_resource type="Animation" id=3]
+[sub_resource type="Animation" id=4]
 
-resource/name = "die"
 length = 0.6
 loop = false
 step = 0.1
@@ -158,14 +156,13 @@ tracks/1/keys = {
 "values": [ "die" ]
 }
 
-[sub_resource type="Animation" id=4]
+[sub_resource type="Animation" id=5]
 
-resource/name = "fireball"
 length = 1.0
 loop = false
 step = 0.1
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=6]
 
 length = 0.8
 loop = true
@@ -191,7 +188,7 @@ tracks/1/keys = {
 "values": [ "idle" ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=7]
 
 length = 0.8
 loop = true
@@ -232,7 +229,7 @@ tracks/2/keys = {
 } ]
 }
 
-[sub_resource type="SampleLibrary" id=7]
+[sub_resource type="SampleLibrary" id=8]
 
 samples/fire_sound = {
 "db": 0.0,
@@ -258,7 +255,7 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.43155, 0, 0 )
 layers = 1
 geometry/visible = true
-geometry/material_override = SubResource( 8 )
+geometry/material_override = SubResource( 1 )
 geometry/cast_shadow = 0
 geometry/receive_shadows = true
 geometry/range_begin = 0.0
@@ -281,8 +278,8 @@ axis = 2
 flags/transparent = true
 flags/shaded = false
 flags/alpha_cut = 0
-frames = SubResource( 1 )
-animation = "run"
+frames = SubResource( 2 )
+animation = "attack"
 frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
@@ -290,11 +287,11 @@ frame = 3
 playback/process_mode = 1
 playback/default_blend_time = 0.0
 root/root = NodePath("..")
-anims/attack = SubResource( 2 )
-anims/die = SubResource( 3 )
-anims/fireball = SubResource( 4 )
-anims/idle = SubResource( 5 )
-anims/run = SubResource( 6 )
+anims/attack = SubResource( 3 )
+anims/die = SubResource( 4 )
+anims/fireball = SubResource( 5 )
+anims/idle = SubResource( 6 )
+anims/run = SubResource( 7 )
 playback/active = true
 playback/speed = 1.0
 blend_times = [  ]
@@ -308,7 +305,7 @@ params/attenuation/min_distance = 1.0
 params/attenuation/max_distance = 2048.0
 params/attenuation/distance_exp = 1.0
 config/polyphony = 1
-config/samples = SubResource( 7 )
+config/samples = SubResource( 8 )
 config/pitch_random = 0.0
 
 
