@@ -47,6 +47,19 @@ func get_height( xpos, ypos):
 	var falloff = max(abs(x), abs(y))
 	return noise_height - pow(falloff,8)
 	
+func is_walkable(xpos, ypos):
+	var height = get_height(xpos, ypos)
+	if height <= -0.5:
+		return false
+		
+	return true
+	
+func is_plantable(item_idx, xpos, zpos):
+	if is_walkable(xpos, zpos):
+		return true
+	
+	return false
+	
 func update_terrain_tile():
 	var x_pos = int(get_main_character_pos().x / tile_size)
 	var z_pos = int(get_main_character_pos().z / tile_size)

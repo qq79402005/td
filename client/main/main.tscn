@@ -202,7 +202,7 @@ margin/bottom = 573.0
 [node name="actor0" type="Spatial" parent="characters"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
+transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 128, 0, 128 )
 script/script = ExtResource( 10 )
 speed = 2.5
 

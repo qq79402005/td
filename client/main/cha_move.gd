@@ -10,9 +10,12 @@ var current_animation = "idle"
 var old_animation = "idle"
 var current_player_state = PS_IDLE
 
+var terrain = null
 var target_pos = Vector3()
 
 func _ready():
+	terrain = get_tree().get_root().get_node("level/terrain")
+	
 	set_process(true)
 	set_process_input(true)
 	
@@ -59,10 +62,13 @@ func move_to_target_pos(delta):
 		var move_len = min(delta*speed, len)
 		dir = dir.normalized()
 		var dest_pos = cur_pos + move_len * dir	
-		self.set_translation(dest_pos)
+		if terrain.is_walkable(dest_pos.x, dest_pos.z):
+			self.set_translation(dest_pos)
 		
-		# mirror
-		set_player_state(PS_MOVE, "run", false)
+			# run
+			set_player_state(PS_MOVE, "run", false)
+		else:
+			set_target_pos(cur_pos)
 		
 		var camera = get_node("Camera")
 		var screen_dir = camera.unproject_position(target_pos) - camera.unproject_position(cur_pos)

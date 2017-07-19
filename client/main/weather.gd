@@ -6,7 +6,7 @@ var elapsed_time = 0
 var lightness = -1
 var daynight_phase = 0
 var daynight_phase_time = 0
-var daynight_time  = [24, 3, 12, 3]
+var daynight_time  = [5, 3, 5, 3]
 var daynight_color = [Color(1.0,1.0,1.0), Color(1.0,1.0,1.0),Color(1.0,1.0,1.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(1.0,1.0,1.0)]
 
 func _ready():
