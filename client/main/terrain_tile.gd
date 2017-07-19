@@ -9,18 +9,7 @@ var tile_items = []
 func _ready():
 	terrain = get_parent()
 	
-	flowers.append(preload("res://actor/tools/axe.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_1.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_2.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_3.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_4.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_5.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_6.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_7.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_8.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_9.tscn"))
-	flowers.append(preload("res://actor/flowers/flower_10.tscn"))
-	flowers.append(preload("res://actor/marble_trees/marble_tree.tscn"))
+	init_flower_list()
 	
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
@@ -50,4 +39,18 @@ func get_item(x, z):
 		return tile_items[tileIdx]
 	else :
 		return -1
+		
+func init_flower_list():
+	flowers.append(preload("res://actor/tools/axe.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_1.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_2.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_3.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_4.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_5.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_6.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_7.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_8.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_9.tscn"))
+	flowers.append(preload("res://actor/flowers/flower_10.tscn"))
+	flowers.append(preload("res://actor/marble_trees/marble_tree.tscn"))
 
