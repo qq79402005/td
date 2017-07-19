@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=1]
+[gd_scene load_steps=26 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/ui/ui.gd" type="Script" id=2]
@@ -17,10 +17,10 @@
 [ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=15]
 [ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=16]
 [ext_resource path="res://main/weather.gd" type="Script" id=17]
-[ext_resource path="res://effect/rain/rain.png" type="Texture" id=18]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=19]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=18]
+[ext_resource path="res://effect/rain/rain.tscn" type="PackedScene" id=19]
 
-[sub_resource type="MaterialShader" id=3]
+[sub_resource type="MaterialShader" id=1]
 
 _code = {
 "fragment": "uniform color    col;
@@ -39,7 +39,7 @@ DIFFUSE = col.rgb * finalColor;",
 "vertex_ofs": 0
 }
 
-[sub_resource type="ShaderMaterial" id=4]
+[sub_resource type="ShaderMaterial" id=2]
 
 flags/visible = true
 flags/double_sided = false
@@ -51,56 +51,18 @@ flags/colarray_is_srgb = false
 params/blend_mode = 0
 params/depth_draw = 1
 params/line_width = 9.09178e-039
-shader/shader = SubResource( 3 )
+shader/shader = SubResource( 1 )
 shader_param/col = Color( 1, 1, 1, 1 )
 shader_param/stone_tex = ExtResource( 15 )
 shader_param/grass_tex = ExtResource( 13 )
 shader_param/sand_tex = ExtResource( 14 )
 shader_param/tex3 = ExtResource( 16 )
 
-[sub_resource type="PlaneShape" id=5]
+[sub_resource type="PlaneShape" id=3]
 
 plane = Plane( 0, 1, 0, 0 )
 
-[sub_resource type="FixedMaterial" id=6]
-
-flags/visible = true
-flags/double_sided = true
-flags/invert_faces = false
-flags/unshaded = false
-flags/on_top = false
-flags/lightmap_on_uv2 = false
-flags/colarray_is_srgb = false
-params/blend_mode = 0
-params/depth_draw = 1
-params/line_width = 0.0
-fixed_flags/use_alpha = true
-fixed_flags/use_color_array = false
-fixed_flags/use_point_size = false
-fixed_flags/discard_alpha = false
-fixed_flags/use_xy_normalmap = false
-params/diffuse = Color( 1, 1, 1, 1 )
-params/specular = Color( 0, 0, 0, 1 )
-params/emission = Color( 0, 0, 0, 1 )
-params/specular_exp = 40
-params/detail_mix = 1.0
-params/normal_depth = 1
-params/shader = 0
-params/shader_param = 0.5
-params/glow = 0
-params/point_size = 1.0
-uv_xform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-textures/diffuse = ExtResource( 18 )
-textures/diffuse_tc = 0
-textures/detail_tc = 0
-textures/specular_tc = 0
-textures/emission_tc = 0
-textures/specular_exp_tc = 0
-textures/glow_tc = 0
-textures/normal_tc = 0
-textures/shade_param_tc = 0
-
-[sub_resource type="CanvasItemShader" id=1]
+[sub_resource type="CanvasItemShader" id=4]
 
 _code = {
 "fragment": "// based on http://www.glslsandbox.com/e#39801.0 by Catzpaw(Thanks!)
@@ -141,12 +103,12 @@ COLOR = vec4(vec3(c) + texscreen(SCREEN_UV), 1.0);",
 "vertex_ofs": 0
 }
 
-[sub_resource type="CanvasItemMaterial" id=2]
+[sub_resource type="CanvasItemMaterial" id=5]
 
-shader/shader = SubResource( 1 )
+shader/shader = SubResource( 4 )
 shader/shading_mode = 0
 
-[sub_resource type="Environment" id=7]
+[sub_resource type="Environment" id=6]
 
 ambient_light/enabled = false
 ambient_light/color = Color( 1, 1, 1, 1 )
@@ -320,7 +282,7 @@ noise_seed = 666
 noise_octaves = 4
 noise_period = 64
 noise_persistance = 0.5
-material = SubResource( 4 )
+material = SubResource( 2 )
 tile_size = 16
 tex_warp_size = 4
 
@@ -355,7 +317,7 @@ _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 input/ray_pickable = true
 input/capture_on_drag = false
 shape_count = 1
-shapes/0/shape = SubResource( 5 )
+shapes/0/shape = SubResource( 3 )
 shapes/0/transform = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
 shapes/0/trigger = false
 collision/layers = 1
@@ -369,7 +331,7 @@ constant_angular_velocity = Vector3( 0, 0, 0 )
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 512, 0, 0, 0, 1, 0, 0, 0, 512, 0, 0, 0 )
-shape = SubResource( 5 )
+shape = SubResource( 3 )
 trigger = false
 _update_shape_index = 0
 
@@ -380,78 +342,10 @@ _update_shape_index = 0
 script/script = ExtResource( 17 )
 daynight_time = IntArray( 5, 3, 5, 3 )
 
-[node name="rain" type="Particles" parent="environment/weather"]
-
-_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 128, 5, 128 )
-visibility/visible = false
-layers = 1
-geometry/visible = true
-geometry/material_override = null
-geometry/cast_shadow = 1
-geometry/receive_shadows = false
-geometry/range_begin = 0.0
-geometry/range_end = 0.0
-geometry/extra_cull_margin = 0.0
-geometry/billboard = true
-geometry/billboard_y = false
-geometry/depth_scale = false
-geometry/visible_in_all_rooms = false
-geometry/use_baked_light = false
-geometry/baked_light_tex_id = 0
-material = SubResource( 6 )
-amount = 30
-emitting = true
-visibility = AABB( -4, -4, -4, 8, 8, 8 )
-emission_extents = Vector3( 5, 0.1, 5 )
-emission_base_velocity = Vector3( 0, 0, 0 )
-emission_points = Vector3Array(  )
-gravity_normal = Vector3( 0.1, -1, 0.1 )
-local_coords = false
-emit_timeout = 0.0
-vars/lifetime = 3.0
-vars/spread = 0.3
-vars/gravity = 5.8
-vars/linear_vel = 0.2
-vars/angular_vel = 0.0
-vars/linear_accel = 0.0
-vars/radial_accel = 0.0
-vars/tan_accel = 0.0
-vars/damping = 0.0
-vars/initial_size = 0.1
-vars/final_size = 0.1
-vars/initial_angle = 0.0
-vars/height_from_velocity = false
-vars/height = 1.0
-vars/height_speed_scale = 0.0
-rand/lifetime = 0.0
-rand/spread = 0.0
-rand/gravity = 0.0
-rand/linear_vel = 0.0
-rand/angular_vel = 0.0
-rand/linear_accel = 0.0
-rand/radial_accel = 0.0
-rand/tan_accel = 0.0
-rand/damping = 0.0
-rand/initial_size = 0.0
-rand/final_size = 0.0
-rand/initial_angle = 0.0
-rand/height = 0.0
-rand/height_speed_scale = 0.0
-color_phases/count = 0
-phase_0/pos = 0.0
-phase_0/color = Color( 1, 1, 1, 1 )
-phase_1/pos = 1.0
-phase_1/color = Color( 0, 0, 0, 1 )
-phase_2/pos = 1.0
-phase_2/color = Color( 0, 0, 0, 1 )
-phase_3/pos = 1.0
-phase_3/color = Color( 0, 0, 0, 1 )
-
 [node name="snow" type="TextureFrame" parent="environment/weather"]
 
 visibility/visible = false
-material/material = SubResource( 2 )
+material/material = SubResource( 5 )
 anchor/right = 1
 anchor/bottom = 1
 focus/ignore_mouse = true
@@ -462,14 +356,16 @@ margin/left = -5.0
 margin/top = -5.0
 margin/right = -958.0
 margin/bottom = -524.0
-texture = ExtResource( 19 )
+texture = ExtResource( 18 )
 expand = true
 stretch_mode = 3
+
+[node name="rain" parent="environment/weather" instance=ExtResource( 19 )]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="environment"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-environment = SubResource( 7 )
+environment = SubResource( 6 )
 
 [connection signal="pressed" from="ui/back" to="." method="_on_back_pressed"]
 
