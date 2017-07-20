@@ -15,7 +15,7 @@ patrol_range = 20.0
 [node name="patrol" type="BTActionNode" parent="Sequence"]
 
 script/script = ExtResource( 2 )
-pursuit_player = false
+pursuit_player = true
 pursuit_check_time = 1.0
 update_result = 0
 

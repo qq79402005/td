@@ -11,6 +11,7 @@
 	<item id="0100009" name="flower_9" type="flower" icon="" res="res://actor/flowers/flower_9.tscn" />
 
 	<item id="0200001" name="marble" type="tree" icon="" res="res://actor/marble_trees/marble_tree.tscn" />
+	<item id="0200002" name="bajiao" type="tree" icon="" res="res://actor/tree/tree_bajiao.tscn" />
 
 	<item id="0300001" name="blue marshroom" type="monster" icon="" res="res://actor/monster/blob/blob.tscn" />
 </items>
