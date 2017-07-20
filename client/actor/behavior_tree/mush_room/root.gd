@@ -67,5 +67,5 @@ func update_anim():
 	
 	# 当前动画播放结束，播放休闲动画
 	if not anim_player.is_playing():
-		set_player_state(PS_IDLE, "idle", true)
+		set_anim_state(PS_IDLE, "idle", true)
 	
