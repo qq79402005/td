@@ -19,7 +19,6 @@ func _ready():
 func _process(delta):
 	tick_time = delta
 	tick(self)
-	
 	update_anim()
 
 func _bt_continue(index, context):

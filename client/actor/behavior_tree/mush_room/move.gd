@@ -1,13 +1,23 @@
 extends BTActionNode
 
+export(bool) var pursuit_player = false
+export(float)var pursuit_check_time = 2.0
 var target_pos
 export(int, "BH_ERROR", "BH_SUCCESS", "BH_FAILURE", "BH_RUNNING") var update_result = 0
 
 func _bt_continue(index, context):
-	pass
+	pursuit_check_time -= context.tick_time
+	if pursuit_player and pursuit_check_time<0:
+		var main_character = Globals.get("main_character")
+		target_pos = main_character.get_translation()
+		pursuit_check_time = 2.0
 
 func _bt_prepare(index, context):
-	target_pos = context.get_next_random_patrol_pos()
+	if pursuit_player:
+		var main_character = Globals.get("main_character")
+		target_pos = main_character.get_translation()
+	else:
+		target_pos = context.get_next_random_patrol_pos()
 
 func _bt_update(index, context):
 	update_result = move_to_target_pos( context.tick_time, context)

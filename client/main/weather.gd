@@ -11,7 +11,7 @@ export(IntArray) var daynight_time  = [5, 3, 5, 3]
 var daynight_color = [Color(1.0,1.0,1.0), Color(1.0,1.0,1.0),Color(1.0,1.0,1.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(0.0,0.0,0.0),Color(0.0,0.0,0.0), Color(1.0,1.0,1.0)]
 
 func _ready():
-	role_node = get_tree().get_root().get_node("level/characters/actor0")
+	role_node = get_tree().get_root().get_node("level/actor/actor0")
 	
 	set_process(true)
 

@@ -177,7 +177,7 @@ func get_color_by_height(height):
 	#return height_colors[idx].linear_interpolate(height_colors[idx+1],ratio)
 	
 func get_main_character_pos():
-	var main_character = get_tree().get_root().get_node("level/characters/actor0")
+	var main_character = get_tree().get_root().get_node("level/actor/actor0")
 	if main_character:
 		return main_character.get_translation()
 	else:

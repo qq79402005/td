@@ -15,6 +15,8 @@ var target_pos = Vector3()
 func _ready():
 	terrain = get_tree().get_root().get_node("level/terrain")
 	
+	Globals.set("main_character", self)
+	
 	set_process(true)
 	set_process_input(true)
 	

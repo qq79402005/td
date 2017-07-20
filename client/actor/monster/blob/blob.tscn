@@ -286,7 +286,6 @@ autoplay = ""
 
 [node name="behavior" parent="." instance=ExtResource( 17 )]
 
-editor/display_folded = true
 motion_speed = 1.5
 
 

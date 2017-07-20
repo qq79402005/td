@@ -5,6 +5,7 @@ export(float) var tile_size = int(16)
 var terrain = null
 var flowers = []
 var tile_items = []
+var tile_item_nodes = []
 
 func _ready():
 	terrain = get_parent()
@@ -16,7 +17,16 @@ func _ready():
 	
 	gen_little_items()
 	
+func _exit_tree():
+	var root_actor_node = get_node("/root/level/actor")
+	for i in range(tile_item_nodes.size()):
+		if tile_item_nodes[i]!=null:
+			root_actor_node.remove_child(tile_item_nodes[i])
+			
+	tile_item_nodes.clear()
+	
 func gen_little_items():
+	var root_actor_node = get_node("/root/level/actor")
 	var itemNum = int(tile_size * tile_size / 12)
 	for i in range(itemNum):
 		var w = randi() % tile_size
@@ -29,8 +39,9 @@ func gen_little_items():
 			if terrain.is_plantable(flower_idx, w+tile_pos.x, h+tile_pos.z):
 				var item = flowers[flower_idx].instance()
 				var item_half_height = 0#item.get_region_rect().size.y / 2
-				item.set_translation(Vector3(w+0.5, item_half_height, h+0.5))
-				self.add_child(item)
+				item.set_translation(Vector3(tile_pos.x + w+0.5, item_half_height, tile_pos.z + h+0.5))
+				root_actor_node.add_child(item)
+				tile_item_nodes.append(item)
 				tile_items[tileIdx] = flower_idx
 			
 func get_item(x, z):

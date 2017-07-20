@@ -7,7 +7,7 @@ func _bt_continue(index, context):
 	pass
 
 func _bt_prepare(index, context):
-	idle_time = randi() % 10 + 5.5
+	idle_time = randi() % 8 + 1.5
 
 func _bt_update(index, context):
 	if idle_time > 0:
