@@ -7,6 +7,7 @@ var is_touch = false
 var scene_rotate_y = 0
 
 func _ready():
+	Globals.set("current_camera", self)
 	scene_rotate_y = get_parent().get_rotation_deg().y
 	set_process_input(true)
 	set_fixed_process(true)

@@ -10,14 +10,14 @@ script/script = ExtResource( 1 )
 motion_speed = 2.5
 patrol_range = 20.0
 
-[node name="BTSelectorNode" type="BTSelectorNode" parent="."]
+[node name="BTSequenceNode" type="BTSequenceNode" parent="."]
 
-[node name="patrol" type="BTActionNode" parent="BTSelectorNode"]
+[node name="patrol" type="BTActionNode" parent="BTSequenceNode"]
 
 script/script = ExtResource( 2 )
 update_result = 0
 
-[node name="idle" type="BTActionNode" parent="BTSelectorNode"]
+[node name="idle" type="BTActionNode" parent="BTSequenceNode"]
 
 script/script = ExtResource( 3 )
 update_result = 0
