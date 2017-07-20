@@ -16,7 +16,7 @@ func _ready():
 	var parser = XMLParser.new()
 	parser.open("res://global/cfg/items.xml")
 	while not parser.read():
-		if "item" == parser.get_node_name():
+		if parser.get_node_type()==XMLParser.NODE_ELEMENT and "item" == parser.get_node_name():
 			var item = Item.new()
 			for i in range(parser.get_attribute_count()):
 				var att_name = parser.get_attribute_name(i)

@@ -1,6 +1,5 @@
 extends Spatial
 
-
 const	PS_IDLE = 1
 const	PS_MOVE = 1
 const 	PS_ATTACK = 2

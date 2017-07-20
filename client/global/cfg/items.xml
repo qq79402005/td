@@ -12,5 +12,5 @@
 
 	<item id="0200001" name="marble" type="tree" icon="" res="res://actor/marble_trees/marble_tree.tscn" />
 
-	<item id="0300001" name="marble" type="monster" icon="" res="res://actor/marble_trees/marble_tree.tscn" />
+	<item id="0300001" name="blue marshroom" type="monster" icon="" res="res://actor/monster/blob/blob.tscn" />
 </items>

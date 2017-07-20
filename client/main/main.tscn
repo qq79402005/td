@@ -340,7 +340,7 @@ _update_shape_index = 0
 [node name="weather" type="Node2D" parent="environment"]
 
 script/script = ExtResource( 17 )
-daynight_time = IntArray( 5, 3, 5, 3 )
+daynight_time = IntArray( 300, 3, 80, 3 )
 
 [node name="snow" type="TextureFrame" parent="environment/weather"]
 
@@ -361,6 +361,8 @@ expand = true
 stretch_mode = 3
 
 [node name="rain" parent="environment/weather" instance=ExtResource( 19 )]
+
+visibility/visible = false
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="environment"]
 
