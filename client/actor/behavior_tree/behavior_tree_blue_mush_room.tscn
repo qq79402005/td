@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=1]
+[gd_scene load_steps=6 format=1]
 
 [ext_resource path="res://actor/behavior_tree/mush_room/root.gd" type="Script" id=1]
 [ext_resource path="res://actor/behavior_tree/mush_room/on_find_player.gd" type="Script" id=2]
 [ext_resource path="res://actor/behavior_tree/mush_room/move.gd" type="Script" id=3]
-[ext_resource path="res://actor/behavior_tree/mush_room/idle.gd" type="Script" id=4]
+[ext_resource path="res://actor/behavior_tree/mush_room/attack.gd" type="Script" id=4]
+[ext_resource path="res://actor/behavior_tree/mush_room/idle.gd" type="Script" id=5]
 
 [node name="behavior" type="BTRootNode"]
 
@@ -27,6 +28,13 @@ pursuit_player = true
 pursuit_range = 5.0
 update_result = 0
 
+[node name="attack" type="BTActionNode" parent="SelectNode/follow_attack"]
+
+script/script = ExtResource( 4 )
+skill_length = 0.8
+skill_prepare_time = 8.0
+update_result = 0
+
 [node name="patrol_idle" type="BTSequenceNode" parent="SelectNode"]
 
 [node name="patrol" type="BTActionNode" parent="SelectNode/patrol_idle"]
@@ -38,7 +46,8 @@ update_result = 0
 
 [node name="idle" type="BTActionNode" parent="SelectNode/patrol_idle"]
 
-script/script = ExtResource( 4 )
+script/script = ExtResource( 5 )
+idle_time = 5.0
 update_result = 0
 
 

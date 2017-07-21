@@ -30,7 +30,7 @@ func move_to_target_pos(delta, context):
 	var len = dir.length()
 	if len > pursuit_range and pursuit_player:
 		return 2
-	elif len>0 :
+	elif len>2.5 :
 		var move_len = min(delta*context.motion_speed, len)
 		dir = dir.normalized()
 		var dest_pos = cur_pos + move_len * dir	
