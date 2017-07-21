@@ -1,16 +1,14 @@
 extends BTActionNode
 
 export(bool) var pursuit_player = false
-export(float)var pursuit_check_time = 2.0
+export(float)var pursuit_range = 5.0
 var target_pos
 export(int, "BH_ERROR", "BH_SUCCESS", "BH_FAILURE", "BH_RUNNING") var update_result = 0
 
 func _bt_continue(index, context):
-	pursuit_check_time -= context.tick_time
-	if pursuit_player and pursuit_check_time<0:
+	if pursuit_player:
 		var main_character = Globals.get("main_character")
 		target_pos = main_character.get_translation()
-		pursuit_check_time = 2.0
 
 func _bt_prepare(index, context):
 	if pursuit_player:
@@ -30,7 +28,9 @@ func move_to_target_pos(delta, context):
 	var cur_pos = context.actor.get_translation()
 	var dir = target_pos - cur_pos
 	var len = dir.length()
-	if len>0 :
+	if len > pursuit_range and pursuit_player:
+		return 2
+	elif len>0 :
 		var move_len = min(delta*context.motion_speed, len)
 		dir = dir.normalized()
 		var dest_pos = cur_pos + move_len * dir	

@@ -13,28 +13,30 @@ patrol_range = 20.0
 
 [node name="SelectNode" type="BTSelectorNode" parent="."]
 
-[node name="on_find_player" type="BTDecoratorNode" parent="SelectNode"]
+[node name="follow_attack" type="BTSequenceNode" parent="SelectNode"]
+
+[node name="condition_find_player" type="BTActionNode" parent="SelectNode/follow_attack"]
 
 script/script = ExtResource( 2 )
 update_result = 0
 
-[node name="follow_attack" type="BTSequenceNode" parent="SelectNode/on_find_player"]
-
-[node name="follow" type="BTActionNode" parent="SelectNode/on_find_player/follow_attack"]
+[node name="pursuit" type="BTActionNode" parent="SelectNode/follow_attack"]
 
 script/script = ExtResource( 3 )
 pursuit_player = true
-pursuit_check_time = 2.0
+pursuit_range = 5.0
 update_result = 0
 
-[node name="patrol" type="BTActionNode" parent="SelectNode"]
+[node name="patrol_idle" type="BTSequenceNode" parent="SelectNode"]
+
+[node name="patrol" type="BTActionNode" parent="SelectNode/patrol_idle"]
 
 script/script = ExtResource( 3 )
 pursuit_player = false
-pursuit_check_time = 1.0
+pursuit_range = 5.0
 update_result = 0
 
-[node name="idle" type="BTActionNode" parent="SelectNode"]
+[node name="idle" type="BTActionNode" parent="SelectNode/patrol_idle"]
 
 script/script = ExtResource( 4 )
 update_result = 0
