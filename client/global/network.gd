@@ -73,10 +73,10 @@ func login():
 		login_msg.send(streamPeerTCP)
 
 		
-func collect_item():
+func collect_item(id):
 	if streamPeerTCP.is_connected():	
 		var collect_item_msg = preload("res://global/protocol/collect_item.pb.gd").new()
-		collect_item_msg.id = 1
+		collect_item_msg.id = id
 		collect_item_msg.count = 1
 		collect_item_msg.type = 1
 		collect_item_msg.send(streamPeerTCP)

@@ -28,23 +28,21 @@ func _fixed_process(delta):
 		###
 		
 		###
-		
 		var space_state = get_world().get_direct_space_state()
 		var result = space_state.intersect_ray(ray_from, ray_to)
 		if not result.empty():
-			var name = result["collider"].get_name()
+			var collider = result["collider"]
+			if collider.get_type() == "item":
+				collider.on_clicked()
+				var item_id = collider.get_id()
 			
-			print("----------------------------", name)
-			
-			var item = get_tree().get_root().get_node("level/terrain").get_item(int(result.position.x), int(result.position.z))
-			
-			#show ui
-			if(item!=-1):
-				var screen_point = self.unproject_position(result.position)
-				get_tree().get_root().get_node("level/ui/item_operate").show(screen_point)
+				#show ui
+				if(item_id!=-1):
+					var screen_point = self.unproject_position(result.position)
+					get_tree().get_root().get_node("level/ui/item_operate").show(screen_point)
 				
-				# collect
-				get_node("/root/network").collect_item()
+					# collect
+					get_node("/root/network").collect_item(item_id)
 			else:		
 				get_parent().set_target_pos(result.position)
 				get_tree().get_root().get_node("level/ui/item_operate").set_hidden(true)

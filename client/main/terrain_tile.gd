@@ -3,14 +3,11 @@ extends MeshInstance
 export(float) var tile_size = int(16)
 
 var terrain = null
-var flowers = []
 var tile_items = []
 var tile_item_nodes = []
 
 func _ready():
 	terrain = get_parent()
-	
-	init_flower_list()
 	
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
@@ -26,6 +23,10 @@ func _exit_tree():
 	tile_item_nodes.clear()
 	
 func gen_little_items():
+	var items = get_node("/root/items")
+	#for i in range(items.get_item_count()):
+	#	var item = items.get_item_by_index(i)
+	
 	var root_actor_node = get_node("/root/level/actor")
 	var itemNum = int(tile_size * tile_size / 12)
 	for i in range(itemNum):
@@ -33,16 +34,21 @@ func gen_little_items():
 		var h = randi() % tile_size
 		var tileIdx = h * tile_size + w
 		if(tile_items[tileIdx]==-1):
-			var flower_idx = randi() % flowers.size()
+			var flower_idx = randi() % items.get_item_count()
 			
 			var tile_pos = self.get_translation()
 			if terrain.is_plantable(flower_idx, w+tile_pos.x, h+tile_pos.z):
-				var item = flowers[flower_idx].instance()
+				var item = items.get_item_by_index(flower_idx).res_load.instance()
 				var item_half_height = 0#item.get_region_rect().size.y / 2
 				item.set_translation(Vector3(tile_pos.x + w+0.5, item_half_height, tile_pos.z + h+0.5))
 				root_actor_node.add_child(item)
 				tile_item_nodes.append(item)
 				tile_items[tileIdx] = flower_idx
+				
+				var collider = item.get_node("collider")
+				if collider!=null:
+					collider.set_item(items.get_item_by_index(flower_idx))
+				
 			
 func get_item(x, z):
 	var tileIdx = z * tile_size + x
@@ -50,9 +56,3 @@ func get_item(x, z):
 		return tile_items[tileIdx]
 	else :
 		return -1
-		
-func init_flower_list():
-	var items = get_node("/root/items")
-	for i in range(items.get_item_count()):
-		var item = items.get_item_by_index(i)
-		flowers.append(load(item.res))

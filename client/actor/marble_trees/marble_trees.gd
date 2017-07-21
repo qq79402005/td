@@ -1,5 +1,6 @@
 extends StaticBody
 
+var item = null
 var is_on_fire = false
 var fire_time = 0.0
 
@@ -18,3 +19,15 @@ func on_collision(info):
 		
 		var fire = preload("res://effect/fire/fire.tscn").instance()
 		get_parent().add_child(fire)
+	
+func set_item(_item):
+	item = _item
+	
+func get_type():
+	return "item"
+	
+func get_id():
+	return item.id
+	
+func on_clicked():
+	print("why you click me")

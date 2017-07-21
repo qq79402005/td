@@ -8,6 +8,7 @@ class Item:
 	var type = String("")
 	var icon = String("")
 	var res  = String("")
+	var res_load = null
 	
 	func _init():
 		pass
@@ -30,6 +31,7 @@ func _ready():
 					item.icon = parser.get_attribute_value(i)
 				elif att_name == "res":
 					item.res = parser.get_attribute_value(i)
+					item.res_load = load(item.res)
 		
 			items.append(item)
 	
