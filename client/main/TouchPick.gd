@@ -25,9 +25,17 @@ func _input(event):
 		
 func _fixed_process(delta):
 	if is_touch:
+		###
+		
+		###
+		
 		var space_state = get_world().get_direct_space_state()
 		var result = space_state.intersect_ray(ray_from, ray_to)
-		if not result.empty():		
+		if not result.empty():
+			var name = result["collider"].get_name()
+			
+			print("----------------------------", name)
+			
 			var item = get_tree().get_root().get_node("level/terrain").get_item(int(result.position.x), int(result.position.z))
 			
 			#show ui
