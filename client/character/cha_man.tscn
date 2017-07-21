@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=1]
+[gd_scene load_steps=29 format=1]
 
 [ext_resource path="res://character/cha_man.gd" type="Script" id=1]
 [ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=2]
@@ -6,17 +6,17 @@
 [ext_resource path="res://character/enemy13_motion-hd_005.png" type="Texture" id=4]
 [ext_resource path="res://character/enemy13_motion-hd_006.png" type="Texture" id=5]
 [ext_resource path="res://character/enemy13_motion-hd_007.png" type="Texture" id=6]
-[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=7]
-[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=8]
-[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=9]
-[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=10]
-[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=11]
-[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=12]
-[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=13]
-[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=14]
-[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=15]
-[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=16]
-[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=17]
+[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=7]
+[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=8]
+[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=9]
+[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=10]
+[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=11]
+[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=12]
+[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=13]
+[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=14]
+[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=15]
+[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=16]
+[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=17]
 [ext_resource path="res://sound/fire_sound.smp" type="Sample" id=18]
 [ext_resource path="res://sound/foot_step_grass.smp" type="Sample" id=19]
 
@@ -66,19 +66,19 @@ animations = [ {
 "name": "idle",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ), ExtResource( 10 ) ],
+"frames": [ ExtResource( 2 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ],
 "loop": true,
-"name": "attack",
+"name": "run",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ), ExtResource( 14 ) ],
+"frames": [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ) ],
 "loop": true,
 "name": "die",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 2 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
+"frames": [ ExtResource( 14 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
 "loop": true,
-"name": "run",
+"name": "attack",
 "speed": 5.0
 } ]
 
@@ -144,6 +144,33 @@ tracks/0/keys = {
 "transitions": FloatArray( 1, 1 ),
 "update": 0,
 "values": [ 0, 3 ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("AnimatedSprite3D:animation")
+tracks/1/interp = 1
+tracks/1/imported = false
+tracks/1/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ "die" ]
+}
+
+[sub_resource type="Animation" id=9]
+
+resource/name = "died"
+length = 0.6
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath("AnimatedSprite3D:frame")
+tracks/0/interp = 1
+tracks/0/imported = false
+tracks/0/keys = {
+"times": FloatArray( 0, 0.6 ),
+"transitions": FloatArray( 1, 1 ),
+"update": 1,
+"values": [ 3, 3 ]
 }
 tracks/1/type = "value"
 tracks/1/path = NodePath("AnimatedSprite3D:animation")
@@ -280,7 +307,7 @@ flags/transparent = true
 flags/shaded = false
 flags/alpha_cut = 0
 frames = SubResource( 2 )
-animation = "attack"
+animation = "die"
 frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
@@ -290,9 +317,11 @@ playback/default_blend_time = 0.0
 root/root = NodePath("..")
 anims/attack = SubResource( 3 )
 anims/die = SubResource( 4 )
+anims/died = SubResource( 9 )
 anims/fireball = SubResource( 5 )
 anims/idle = SubResource( 6 )
 anims/run = SubResource( 7 )
+next/die = "died"
 playback/active = true
 playback/speed = 1.0
 blend_times = [  ]

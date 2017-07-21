@@ -3,7 +3,9 @@ extends Spatial
 const	PS_IDLE = 1
 const	PS_MOVE = 1
 const 	PS_ATTACK = 2
+const   PS_DIE = 3
 
+var		blood = 50.0
 export(float) var speed = 3
 var current_animation = "idle"
 var old_animation = "idle"
@@ -90,3 +92,16 @@ func set_player_state(state, anim, force):
 
 func set_target_pos(target):
 	target_pos = target
+
+func is_dead():
+	if blood <= 0.0:
+		return true
+	else:
+		return false
+	
+func on_attack(damage):
+	blood = max(blood-damage, 0)
+	get_node("/root/level/ui/head_blood/blood").set_value(blood)
+	if blood == 0:
+		set_player_state(PS_DIE, "die", true)
+	

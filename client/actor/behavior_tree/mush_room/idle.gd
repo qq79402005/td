@@ -1,6 +1,6 @@
 extends BTActionNode
 
-export(float) var idle_time
+export(float) var idle_time = 0.0
 var elapsed_time
 export(int, "BH_ERROR", "BH_SUCCESS", "BH_FAILURE", "BH_RUNNING") var update_result = 0
 
