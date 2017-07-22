@@ -42,6 +42,13 @@ func get_item_by_index( idx):
 	return items[idx]
 
 func get_item_icon( id):
-	pass
+	for item in items:
+		if item.id == id:
+			var tex  = load(item.icon)
+			return tex
+	
+	get_node("/root/logger").error("Can not find icon by item id :", id)
+	return null
+
 	
 	
