@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=1]
+[gd_scene load_steps=25 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/ui/ui.gd" type="Script" id=2]
@@ -10,16 +10,14 @@
 [ext_resource path="res://main/cha_move.gd" type="Script" id=8]
 [ext_resource path="res://main/TouchPick.gd" type="Script" id=9]
 [ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=10]
-[ext_resource path="res://main/cha_package.gd" type="Script" id=11]
-[ext_resource path="res://actor/monster/blob/blob.tscn" type="PackedScene" id=12]
-[ext_resource path="res://main/terrain.gd" type="Script" id=13]
-[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=14]
-[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=15]
-[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=16]
-[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=17]
-[ext_resource path="res://main/weather.gd" type="Script" id=18]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=19]
-[ext_resource path="res://effect/rain/rain.tscn" type="PackedScene" id=20]
+[ext_resource path="res://main/terrain.gd" type="Script" id=11]
+[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=12]
+[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=13]
+[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=14]
+[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=15]
+[ext_resource path="res://main/weather.gd" type="Script" id=16]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=17]
+[ext_resource path="res://effect/rain/rain.tscn" type="PackedScene" id=18]
 
 [sub_resource type="MaterialShader" id=1]
 
@@ -54,10 +52,10 @@ params/depth_draw = 1
 params/line_width = 9.09178e-039
 shader/shader = SubResource( 1 )
 shader_param/col = Color( 1, 1, 1, 1 )
-shader_param/stone_tex = ExtResource( 16 )
-shader_param/grass_tex = ExtResource( 14 )
-shader_param/sand_tex = ExtResource( 15 )
-shader_param/tex3 = ExtResource( 17 )
+shader_param/stone_tex = ExtResource( 14 )
+shader_param/grass_tex = ExtResource( 12 )
+shader_param/sand_tex = ExtResource( 13 )
+shader_param/tex3 = ExtResource( 15 )
 
 [sub_resource type="PlaneShape" id=3]
 
@@ -222,14 +220,14 @@ margin/bottom = 573.0
 
 [node name="actor" type="Node" parent="."]
 
-[node name="actor0" type="Spatial" parent="actor"]
+[node name="main_character" type="Spatial" parent="actor"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 128, 0, 128 )
 script/script = ExtResource( 8 )
 speed = 2.5
 
-[node name="Camera" type="Camera" parent="actor/actor0"]
+[node name="Camera" type="Camera" parent="actor/main_character"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 1, 0, 0, 0, 0.730872, 0.682514, 0, -0.682514, 0.730872, -0.242, 8.38098, 7.32192 )
@@ -245,13 +243,9 @@ h_offset = 0.0
 v_offset = 0.0
 script/script = ExtResource( 9 )
 
-[node name="cha_man" parent="actor/actor0" instance=ExtResource( 10 )]
+[node name="cha_man" parent="actor/main_character" instance=ExtResource( 10 )]
 
-[node name="cha_package" type="Node" parent="actor/actor0"]
-
-script/script = ExtResource( 11 )
-
-[node name="OmniLight" type="OmniLight" parent="actor/actor0"]
+[node name="OmniLight" type="OmniLight" parent="actor/main_character"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2.11799, 0 )
@@ -273,14 +267,11 @@ operator = 0
 params/radius = 5.5
 params/attenuation = 1.93187
 
-[node name="blob" parent="actor" instance=ExtResource( 12 )]
-
-transform/local = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 127, 0, 127 )
-attack_range = 0.8
+[node name="behavior" type="BTRootNode" parent="actor/main_character"]
 
 [node name="terrain" type="Node" parent="."]
 
-script/script = ExtResource( 13 )
+script/script = ExtResource( 11 )
 terrain_width = 256
 terrain_height = 256
 noise_seed = 666
@@ -345,7 +336,7 @@ editor/display_folded = true
 
 [node name="weather" type="Node2D" parent="environment"]
 
-script/script = ExtResource( 18 )
+script/script = ExtResource( 16 )
 daynight_time = IntArray( 300, 3, 80, 3 )
 
 [node name="snow" type="TextureFrame" parent="environment/weather"]
@@ -362,11 +353,11 @@ margin/left = -5.0
 margin/top = -5.0
 margin/right = -958.0
 margin/bottom = -524.0
-texture = ExtResource( 19 )
+texture = ExtResource( 17 )
 expand = true
 stretch_mode = 3
 
-[node name="rain" parent="environment/weather" instance=ExtResource( 20 )]
+[node name="rain" parent="environment/weather" instance=ExtResource( 18 )]
 
 visibility/visible = false
 
