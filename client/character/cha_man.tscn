@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=1]
+[gd_scene load_steps=30 format=1]
 
 [ext_resource path="res://character/cha_man.gd" type="Script" id=1]
 [ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=2]
@@ -217,6 +217,7 @@ tracks/1/keys = {
 
 [sub_resource type="Animation" id=8]
 
+resource/name = "walk_left"
 length = 0.8
 loop = true
 step = 0.1
@@ -240,11 +241,21 @@ tracks/1/keys = {
 "update": 0,
 "values": [ 0, 1, 2, 3 ]
 }
-tracks/2/type = "method"
-tracks/2/path = NodePath(".")
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimatedSprite3D:flip_h")
 tracks/2/interp = 1
 tracks/2/imported = false
 tracks/2/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ true ]
+}
+tracks/3/type = "method"
+tracks/3/path = NodePath(".")
+tracks/3/interp = 1
+tracks/3/imported = false
+tracks/3/keys = {
 "times": FloatArray( 0.2, 0.6 ),
 "transitions": FloatArray( 1, 1 ),
 "values": [ {
@@ -256,7 +267,58 @@ tracks/2/keys = {
 } ]
 }
 
-[sub_resource type="SampleLibrary" id=9]
+[sub_resource type="Animation" id=9]
+
+length = 0.8
+loop = true
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath("AnimatedSprite3D:animation")
+tracks/0/interp = 1
+tracks/0/imported = false
+tracks/0/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ "run" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("AnimatedSprite3D:frame")
+tracks/1/interp = 1
+tracks/1/imported = false
+tracks/1/keys = {
+"times": FloatArray( 0, 0.2, 0.4, 0.6 ),
+"transitions": FloatArray( 1, 1, 1, 1 ),
+"update": 0,
+"values": [ 0, 1, 2, 3 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("AnimatedSprite3D:flip_h")
+tracks/2/interp = 1
+tracks/2/imported = false
+tracks/2/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ false ]
+}
+tracks/3/type = "method"
+tracks/3/path = NodePath(".")
+tracks/3/interp = 1
+tracks/3/imported = false
+tracks/3/keys = {
+"times": FloatArray( 0.2, 0.6 ),
+"transitions": FloatArray( 1, 1 ),
+"values": [ {
+"args": [ 0 ],
+"method": "foot_step"
+}, {
+"args": [ 1 ],
+"method": "foot_step"
+} ]
+}
+
+[sub_resource type="SampleLibrary" id=10]
 
 samples/fire_sound = {
 "db": 0.0,
@@ -297,7 +359,7 @@ geometry/use_baked_light = false
 geometry/baked_light_tex_id = 0
 centered = false
 offset = Vector2( 0, 0 )
-flip_h = false
+flip_h = true
 flip_v = false
 modulate = Color( 1, 1, 1, 1 )
 opacity = 1.0
@@ -307,8 +369,8 @@ flags/transparent = true
 flags/shaded = false
 flags/alpha_cut = 0
 frames = SubResource( 2 )
-animation = "attack"
-frame = 3
+animation = "run"
+frame = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
@@ -320,7 +382,8 @@ anims/die = SubResource( 4 )
 anims/died = SubResource( 5 )
 anims/fireball = SubResource( 6 )
 anims/idle = SubResource( 7 )
-anims/run = SubResource( 8 )
+anims/walk_left = SubResource( 8 )
+anims/walk_right = SubResource( 9 )
 next/die = "died"
 playback/active = true
 playback/speed = 1.0
@@ -335,7 +398,7 @@ params/attenuation/min_distance = 1.0
 params/attenuation/max_distance = 2048.0
 params/attenuation/distance_exp = 1.0
 config/polyphony = 1
-config/samples = SubResource( 9 )
+config/samples = SubResource( 10 )
 config/pitch_random = 0.0
 
 

@@ -25,9 +25,6 @@ func _input(event):
 		
 func _fixed_process(delta):
 	if is_touch:
-		###
-		
-		###
 		var space_state = get_world().get_direct_space_state()
 		var result = space_state.intersect_ray(ray_from, ray_to)
 		if not result.empty():
@@ -36,8 +33,6 @@ func _fixed_process(delta):
 				collider.on_clicked()
 			else:		
 				get_parent().set_target_pos(result.position)
-				#get_tree().get_root().get_node("level/ui/item_operate").set_hidden(true)
-			
 		is_touch = false
 	
 	# rotate scene
