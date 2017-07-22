@@ -34,15 +34,6 @@ func _fixed_process(delta):
 			var collider = result["collider"]
 			if collider.get_type() == "item":
 				collider.on_clicked()
-				var item_id = collider.get_id()
-			
-				#show ui
-				if(item_id!=-1):
-					#var screen_point = self.unproject_position(result.position)
-					#get_tree().get_root().get_node("level/ui/item_operate").show(screen_point)
-				
-					# collect
-					get_node("/root/network").collect_item(item_id)
 			else:		
 				get_parent().set_target_pos(result.position)
 				#get_tree().get_root().get_node("level/ui/item_operate").set_hidden(true)

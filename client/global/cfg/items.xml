@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-	<item id="0100001" name="flower_1" type="flower" icon="" res="res://actor/flowers/flower_1.tscn" />
+	<item id="0100001" name="flower_1" type="flower" icon="res://actor/flowers/flower_1.png" res="res://actor/flowers/flower_1.tscn" />
 	<item id="0100002" name="flower_2" type="flower" icon="" res="res://actor/flowers/flower_2.tscn" />
 	<item id="0100003" name="flower_3" type="flower" icon="" res="res://actor/flowers/flower_3.tscn" />
 	<item id="0100004" name="flower_4" type="flower" icon="" res="res://actor/flowers/flower_4.tscn" />

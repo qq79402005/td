@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=1]
+[gd_scene load_steps=5 format=1]
 
 [ext_resource path="res://actor/flowers/flower_10.png" type="Texture" id=1]
+[ext_resource path="res://actor/flowers/collider.gd" type="Script" id=2]
 
 [sub_resource type="FixedMaterial" id=1]
 
@@ -40,6 +41,10 @@ textures/glow_tc = 0
 textures/normal_tc = 0
 textures/shade_param_tc = 0
 
+[sub_resource type="SphereShape" id=2]
+
+radius = 1.0
+
 [node name="Sprite3D" type="Sprite3D"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
@@ -75,5 +80,30 @@ hframes = 1
 frame = 0
 region = false
 region_rect = Rect2( 0, 0, 0, 0 )
+
+[node name="collider" type="StaticBody" parent="."]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+input/ray_pickable = true
+input/capture_on_drag = false
+shape_count = 1
+shapes/0/shape = SubResource( 2 )
+shapes/0/transform = Transform( 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, -0.215094, 0.21379, 0 )
+shapes/0/trigger = false
+collision/layers = 1
+collision/mask = 1
+friction = 1.0
+bounce = 0.0
+constant_linear_velocity = Vector3( 0, 0, 0 )
+constant_angular_velocity = Vector3( 0, 0, 0 )
+script/script = ExtResource( 2 )
+
+[node name="CollisionShape" type="CollisionShape" parent="collider"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, -0.215094, 0.21379, 0 )
+shape = SubResource( 2 )
+trigger = false
+_update_shape_index = 0
 
 
