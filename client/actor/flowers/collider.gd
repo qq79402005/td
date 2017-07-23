@@ -19,9 +19,7 @@ func on_clicked():
 	if(item_id!=-1):
 		var main_cha = Globals.get("main_character")
 		main_cha.set_target_pos( get_global_transform().origin)
-		
-		get_node("/root/network").collect_item(item_id)
-		get_parent().get_parent().remove_child(get_parent())
+		main_cha.target_item = self
 		
 		
 	

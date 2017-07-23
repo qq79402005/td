@@ -4,6 +4,7 @@ var blood = 50.0
 
 var terrain = null
 var target_pos = Vector3()
+var target_item = null
 
 func _ready():
 	terrain = get_tree().get_root().get_node("level/terrain")	
