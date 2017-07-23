@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=1]
+[gd_scene load_steps=32 format=1]
 
 [ext_resource path="res://character/cha_man.gd" type="Script" id=1]
 [ext_resource path="res://character/enemy13_motion-hd_000.png" type="Texture" id=2]
@@ -6,17 +6,17 @@
 [ext_resource path="res://character/enemy13_motion-hd_005.png" type="Texture" id=4]
 [ext_resource path="res://character/enemy13_motion-hd_006.png" type="Texture" id=5]
 [ext_resource path="res://character/enemy13_motion-hd_007.png" type="Texture" id=6]
-[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=7]
-[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=8]
-[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=9]
-[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=10]
-[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=11]
-[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=12]
-[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=13]
-[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=14]
-[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=15]
-[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=16]
-[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=17]
+[ext_resource path="res://character/enemy13_motion-hd_008.png" type="Texture" id=7]
+[ext_resource path="res://character/enemy13_motion-hd_009.png" type="Texture" id=8]
+[ext_resource path="res://character/enemy13_motion-hd_010.png" type="Texture" id=9]
+[ext_resource path="res://character/enemy13_motion-hd_011.png" type="Texture" id=10]
+[ext_resource path="res://character/enemy13_motion-hd_012.png" type="Texture" id=11]
+[ext_resource path="res://character/enemy13_motion-hd_013.png" type="Texture" id=12]
+[ext_resource path="res://character/enemy13_motion-hd_014.png" type="Texture" id=13]
+[ext_resource path="res://character/enemy13_motion-hd_015.png" type="Texture" id=14]
+[ext_resource path="res://character/enemy13_motion-hd_001.png" type="Texture" id=15]
+[ext_resource path="res://character/enemy13_motion-hd_002.png" type="Texture" id=16]
+[ext_resource path="res://character/enemy13_motion-hd_003.png" type="Texture" id=17]
 [ext_resource path="res://sound/fire_sound.smp" type="Sample" id=18]
 [ext_resource path="res://sound/foot_step_grass.smp" type="Sample" id=19]
 
@@ -66,19 +66,19 @@ animations = [ {
 "name": "idle",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 2 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ],
+"frames": [ ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ), ExtResource( 10 ) ],
 "loop": true,
-"name": "run",
+"name": "attack",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 10 ), ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ) ],
+"frames": [ ExtResource( 11 ), ExtResource( 12 ), ExtResource( 13 ), ExtResource( 14 ) ],
 "loop": true,
 "name": "die",
 "speed": 5.0
 }, {
-"frames": [ ExtResource( 14 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
+"frames": [ ExtResource( 2 ), ExtResource( 15 ), ExtResource( 16 ), ExtResource( 17 ) ],
 "loop": true,
-"name": "attack",
+"name": "run",
 "speed": 5.0
 } ]
 
@@ -132,6 +132,82 @@ tracks/3/keys = {
 
 [sub_resource type="Animation" id=4]
 
+resource/name = "chop"
+length = 0.8
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath("AnimatedSprite3D:animation")
+tracks/0/interp = 1
+tracks/0/imported = false
+tracks/0/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ "attack" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("AnimatedSprite3D:frame")
+tracks/1/interp = 1
+tracks/1/imported = false
+tracks/1/keys = {
+"times": FloatArray( 0, 0.8 ),
+"transitions": FloatArray( 1, 1 ),
+"update": 0,
+"values": [ 0, 3 ]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("SamplePlayer2D:play/play")
+tracks/2/interp = 1
+tracks/2/imported = false
+tracks/2/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 2,
+"values": [ "fire_sound" ]
+}
+tracks/3/type = "method"
+tracks/3/path = NodePath(".")
+tracks/3/interp = 1
+tracks/3/imported = false
+tracks/3/keys = {
+"times": FloatArray( 0.4 ),
+"transitions": FloatArray( 1 ),
+"values": [ {
+"args": [  ],
+"method": "fire_ball"
+} ]
+}
+
+[sub_resource type="Animation" id=5]
+
+resource/name = "collect"
+length = 0.8
+loop = false
+step = 0.1
+tracks/0/type = "value"
+tracks/0/path = NodePath("AnimatedSprite3D:animation")
+tracks/0/interp = 1
+tracks/0/imported = false
+tracks/0/keys = {
+"times": FloatArray( 0 ),
+"transitions": FloatArray( 1 ),
+"update": 1,
+"values": [ "attack" ]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("AnimatedSprite3D:frame")
+tracks/1/interp = 1
+tracks/1/imported = false
+tracks/1/keys = {
+"times": FloatArray( 0, 0.8 ),
+"transitions": FloatArray( 1, 1 ),
+"update": 0,
+"values": [ 0, 3 ]
+}
+
+[sub_resource type="Animation" id=6]
+
 length = 0.6
 loop = false
 step = 0.1
@@ -156,9 +232,8 @@ tracks/1/keys = {
 "values": [ "die" ]
 }
 
-[sub_resource type="Animation" id=5]
+[sub_resource type="Animation" id=7]
 
-resource/name = "died"
 length = 0.6
 loop = true
 step = 0.1
@@ -183,13 +258,13 @@ tracks/1/keys = {
 "values": [ "die" ]
 }
 
-[sub_resource type="Animation" id=6]
+[sub_resource type="Animation" id=8]
 
 length = 1.0
 loop = false
 step = 0.1
 
-[sub_resource type="Animation" id=7]
+[sub_resource type="Animation" id=9]
 
 length = 0.8
 loop = true
@@ -215,9 +290,8 @@ tracks/1/keys = {
 "values": [ "idle" ]
 }
 
-[sub_resource type="Animation" id=8]
+[sub_resource type="Animation" id=10]
 
-resource/name = "walk_left"
 length = 0.8
 loop = true
 step = 0.1
@@ -267,7 +341,7 @@ tracks/3/keys = {
 } ]
 }
 
-[sub_resource type="Animation" id=9]
+[sub_resource type="Animation" id=11]
 
 length = 0.8
 loop = true
@@ -318,7 +392,7 @@ tracks/3/keys = {
 } ]
 }
 
-[sub_resource type="SampleLibrary" id=10]
+[sub_resource type="SampleLibrary" id=12]
 
 samples/fire_sound = {
 "db": 0.0,
@@ -369,8 +443,8 @@ flags/transparent = true
 flags/shaded = false
 flags/alpha_cut = 0
 frames = SubResource( 2 )
-animation = "run"
-frame = 1
+animation = "attack"
+frame = 3
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
 
@@ -378,12 +452,14 @@ playback/process_mode = 1
 playback/default_blend_time = 0.0
 root/root = NodePath("..")
 anims/attack = SubResource( 3 )
-anims/die = SubResource( 4 )
-anims/died = SubResource( 5 )
-anims/fireball = SubResource( 6 )
-anims/idle = SubResource( 7 )
-anims/walk_left = SubResource( 8 )
-anims/walk_right = SubResource( 9 )
+anims/chop = SubResource( 4 )
+anims/collect = SubResource( 5 )
+anims/die = SubResource( 6 )
+anims/died = SubResource( 7 )
+anims/fireball = SubResource( 8 )
+anims/idle = SubResource( 9 )
+anims/walk_left = SubResource( 10 )
+anims/walk_right = SubResource( 11 )
 next/die = "died"
 playback/active = true
 playback/speed = 1.0
@@ -398,7 +474,7 @@ params/attenuation/min_distance = 1.0
 params/attenuation/max_distance = 2048.0
 params/attenuation/distance_exp = 1.0
 config/polyphony = 1
-config/samples = SubResource( 10 )
+config/samples = SubResource( 12 )
 config/pitch_random = 0.0
 
 

@@ -44,9 +44,9 @@ func gen_little_items():
 				root_actor_node.add_child(item)
 				tile_item_nodes.append(item)
 				tile_items[tileIdx] = flower_idx
-				
-				var collider = item.get_node("collider")
-				if collider!=null:
+							
+				if item.has_node("collider"):
+					var collider = item.get_node("collider")
 					collider.set_item(items.get_item_by_index(flower_idx))
 				
 			
