@@ -72,7 +72,6 @@ func login():
 		login_msg.password = 9
 		login_msg.send(streamPeerTCP)
 
-		
 func collect_item(id):
 	if streamPeerTCP.is_connected():	
 		var collect_item_msg = preload("res://global/protocol/collect_item.pb.gd").new()
@@ -80,10 +79,18 @@ func collect_item(id):
 		collect_item_msg.count = 1
 		collect_item_msg.type = 1
 		collect_item_msg.send(streamPeerTCP)
+		
+func on_attacked(damage):
+	if streamPeerTCP.is_connected():
+		var on_attacked_msg = preload("res://global/protocol/on_attacked.pb.gd").new()
+		on_attacked_msg.damage = damage
+		on_attacked_msg.send(streamPeerTCP)
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))
 	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
+	bind(preload("res://global/protocol/blood_info.pb.gd"))
+	bind(preload("res://global/protocol/game_time.pb.gd"))
 		
 func on_msg_backpack_num( msg):
 	print("nimei a on_msg_backpack_num")
@@ -91,3 +98,10 @@ func on_msg_backpack_num( msg):
 	
 func on_msg_backpack_cell( msg):
 	get_tree().get_root().get_node("level/ui/little bag").set_slot_info( msg.index, msg.item_id, msg.item_num)
+	
+func on_msg_blood_info( msg):
+	Globals.get("main_character").set_blood_info( msg.cur_blood, msg.max_blood)
+
+func on_msg_game_time( msg):
+	print("game time", msg.time)
+	pass

@@ -8,11 +8,13 @@ import com.google.gson.Gson;
 import java.util.Timer;
 
 class Info{
+	protected BaseInfo						baseInfo = null;
 	protected Backpack					   	backpack = null;
 	protected Building						building = null;
 	protected Currency						currency = null;
 	
 	public Info() {
+		baseInfo = new BaseInfo();
 		backpack = new Backpack();
 		building = new Building();
 		currency = new Currency();
@@ -121,8 +123,22 @@ public class Player {
 		mInfo = gson.fromJson( mJsonData, Info.class);
 	}
 	
+	// ---------------------receive---------------------
+	
 	public void collectItem(int id, int count, int type) {
 		mInfo.backpack.collectItem(id, count, type, mChannelCtx);
+	}
+	
+	public void onAttacked(int damage) {
+		mInfo.baseInfo.onAttacked(damage);
+		mInfo.baseInfo.sendBloodInfo(mChannelCtx);
+	}
+	
+	// ---------------------send---------------------
+	
+	public void sendBaseInfo() {
+		mInfo.baseInfo.sendBloodInfo(mChannelCtx);
+		mInfo.baseInfo.sendGameTime(mChannelCtx);
 	}
 	
 	// send info to client

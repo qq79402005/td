@@ -14,8 +14,6 @@ func _ready():
 	set_fixed_process(true)
 
 func _unhandled_input(event):
-#func _input(event):
-#func _unhandled_input(event):
 	if(event.type==InputEvent.MOUSE_BUTTON and event.pressed and event.button_index==1):
 		ray_from = self.project_ray_origin(event.pos)
 		ray_to = ray_from + self.project_ray_normal(event.pos) * ray_length

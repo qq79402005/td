@@ -1,6 +1,6 @@
 extends Spatial
 
-var blood = 50.0
+var cur_blood = 50.0
 var max_blood = 100.0
 
 var terrain = null
@@ -35,16 +35,22 @@ func _process(delta):
 		
 func set_target_pos(target):
 	target_pos = target
+	
+func set_blood_info( curBlood, maxBlood):
+	cur_blood = curBlood;
+	max_blood = maxBlood;
+	var blood = float(cur_blood) / float(max_blood) * 100.0
+	get_node("/root/level/ui/head_blood/blood").set_value(blood)
 
 func is_dead():
-	if blood <= 0.0:
+	if cur_blood <= 0.0:
 		return true
 	else:
 		return false
 	
 func on_attack(damage):
-	blood = max(blood-damage, 0)
-	get_node("/root/level/ui/head_blood/blood").set_value(blood)
-	#if blood == 0:
+	get_node("/root/network").on_attacked(damage)
+
+	#if cur_blood == 0:
 	#	set_player_state(PS_DIE, "die", true)
 	
