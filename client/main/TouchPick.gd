@@ -9,10 +9,12 @@ var scene_rotate_y = 0
 func _ready():
 	Globals.set("current_camera", self)
 	scene_rotate_y = get_parent().get_rotation_deg().y
-	set_process_input(true)
+	#set_process_input(true)
+	set_process_unhandled_input(true)
 	set_fixed_process(true)
 
-func _input(event):
+func _unhandled_input(event):
+#func _input(event):
 #func _unhandled_input(event):
 	if(event.type==InputEvent.MOUSE_BUTTON and event.pressed and event.button_index==1):
 		ray_from = self.project_ray_origin(event.pos)
