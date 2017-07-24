@@ -15,10 +15,10 @@
 [ext_resource path="res://main/main_cha_behavior/move.gd" type="Script" id=13]
 [ext_resource path="res://main/main_cha_behavior/collect_item.gd" type="Script" id=14]
 [ext_resource path="res://main/main_cha_behavior/idle.gd" type="Script" id=15]
-[ext_resource path="res://main/terrain.gd" type="Script" id=16]
-[ext_resource path="res://main/Ground_noise_deciduous.tex" type="Texture" id=17]
-[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=18]
-[ext_resource path="res://main/water_079_c_0001.tex" type="Texture" id=19]
+[ext_resource path="res://actor/marble_trees/marble_tree.tscn" type="PackedScene" id=16]
+[ext_resource path="res://main/terrain.gd" type="Script" id=17]
+[ext_resource path="res://main/sand.tex" type="Texture" id=18]
+[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=19]
 [ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=20]
 [ext_resource path="res://main/weather.gd" type="Script" id=21]
 [ext_resource path="res://launch/bg_plain.png" type="Texture" id=22]
@@ -57,9 +57,9 @@ params/depth_draw = 1
 params/line_width = 9.09178e-039
 shader/shader = SubResource( 1 )
 shader_param/col = Color( 1, 1, 1, 1 )
-shader_param/stone_tex = ExtResource( 19 )
-shader_param/grass_tex = ExtResource( 17 )
-shader_param/sand_tex = ExtResource( 18 )
+shader_param/stone_tex = ExtResource( 18 )
+shader_param/grass_tex = ExtResource( 18 )
+shader_param/sand_tex = ExtResource( 19 )
 shader_param/tex3 = ExtResource( 20 )
 
 [sub_resource type="PlaneShape" id=3]
@@ -225,10 +225,32 @@ margin/bottom = 573.0
 
 [node name="actor" type="Node" parent="."]
 
+[node name="main_light" type="OmniLight" parent="actor"]
+
+_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
+transform/local = Transform( 1, 0, 0, 0, -4.37114e-008, -1, 0, 1, -4.37114e-008, 0, 3.5, 0 )
+layers = 1
+params/enabled = true
+params/editor_only = false
+params/bake_mode = 0
+params/energy = 1.0
+colors/diffuse = Color( 0.298039, 0.298039, 0.298039, 1 )
+colors/specular = Color( 0, 0, 0, 1 )
+shadow/shadow = false
+shadow/darkening = 0.0
+shadow/z_offset = 0.05
+shadow/z_slope_scale = 0.0
+shadow/esm_multiplier = 60.0
+shadow/blur_passes = 1.0
+projector = null
+operator = 0
+params/radius = 8.0
+params/attenuation = 0.0563282
+
 [node name="main_character" type="Spatial" parent="actor"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 128, 0, 128 )
+transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
 script/script = ExtResource( 8 )
 
 [node name="Camera" type="Camera" parent="actor/main_character"]
@@ -249,30 +271,9 @@ script/script = ExtResource( 9 )
 
 [node name="cha_man" parent="actor/main_character" instance=ExtResource( 10 )]
 
-[node name="OmniLight" type="OmniLight" parent="actor/main_character"]
-
-_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2.11799, 0 )
-layers = 1
-params/enabled = true
-params/editor_only = false
-params/bake_mode = 0
-params/energy = 1.8
-colors/diffuse = Color( 1, 0.913725, 0.870588, 1 )
-colors/specular = Color( 1, 1, 1, 1 )
-shadow/shadow = false
-shadow/darkening = 0.0
-shadow/z_offset = 0.001
-shadow/z_slope_scale = 0.0
-shadow/esm_multiplier = 60.0
-shadow/blur_passes = 1.0
-projector = null
-operator = 0
-params/radius = 5.5
-params/attenuation = 1.93187
-
 [node name="behavior" type="BTRootNode" parent="actor/main_character"]
 
+editor/display_folded = true
 script/script = ExtResource( 11 )
 motion_speed = 2.5
 patrol_range = 20.0
@@ -303,9 +304,11 @@ update_result = 0
 script/script = ExtResource( 15 )
 update_result = 0
 
+[node name="main_tree" parent="actor" instance=ExtResource( 16 )]
+
 [node name="terrain" type="Node" parent="."]
 
-script/script = ExtResource( 16 )
+script/script = ExtResource( 17 )
 terrain_width = 256
 terrain_height = 256
 noise_seed = 666
@@ -316,32 +319,9 @@ material = SubResource( 2 )
 tile_size = 16
 tex_warp_size = 4
 
-[node name="DirectionalLight" type="DirectionalLight" parent="terrain"]
-
-_import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
-transform/local = Transform( 1, 0, 0, 0, 0.813624, 0.581392, 0, -0.581392, 0.813624, 0, 3.70521, 0 )
-layers = 1
-params/enabled = true
-params/editor_only = false
-params/bake_mode = 0
-params/energy = 1.0
-colors/diffuse = Color( 0.78125, 0.755215, 0.653076, 1 )
-colors/specular = Color( 0, 0, 0, 1 )
-shadow/shadow = false
-shadow/darkening = 0.0
-shadow/z_offset = 0.05
-shadow/z_slope_scale = 0.0
-shadow/esm_multiplier = 60.0
-shadow/blur_passes = 1.0
-projector = null
-operator = 0
-shadow/mode = 0
-shadow/max_distance = 0.0
-shadow/split_weight = 0.5
-shadow/zoffset_scale = 2.0
-
 [node name="StaticBody_terrain_plane" type="StaticBody" parent="terrain"]
 
+editor/display_folded = true
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 input/ray_pickable = true
 input/capture_on_drag = false
@@ -365,8 +345,6 @@ trigger = false
 _update_shape_index = 0
 
 [node name="environment" type="Node2D" parent="."]
-
-editor/display_folded = true
 
 [node name="weather" type="Node2D" parent="environment"]
 

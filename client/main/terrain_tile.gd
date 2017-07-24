@@ -12,7 +12,7 @@ func _ready():
 	for i in range(tile_size * tile_size):
 		tile_items.append(-1)
 	
-	gen_little_items()
+	#gen_little_items()
 	
 func _exit_tree():
 	var root_actor_node = get_node("/root/level/actor")

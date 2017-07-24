@@ -19,7 +19,7 @@ func _process(delta):
 
 func _input(event):
 	if(event.is_action_pressed("skill_0")):
-		get_node("behavior").set_anim_state(PS_ATTACK, "attack", false)
+		set_anim_state(PS_ATTACK, "attack", false)
 
 func _bt_continue(index, context):
 	pass

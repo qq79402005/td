@@ -41,11 +41,13 @@ func get_item(x, z):
 		return tile.get_item(x-x_pos*tile_size, z-z_pos*tile_size)
 	
 func get_height( xpos, ypos):
-	var noise_height = fractal_noise.get_noise_2d(xpos, ypos)
-	var x = clamp(xpos, 0.0, terrain_width) / terrain_width * 2.0 - 1.0
-	var y = clamp(ypos, 0.0, terrain_height) / terrain_height * 2.0 - 1.0
-	var falloff = max(abs(x), abs(y))
-	return noise_height - pow(falloff,8)
+	return 0.0
+	
+	#var noise_height = fractal_noise.get_noise_2d(xpos, ypos)
+	#var x = clamp(xpos, 0.0, terrain_width) / terrain_width * 2.0 - 1.0
+	#var y = clamp(ypos, 0.0, terrain_height) / terrain_height * 2.0 - 1.0
+	#var falloff = max(abs(x), abs(y))
+	#return noise_height - pow(falloff,8)
 	
 func is_walkable(xpos, ypos):
 	var height = get_height(xpos, ypos)
