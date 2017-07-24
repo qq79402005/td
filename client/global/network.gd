@@ -86,8 +86,8 @@ func bind_msgs():
 	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
 		
 func on_msg_backpack_num( msg):
+	print("nimei a on_msg_backpack_num")
 	get_tree().get_root().get_node("level/ui/little bag").set_slot_size(msg.num)
 	
 func on_msg_backpack_cell( msg):
-	print("---------------------------------", msg.index," ", msg.item_id, "_" ,msg.item_num)
 	get_tree().get_root().get_node("level/ui/little bag").set_slot_info( msg.index, msg.item_id, msg.item_num)

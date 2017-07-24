@@ -163,7 +163,6 @@ script/script = ExtResource( 1 )
 
 [node name="ui" type="CanvasLayer" parent="."]
 
-editor/display_folded = true
 layer = 1
 offset = Vector2( 0, 0 )
 rotation = 0.0
@@ -340,7 +339,7 @@ _update_shape_index = 0
 
 editor/display_folded = true
 script/script = ExtResource( 22 )
-daynight_time = IntArray( 30, 3, 80, 3 )
+daynight_time = IntArray( 300, 3, 80, 3 )
 
 [node name="snow" type="TextureFrame" parent="environment/weather"]
 
