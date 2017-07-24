@@ -43,7 +43,6 @@ func _bt_abort(index, context):
 const	PS_IDLE = 1
 const	PS_MOVE = 1
 const 	PS_ATTACK = 2
-const   PS_DIE = 3
 
 var current_animation = "idle"
 var old_animation = "idle"

@@ -44,8 +44,10 @@ func set_blood_info( curBlood, maxBlood):
 	
 	if cur_blood <=0:
 		get_node("/root/level/ui/resurrection").set_hidden(false)
+		#set_player_state(PS_DIE, "die", true)
 	else:
 		get_node("/root/level/ui/resurrection").set_hidden(true)
+		#set_player_state(PS_DIE, "die", true)
 
 func is_dead():
 	if cur_blood <= 0.0:
@@ -55,7 +57,4 @@ func is_dead():
 	
 func on_attack(damage):
 	get_node("/root/network").on_attacked(damage)
-
-	#if cur_blood == 0:
-	#	set_player_state(PS_DIE, "die", true)
 	
