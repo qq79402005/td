@@ -6,6 +6,10 @@ import java.util.Iterator;
 import io.netty.channel.ChannelHandlerContext;
 import com.google.gson.Gson;
 import java.util.Timer;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 
 class Info{
 	protected BaseInfo						baseInfo = null;
@@ -30,6 +34,7 @@ public class Player {
 	protected Info					   		mInfo = new Info();
 	
 	public Player(ChannelHandlerContext channelCtx) {
+			
 		mChannelCtx = channelCtx;		
 	}
 	
@@ -58,6 +63,9 @@ public class Player {
 		
 		// disconnect same account
 		if(!db.instance().isPlayerExist(name)) {
+			
+			initBackpack();
+			
 			refreshPlayerToJson();
 			db.instance().saveNewPlayer(this.mAccount, name, this.mJsonData);
 		}else {
@@ -95,6 +103,29 @@ public class Player {
 			player.mChannelCtx.disconnect();	
 			players.remove(ctx.hashCode());
 		}
+	}
+	
+	protected boolean initBackpack(){
+		try{
+			SAXReader reader = new SAXReader();
+			Document document = reader.read("cfg/init_backbag.xml");
+			
+			Element rootElement = document.getRootElement();
+			for(Iterator it=rootElement.elementIterator(); it.hasNext();){
+				Element e = (Element)it.next();
+				
+				String strId    = e.attributeValue("id");
+				String strCount = e.attributeValue("count");
+				int counter = Integer.parseInt( strCount);		
+				int id     = Integer.parseInt( strId);
+				
+				mInfo.backpack.AddItem(id, counter, 0);
+			}	
+		} catch(DocumentException e){
+			e.printStackTrace();
+		}
+	
+		return true;
 	}
 	
 	protected boolean refreshPlayerToJson() {

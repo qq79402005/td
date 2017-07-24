@@ -50,7 +50,7 @@ public class Backpack {
 		ctx.write(bp_cell.data());
 	}
 	
-	public void collectItem(int item_id, int count, int type, ChannelHandlerContext ctx) {
+	public Cell AddItem(int item_id, int count, int type){
 		Cell cell = getCellByItemID(item_id);
 		if( cell!=null){
 			cell.item_num += count;
@@ -62,6 +62,12 @@ public class Backpack {
 				cells.add(cell);
 			}
 		}
+		
+		return cell;
+	}
+	
+	public void collectItem(int item_id, int count, int type, ChannelHandlerContext ctx) {
+		Cell cell = AddItem(item_id, count, type);
 		
 		// send to client
 		if(cell!=null) {
