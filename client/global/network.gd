@@ -85,6 +85,12 @@ func on_attacked(damage):
 		var on_attacked_msg = preload("res://global/protocol/on_attacked.pb.gd").new()
 		on_attacked_msg.damage = damage
 		on_attacked_msg.send(streamPeerTCP)
+		
+func resurgence(type):
+	if streamPeerTCP.is_connected():
+		var resurgence_msg = preload("res://global/protocol/resurgence.pb.gd").new()
+		resurgence_msg.type = type
+		resurgence_msg.send(streamPeerTCP)
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))
@@ -93,7 +99,6 @@ func bind_msgs():
 	bind(preload("res://global/protocol/game_time.pb.gd"))
 		
 func on_msg_backpack_num( msg):
-	print("nimei a on_msg_backpack_num")
 	get_tree().get_root().get_node("level/ui/little bag").set_slot_size(msg.num)
 	
 func on_msg_backpack_cell( msg):

@@ -41,6 +41,11 @@ func set_blood_info( curBlood, maxBlood):
 	max_blood = maxBlood;
 	var blood = float(cur_blood) / float(max_blood) * 100.0
 	get_node("/root/level/ui/head_blood/blood").set_value(blood)
+	
+	if cur_blood <=0:
+		get_node("/root/level/ui/resurrection").set_hidden(false)
+	else:
+		get_node("/root/level/ui/resurrection").set_hidden(true)
 
 func is_dead():
 	if cur_blood <= 0.0:

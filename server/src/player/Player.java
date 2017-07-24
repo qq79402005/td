@@ -134,6 +134,13 @@ public class Player {
 		mInfo.baseInfo.sendBloodInfo(mChannelCtx);
 	}
 	
+	public void onResurgence(int type){
+		if( type==0) {
+			mInfo.baseInfo.curBlood = mInfo.baseInfo.maxBlood;
+			mInfo.baseInfo.sendBloodInfo(mChannelCtx);
+		}
+	}
+	
 	// ---------------------send---------------------
 	
 	public void sendBaseInfo() {

@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=1]
+[gd_scene load_steps=33 format=1]
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/ui/ui.gd" type="Script" id=2]
@@ -8,23 +8,24 @@
 [ext_resource path="res://ui/head_blood/head_blood.tscn" type="PackedScene" id=6]
 [ext_resource path="res://ui/inventory/inventory.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/inventory/little_bag.tscn" type="PackedScene" id=8]
-[ext_resource path="res://main/cha_move.gd" type="Script" id=9]
-[ext_resource path="res://main/TouchPick.gd" type="Script" id=10]
-[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=11]
-[ext_resource path="res://main/main_cha_behavior/root.gd" type="Script" id=12]
-[ext_resource path="res://main/main_cha_behavior/is_have_move_task.gd" type="Script" id=13]
-[ext_resource path="res://main/main_cha_behavior/move.gd" type="Script" id=14]
-[ext_resource path="res://main/main_cha_behavior/collect_item.gd" type="Script" id=15]
-[ext_resource path="res://main/main_cha_behavior/idle.gd" type="Script" id=16]
-[ext_resource path="res://actor/marble_trees/marble_tree.tscn" type="PackedScene" id=17]
-[ext_resource path="res://actor/monster/blob/blob.tscn" type="PackedScene" id=18]
-[ext_resource path="res://main/terrain.gd" type="Script" id=19]
-[ext_resource path="res://main/sand.tex" type="Texture" id=20]
-[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=21]
-[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=22]
-[ext_resource path="res://main/weather.gd" type="Script" id=23]
-[ext_resource path="res://launch/bg_plain.png" type="Texture" id=24]
-[ext_resource path="res://effect/rain/rain.tscn" type="PackedScene" id=25]
+[ext_resource path="res://ui/resurrection/resurrection.tscn" type="PackedScene" id=9]
+[ext_resource path="res://main/cha_move.gd" type="Script" id=10]
+[ext_resource path="res://main/TouchPick.gd" type="Script" id=11]
+[ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=12]
+[ext_resource path="res://main/main_cha_behavior/root.gd" type="Script" id=13]
+[ext_resource path="res://main/main_cha_behavior/is_have_move_task.gd" type="Script" id=14]
+[ext_resource path="res://main/main_cha_behavior/move.gd" type="Script" id=15]
+[ext_resource path="res://main/main_cha_behavior/collect_item.gd" type="Script" id=16]
+[ext_resource path="res://main/main_cha_behavior/idle.gd" type="Script" id=17]
+[ext_resource path="res://actor/marble_trees/marble_tree.tscn" type="PackedScene" id=18]
+[ext_resource path="res://actor/monster/blob/blob.tscn" type="PackedScene" id=19]
+[ext_resource path="res://main/terrain.gd" type="Script" id=20]
+[ext_resource path="res://main/sand.tex" type="Texture" id=21]
+[ext_resource path="res://main/Ground_noise.tex" type="Texture" id=22]
+[ext_resource path="res://main/Ground_noise_marsh.tex" type="Texture" id=23]
+[ext_resource path="res://main/weather.gd" type="Script" id=24]
+[ext_resource path="res://launch/bg_plain.png" type="Texture" id=25]
+[ext_resource path="res://effect/rain/rain.tscn" type="PackedScene" id=26]
 
 [sub_resource type="MaterialShader" id=1]
 
@@ -59,10 +60,10 @@ params/depth_draw = 1
 params/line_width = 9.09178e-039
 shader/shader = SubResource( 1 )
 shader_param/col = Color( 1, 1, 1, 1 )
-shader_param/stone_tex = ExtResource( 20 )
-shader_param/grass_tex = ExtResource( 20 )
-shader_param/sand_tex = ExtResource( 21 )
-shader_param/tex3 = ExtResource( 22 )
+shader_param/stone_tex = ExtResource( 21 )
+shader_param/grass_tex = ExtResource( 21 )
+shader_param/sand_tex = ExtResource( 22 )
+shader_param/tex3 = ExtResource( 23 )
 
 [sub_resource type="PlaneShape" id=3]
 
@@ -235,13 +236,25 @@ margin/top = 150.0
 margin/right = -180.0
 margin/bottom = 31.0
 
+[node name="resurrection" parent="ui" instance=ExtResource( 9 )]
+
+visibility/visible = false
+anchor/left = 3
+anchor/top = 3
+anchor/right = 3
+anchor/bottom = 3
+margin/left = 275.0
+margin/top = 136.0
+margin/right = -326.0
+margin/bottom = -122.0
+
 [node name="actor" type="Node" parent="."]
 
 [node name="main_character" type="Spatial" parent="actor"]
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
-script/script = ExtResource( 9 )
+script/script = ExtResource( 10 )
 
 [node name="Camera" type="Camera" parent="actor/main_character"]
 
@@ -257,13 +270,13 @@ visible_layers = 1048575
 environment = null
 h_offset = 0.0
 v_offset = 0.0
-script/script = ExtResource( 10 )
+script/script = ExtResource( 11 )
 
-[node name="cha_man" parent="actor/main_character" instance=ExtResource( 11 )]
+[node name="cha_man" parent="actor/main_character" instance=ExtResource( 12 )]
 
 [node name="behavior" type="BTRootNode" parent="actor/main_character"]
 
-script/script = ExtResource( 12 )
+script/script = ExtResource( 13 )
 motion_speed = 2.5
 patrol_range = 20.0
 
@@ -273,33 +286,33 @@ patrol_range = 20.0
 
 [node name="is_have_move_task" type="BTActionNode" parent="actor/main_character/behavior/SelectNode/MoveSequence"]
 
-script/script = ExtResource( 13 )
+script/script = ExtResource( 14 )
 update_result = 0
 
 [node name="move" type="BTActionNode" parent="actor/main_character/behavior/SelectNode/MoveSequence"]
 
-script/script = ExtResource( 14 )
+script/script = ExtResource( 15 )
 update_result = 0
 
 [node name="collect_item" type="BTActionNode" parent="actor/main_character/behavior/SelectNode/MoveSequence"]
 
-script/script = ExtResource( 15 )
+script/script = ExtResource( 16 )
 update_result = 0
 
 [node name="SelectorNode" type="BTSelectorNode" parent="actor/main_character/behavior/SelectNode"]
 
 [node name="idle" type="BTActionNode" parent="actor/main_character/behavior/SelectNode/SelectorNode"]
 
-script/script = ExtResource( 16 )
+script/script = ExtResource( 17 )
 update_result = 0
 
-[node name="main_tree" parent="actor" instance=ExtResource( 17 )]
+[node name="main_tree" parent="actor" instance=ExtResource( 18 )]
 
-[node name="blob" parent="actor" instance=ExtResource( 18 )]
+[node name="blob" parent="actor" instance=ExtResource( 19 )]
 
 [node name="terrain" type="Node" parent="."]
 
-script/script = ExtResource( 19 )
+script/script = ExtResource( 20 )
 terrain_width = 256
 terrain_height = 256
 noise_seed = 666
@@ -340,7 +353,7 @@ _update_shape_index = 0
 [node name="weather" type="Node2D" parent="environment"]
 
 editor/display_folded = true
-script/script = ExtResource( 23 )
+script/script = ExtResource( 24 )
 daynight_time = IntArray( 300, 3, 80, 3 )
 
 [node name="snow" type="TextureFrame" parent="environment/weather"]
@@ -357,11 +370,11 @@ margin/left = -5.0
 margin/top = -5.0
 margin/right = -958.0
 margin/bottom = -524.0
-texture = ExtResource( 24 )
+texture = ExtResource( 25 )
 expand = true
 stretch_mode = 3
 
-[node name="rain" parent="environment/weather" instance=ExtResource( 25 )]
+[node name="rain" parent="environment/weather" instance=ExtResource( 26 )]
 
 visibility/visible = false
 
