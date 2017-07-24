@@ -45,6 +45,7 @@ func get_item_icon( id):
 	for item in items:
 		if item.id == id:
 			var tex  = load(item.icon)
+			print(item.icon)
 			return tex
 	
 	get_node("/root/logger").error("Can not find icon by item id")

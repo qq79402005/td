@@ -30,13 +30,12 @@ public class Backpack {
 	public Backpack() {
 	}
 	
-	public void sendBackpackInfo(ChannelHandlerContext ctx){
-		
-		System.out.println("sendBackpackInfo--------------------");
-		
+	public void sendBackpackInfo(ChannelHandlerContext ctx){	
 		protocol.backpack_num bp_num = new protocol.backpack_num();
 		bp_num.num = cell_number;
 		ctx.write( bp_num.data());
+		
+		System.out.println(String.format("cells:%d", cells.size()));
 		
 		for(Cell cell : cells) {
 			sendCellInfo( ctx, cell);
@@ -44,8 +43,6 @@ public class Backpack {
 	}
 	
 	public void sendCellInfo(ChannelHandlerContext ctx, Cell cell) {
-		
-		System.out.println("sendBackpackInfo+++++++++++++++++++++++++");
 		protocol.backpack_cell bp_cell = new protocol.backpack_cell();
 		bp_cell.index = cell.cell_idx;
 		bp_cell.item_id = cell.item_id;

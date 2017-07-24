@@ -14,7 +14,7 @@ export(int) var noise_persistance = 0.5
 
 export(ShaderMaterial) var material = null
 export(float) var tile_size = int(16)
-export(float) var tex_warp_size = 4
+export(float) var tex_warp_size = 0.4
 
 var noise = OsnNoise.new()
 var fractal_noise = OsnFractalNoise.new()
@@ -126,28 +126,28 @@ func gen_tile_mesh(tile, pos):
 			
 			# triangle 1
 			surfTool.add_color(get_color_by_height(h0))
-			surfTool.add_uv(Vector2(w,h))
+			surfTool.add_uv(Vector2(w,h) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w,0,h))
 
 			surfTool.add_color(get_color_by_height(h3))	
-			surfTool.add_uv(Vector2(w+1, h+1))
+			surfTool.add_uv(Vector2(w+1, h+1) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w+1, 0, h+1))
 
 			surfTool.add_color(get_color_by_height(h2))
-			surfTool.add_uv(Vector2(w,h+1))
+			surfTool.add_uv(Vector2(w,h+1) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w, 0, h+1))
 
 			# triangle2
 			surfTool.add_color(get_color_by_height(h0))			
-			surfTool.add_uv(Vector2(w,h))
+			surfTool.add_uv(Vector2(w,h) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w,0,h))
 
 			surfTool.add_color(get_color_by_height(h1))
-			surfTool.add_uv(Vector2(w+1,  h))
+			surfTool.add_uv(Vector2(w+1,  h) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w+1,0, h))
 
 			surfTool.add_color(get_color_by_height(h3))
-			surfTool.add_uv(Vector2(w+1,h+1))
+			surfTool.add_uv(Vector2(w+1,h+1) * tex_warp_size)
 			surfTool.add_vertex(Vector3(w+1, 0, h+1))
 
 	surfTool.generate_normals()

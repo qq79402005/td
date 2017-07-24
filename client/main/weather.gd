@@ -39,7 +39,7 @@ func daynight_update(delta):
 	var endColor = daynight_color[daynight_phase*2+1]
 	var ratio = daynight_phase_time / daynight_time[daynight_phase]
 	var color =  beginColor.linear_interpolate(endColor, ratio)
-	get_node("/root/level/actor/main_light").set_color(0, color)
+	get_node("/root/level/environment/WorldEnvironment").get_environment().fx_set_param(Environment.FX_PARAM_AMBIENT_LIGHT_COLOR, color)
 	
 func rain_update():
 	var role_pos = role_node.get_translation()

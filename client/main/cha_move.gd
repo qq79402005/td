@@ -1,6 +1,7 @@
 extends Spatial
 
 var blood = 50.0
+var max_blood = 100.0
 
 var terrain = null
 var target_pos = Vector3()
