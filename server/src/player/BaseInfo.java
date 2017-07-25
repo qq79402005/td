@@ -11,6 +11,12 @@ public class BaseInfo {
 		curBlood = Math.min(Math.max(curBlood - damage, 0), maxBlood);
 	}
 	
+	public void addGameTime(long delta) {
+		if(curBlood > 0) {
+			gameTime += delta;
+		}
+	}
+	
 	public void sendBloodInfo(ChannelHandlerContext ctx) {
 		protocol.blood_info bp_cell = new protocol.blood_info();
 		bp_cell.cur_blood = curBlood;

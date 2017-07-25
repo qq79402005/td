@@ -10,7 +10,7 @@ func _ready():
 func name():
 	return 'backpack_cell'
 func id():
-	return 1
+	return 2
 
 func length():
 	return 12

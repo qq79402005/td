@@ -11,6 +11,7 @@ interface ProtocolProcess {
 		SocketServerHandler.bind(new protocol.collect_item(), new collect_item_process());
 		SocketServerHandler.bind(new protocol.on_attacked(),  new on_attacked_process());
 		SocketServerHandler.bind(new protocol.resurgence(), new resurgence_process());
+		SocketServerHandler.bind(new protocol.add_game_time(), new on_add_game_time_process());
 	}
 }
 
@@ -53,5 +54,16 @@ class resurgence_process implements ProtocolProcess{
 		
 		Player player = Player.get(ctx);
 		player.onResurgence(msg.type);
+	}
+}
+
+//∏¥ªÓ¥¶¿Ì
+class on_add_game_time_process implements ProtocolProcess{
+	@Override
+	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
+		protocol.add_game_time msg = (protocol.add_game_time)proto;
+		
+		Player player = Player.get(ctx);
+		player.onAddGameTime(msg.time);
 	}
 }

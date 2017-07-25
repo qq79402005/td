@@ -2,6 +2,7 @@ extends Node
 
 var curScene = null
 var playerName = "Ares"
+var gameTime = 0.0
 
 func _ready():
 	var nodeIdx = get_tree().get_root().get_child_count()-1
@@ -15,3 +16,6 @@ func setScene(name):
 	var sceneRes = ResourceLoader.load(name)
 	curScene = sceneRes.instance()
 	get_tree().get_root().add_child(curScene)
+	
+func setGameTime(time):
+	gameTime = time

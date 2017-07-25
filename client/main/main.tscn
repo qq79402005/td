@@ -2,13 +2,13 @@
 
 [ext_resource path="res://main/main_root.gd" type="Script" id=1]
 [ext_resource path="res://main/ui/ui.gd" type="Script" id=2]
-[ext_resource path="res://fonts/comic_bold.fnt" type="BitmapFont" id=3]
-[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/root/sack-canvas.png" type="Texture" id=5]
-[ext_resource path="res://ui/head_blood/head_blood.tscn" type="PackedScene" id=6]
-[ext_resource path="res://ui/inventory/inventory.tscn" type="PackedScene" id=7]
-[ext_resource path="res://ui/inventory/little_bag.tscn" type="PackedScene" id=8]
-[ext_resource path="res://ui/resurrection/resurrection.tscn" type="PackedScene" id=9]
+[ext_resource path="res://ui/item_operate/item_operate.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/root/sack-canvas.png" type="Texture" id=4]
+[ext_resource path="res://ui/head_blood/head_blood.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/inventory/inventory.tscn" type="PackedScene" id=6]
+[ext_resource path="res://ui/inventory/little_bag.tscn" type="PackedScene" id=7]
+[ext_resource path="res://ui/resurrection/resurrection.tscn" type="PackedScene" id=8]
+[ext_resource path="res://ui/info/info.tscn" type="PackedScene" id=9]
 [ext_resource path="res://main/cha_move.gd" type="Script" id=10]
 [ext_resource path="res://main/TouchPick.gd" type="Script" id=11]
 [ext_resource path="res://character/cha_man.tscn" type="PackedScene" id=12]
@@ -171,26 +171,7 @@ rotation = 0.0
 scale = Vector2( 1, 1 )
 script/script = ExtResource( 2 )
 
-[node name="back" type="Button" parent="ui"]
-
-anchor/top = 1
-anchor/bottom = 1
-focus/ignore_mouse = false
-focus/stop_mouse = true
-size_flags/horizontal = 2
-size_flags/vertical = 2
-margin/left = 41.0
-margin/top = 83.0
-margin/right = 191.0
-margin/bottom = 40.0
-custom_fonts/font = ExtResource( 3 )
-toggle_mode = false
-enabled_focus_mode = 2
-shortcut = null
-text = "Back"
-flat = false
-
-[node name="item_operate" parent="ui" instance=ExtResource( 4 )]
+[node name="item_operate" parent="ui" instance=ExtResource( 3 )]
 
 visibility/visible = false
 
@@ -212,20 +193,20 @@ margin/bottom = -320.0
 toggle_mode = false
 enabled_focus_mode = 2
 shortcut = null
-textures/normal = ExtResource( 5 )
+textures/normal = ExtResource( 4 )
 params/resize_mode = 0
 params/stretch_mode = 0
 
-[node name="head_blood" parent="ui" instance=ExtResource( 6 )]
+[node name="head_blood" parent="ui" instance=ExtResource( 5 )]
 
-[node name="big bag" parent="ui" instance=ExtResource( 7 )]
+[node name="big bag" parent="ui" instance=ExtResource( 6 )]
 
 visibility/visible = false
 margin/left = 298.0
 margin/right = 797.0
 margin/bottom = 573.0
 
-[node name="little bag" parent="ui" instance=ExtResource( 8 )]
+[node name="little bag" parent="ui" instance=ExtResource( 7 )]
 
 anchor/left = 3
 anchor/top = 1
@@ -236,7 +217,7 @@ margin/top = 150.0
 margin/right = -180.0
 margin/bottom = 31.0
 
-[node name="resurrection" parent="ui" instance=ExtResource( 9 )]
+[node name="resurrection" parent="ui" instance=ExtResource( 8 )]
 
 visibility/visible = false
 anchor/left = 3
@@ -248,7 +229,18 @@ margin/top = 136.0
 margin/right = -326.0
 margin/bottom = -122.0
 
+[node name="info" parent="ui" instance=ExtResource( 9 )]
+
+anchor/left = 1
+anchor/right = 1
+margin/left = 223.0
+margin/top = 3.0
+margin/right = 3.0
+margin/bottom = 141.0
+
 [node name="actor" type="Node" parent="."]
+
+editor/display_folded = true
 
 [node name="main_character" type="Spatial" parent="actor"]
 
@@ -354,7 +346,7 @@ _update_shape_index = 0
 
 editor/display_folded = true
 script/script = ExtResource( 24 )
-daynight_time = IntArray( 300, 3, 80, 3 )
+daynight_time = IntArray( 2600, 3, 994, 3 )
 
 [node name="snow" type="TextureFrame" parent="environment/weather"]
 
@@ -382,8 +374,6 @@ visibility/visible = false
 
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 environment = SubResource( 6 )
-
-[connection signal="pressed" from="ui/back" to="." method="_on_back_pressed"]
 
 [connection signal="pressed" from="ui/backpack_button" to="ui" method="_on_backpack_button_pressed"]
 

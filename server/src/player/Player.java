@@ -32,10 +32,11 @@ public class Player {
 	protected String					   	mName;			// player name
 	protected String					   	mJsonData = "{}";			// info in json format
 	protected Info					   		mInfo = new Info();
+	protected long							mLastTickTime = 0;
 	
 	public Player(ChannelHandlerContext channelCtx) {
 			
-		mChannelCtx = channelCtx;		
+		mChannelCtx = channelCtx;
 	}
 	
 	public static void update() {
@@ -170,6 +171,21 @@ public class Player {
 			mInfo.baseInfo.curBlood = mInfo.baseInfo.maxBlood;
 			mInfo.baseInfo.sendBloodInfo(mChannelCtx);
 		}
+	}
+	
+	public void onAddGameTime(int time) {
+		long elapsedTime = time;
+		long curTime = System.currentTimeMillis();
+		long serverDelta = curTime - mLastTickTime;
+		if(serverDelta - time > 1.0){
+			elapsedTime = Math.min(serverDelta, time);
+			elapsedTime = Math.min(elapsedTime, 5);
+		}
+			
+		mInfo.baseInfo.addGameTime(elapsedTime);
+		mInfo.baseInfo.sendGameTime(mChannelCtx);
+		
+		mLastTickTime = curTime;
 	}
 	
 	// ---------------------send---------------------

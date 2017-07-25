@@ -91,6 +91,12 @@ func resurgence(type):
 		var resurgence_msg = preload("res://global/protocol/resurgence.pb.gd").new()
 		resurgence_msg.type = type
 		resurgence_msg.send(streamPeerTCP)
+		
+func addGameTime(time):
+	if streamPeerTCP.is_connected():
+		var msg = preload("res://global/protocol/add_game_time.pb.gd").new()
+		msg.time = time
+		msg.send(streamPeerTCP)
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))
@@ -108,5 +114,4 @@ func on_msg_blood_info( msg):
 	Globals.get("main_character").set_blood_info( msg.cur_blood, msg.max_blood)
 
 func on_msg_game_time( msg):
-	print("game time", msg.time)
-	pass
+	get_node("/root/global").setGameTime(msg.time)
