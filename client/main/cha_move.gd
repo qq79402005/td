@@ -34,7 +34,8 @@ func _process(delta):
 		set_target_pos(self.get_translation() + dir * speed * delta)
 		
 func set_target_pos(target):
-	target_pos = target
+	if cur_blood > 0.0:
+		target_pos = target
 	
 func set_blood_info( curBlood, maxBlood):
 	cur_blood = curBlood;

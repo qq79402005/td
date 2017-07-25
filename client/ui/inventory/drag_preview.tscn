@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=1]
+
+[ext_resource path="res://actor/flowers/flower_1.png" type="Texture" id=1]
+
+[node name="icon" type="TextureFrame"]
+
+anchor/left = 3
+anchor/top = 3
+anchor/right = 3
+anchor/bottom = 3
+focus/ignore_mouse = true
+focus/stop_mouse = true
+size_flags/horizontal = 2
+size_flags/vertical = 2
+margin/left = 711.0
+margin/top = 419.0
+margin/right = 623.0
+margin/bottom = 331.0
+texture = ExtResource( 1 )
+stretch_mode = 0
+
+

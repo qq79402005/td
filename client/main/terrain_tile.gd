@@ -48,7 +48,22 @@ func gen_little_items():
 				if item.has_node("collider"):
 					var collider = item.get_node("collider")
 					collider.set_item(items.get_item_by_index(flower_idx))
-				
+
+func add_item(id, pos):
+	print("dfdfdfsdfsdfdsf")
+	var items = get_node("/root/items")
+	var root_actor_node = get_node("/root/level/actor")
+	var item = items.get_item_by_id(id).res_load.instance()
+	var item_half_height = 0#item.get_region_rect().size.y / 2
+	print("------------------#######", pos)
+	item.set_translation(Vector3( pos.x, 0.0, pos.z))
+	root_actor_node.add_child(item)
+	tile_item_nodes.append(item)
+	#tile_items[tileIdx] = flower_idx
+							
+	if item.has_node("collider"):
+		var collider = item.get_node("collider")
+		collider.set_item(items.get_item_by_id(id))
 			
 func get_item(x, z):
 	var tileIdx = z * tile_size + x

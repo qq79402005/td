@@ -109,6 +109,13 @@ func get_tile(x_coord, z_coord):
 			
 	return null
 	
+func add_item( pos, item):
+	var x_pos = int( pos.x / tile_size)
+	var z_pos = int( pos.z / tile_size)
+	var tile = get_tile(x_pos, z_pos)
+	if tile != null:
+		tile.add_item( 100001, pos)
+	
 func gen_tile_mesh(tile, pos):
 	var surfTool = SurfaceTool.new()
 	var mesh = Mesh.new()
