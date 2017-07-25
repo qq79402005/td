@@ -1,7 +1,14 @@
 extends TextureButton
 
+var item_id  = -1
+var item_num = 0
+
 func _ready():
 	pass
+	
+func set_slot_info(id, num):
+	item_id = id
+	item_num = num
 	
 func get_drag_data(pos):
 	var drag_preview = preload("res://ui/inventory/drag_preview.tscn").instance()

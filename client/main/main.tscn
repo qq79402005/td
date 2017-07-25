@@ -240,8 +240,11 @@ margin/bottom = 141.0
 
 [node name="actor" type="Node" parent="."]
 
+editor/display_folded = true
+
 [node name="main_character" type="Spatial" parent="actor"]
 
+editor/display_folded = true
 _import_transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0 )
 transform/local = Transform( 0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, 0, 0, 0 )
 script/script = ExtResource( 10 )
@@ -266,6 +269,7 @@ script/script = ExtResource( 11 )
 
 [node name="behavior" type="BTRootNode" parent="actor/main_character"]
 
+editor/display_folded = true
 script/script = ExtResource( 13 )
 motion_speed = 2.5
 patrol_range = 20.0
