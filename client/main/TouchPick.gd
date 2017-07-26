@@ -56,8 +56,7 @@ func _fixed_process(delta):
 				if drag_data.type=="item":
 					var slot = drag_data.slot
 					if slot.item_num > 0:
-						get_node("/root/network").plant_item(slot.idx, 1.1, 1.2, 1.3)
-						get_node("/root/level/terrain").add_item(result.position, 100001)
+						get_node("/root/network").plant_item(slot.idx, result.position.x, result.position.y, result.position.z)
 				
 				drag_pos = Vector2(-1, -1)
 				drag_data = null	

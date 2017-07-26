@@ -112,6 +112,7 @@ func bind_msgs():
 	bind(preload("res://global/protocol/backpack_cell.pb.gd"))
 	bind(preload("res://global/protocol/blood_info.pb.gd"))
 	bind(preload("res://global/protocol/game_time.pb.gd"))
+	bind(preload("res://global/protocol/plant_item_reply.pb.gd"))
 		
 func on_msg_backpack_num( msg):
 	get_tree().get_root().get_node("level/ui/little bag").set_slot_size(msg.num)
@@ -124,3 +125,6 @@ func on_msg_blood_info( msg):
 
 func on_msg_game_time( msg):
 	get_node("/root/global").setGameTime(msg.time)
+	
+func on_msg_plant_item_reply( msg):
+	get_node("/root/level/terrain").add_item(Vector3(msg.pos_x, msg.pos_y, msg.pos_z), msg.item_id)
