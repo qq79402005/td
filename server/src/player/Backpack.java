@@ -66,6 +66,25 @@ public class Backpack {
 		return cell;
 	}
 	
+	public Cell plantItem( int cellIdx, ChannelHandlerContext ctx) {
+		Cell cell = getCellByItemIdx(cellIdx);
+		if( cell!=null && cell.item_num>0){
+			cell.item_num -= 1;
+		}
+		
+		if(cell!=null) {
+			sendCellInfo(ctx, cell);
+			
+			if(cell.item_num==0) {
+				cells.remove(cell);
+			}
+			
+			return cell;
+		}
+		
+		return null;
+	}
+	
 	public void collectItem(int item_id, int count, int type, ChannelHandlerContext ctx) {
 		Cell cell = AddItem(item_id, count, type);
 		
@@ -81,6 +100,16 @@ public class Backpack {
 	public Cell getCellByItemID(int id) {
 		for(Cell cell : cells) {
 			if(cell.item_id == id) {
+				return cell;
+			}
+		}
+		
+		return null;
+	}
+	
+	public Cell getCellByItemIdx(int idx) {
+		for(Cell cell : cells) {
+			if(cell.cell_idx == idx) {
 				return cell;
 			}
 		}
@@ -108,14 +137,5 @@ public class Backpack {
 		}
 		
 		return true;
-	}
-	
-	// used for save to database
-	public String toJson() {	
-		Gson gson = new Gson();
-		String json = gson.toJson(this);
-		
-		String backPackJson = String.format("\"backpack\":%s", json);
-		return backPackJson;
 	}
 }

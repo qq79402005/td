@@ -12,7 +12,6 @@ var drag_pos
 func _ready():
 	Globals.set("current_camera", self)
 	scene_rotate_y = get_parent().get_rotation_deg().y
-	#set_process_input(true)
 	set_process_unhandled_input(true)
 	set_fixed_process(true)
 	
@@ -54,7 +53,11 @@ func _fixed_process(delta):
 		if not result.empty():
 			var collider = result["collider"]
 			if collider.get_type() != "item":
-				get_node("/root/level/terrain").add_item(result.position, 100001)
+				if drag_data.type=="item":
+					var slot = drag_data.slot
+					if slot.item_num > 0:
+						get_node("/root/network").plant_item(slot.idx, 1.1, 1.2, 1.3)
+						get_node("/root/level/terrain").add_item(result.position, 100001)
 				
 				drag_pos = Vector2(-1, -1)
 				drag_data = null	

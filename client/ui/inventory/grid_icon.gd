@@ -1,10 +1,22 @@
 extends TextureButton
 
+var idx = -1
 var item_id  = -1
 var item_num = 0
 
+class DragData:
+	var type
+	var slot
+	
+	func _init( slot):
+		self.type = "item"
+		self.slot = slot
+
 func _ready():
 	pass
+	
+func set_cell_idx(idx):
+	self.idx = idx
 	
 func set_slot_info(id, num):
 	item_id = id
@@ -14,7 +26,7 @@ func get_drag_data(pos):
 	var drag_preview = preload("res://ui/inventory/drag_preview.tscn").instance()
 	drag_preview.set_texture( self.get_normal_texture())
 	set_drag_preview( drag_preview)
-	return "haha"
+	return DragData.new(self)
 	
 func can_drop_data(pos, data):
 	return true

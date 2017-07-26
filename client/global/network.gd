@@ -80,6 +80,15 @@ func collect_item(id):
 		collect_item_msg.type = 1
 		collect_item_msg.send(streamPeerTCP)
 		
+func plant_item(slot_idx, posx, posy, posz):
+	if streamPeerTCP.is_connected():	
+		var msg = preload("res://global/protocol/plant_item.pb.gd").new()
+		msg.slot_idx = slot_idx
+		msg.pos_x = posx
+		msg.pos_y = posy
+		msg.pos_z = posz
+		msg.send(streamPeerTCP)
+		
 func on_attacked(damage):
 	if streamPeerTCP.is_connected():
 		var on_attacked_msg = preload("res://global/protocol/on_attacked.pb.gd").new()
@@ -96,7 +105,7 @@ func addGameTime(time):
 	if streamPeerTCP.is_connected():
 		var msg = preload("res://global/protocol/add_game_time.pb.gd").new()
 		msg.time = time
-		msg.send(streamPeerTCP)
+		msg.send(streamPeerTCP)				
 
 func bind_msgs():
 	bind(preload("res://global/protocol/backpack_num.pb.gd"))

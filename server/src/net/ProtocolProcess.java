@@ -12,6 +12,7 @@ interface ProtocolProcess {
 		SocketServerHandler.bind(new protocol.on_attacked(),  new on_attacked_process());
 		SocketServerHandler.bind(new protocol.resurgence(), new resurgence_process());
 		SocketServerHandler.bind(new protocol.add_game_time(), new on_add_game_time_process());
+		SocketServerHandler.bind(new protocol.plant_item(), new on_plant_item_process());
 	}
 }
 
@@ -35,6 +36,17 @@ class collect_item_process implements ProtocolProcess{
 		player.collectItem(msg.id, msg.count, msg.type);
 	}
 }
+
+class on_plant_item_process implements ProtocolProcess{
+	@Override
+	public void on_accept(protocol.message proto, ChannelHandlerContext ctx) {
+		protocol.plant_item msg = (protocol.plant_item)proto;
+		
+		Player player = Player.get(ctx);
+		player.plantItem(msg.slot_idx, msg.pos_x, msg.pos_y, msg.pos_z);
+	}
+}
+
 
 class on_attacked_process implements ProtocolProcess{
 	@Override

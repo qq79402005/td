@@ -161,6 +161,10 @@ public class Player {
 		mInfo.backpack.collectItem(id, count, type, mChannelCtx);
 	}
 	
+	public void plantItem( int slot_idx, float pos_x, float pos_y, float pos_z) {
+		mInfo.backpack.plantItem(slot_idx, mChannelCtx);
+	}
+	
 	public void onAttacked(int damage) {
 		mInfo.baseInfo.onAttacked(damage);
 		mInfo.baseInfo.sendBloodInfo(mChannelCtx);

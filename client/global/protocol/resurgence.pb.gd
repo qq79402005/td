@@ -8,7 +8,7 @@ func _ready():
 func name():
 	return 'resurgence'
 func id():
-	return 9
+	return 10
 
 func length():
 	return 4

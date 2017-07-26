@@ -44,6 +44,8 @@ def gen_protocol_java( file, id):
     for key in data.keys():
         if data[key]=='int':
             length += 4
+        if data[key]=='float':
+            length += 4
 
     java_file.writelines("\n")
     java_file.writelines("\t@Override\n")
@@ -58,7 +60,10 @@ def gen_protocol_java( file, id):
     java_file.writelines("\t\tbyteBuffer.writeInt(id());\n")
     java_file.writelines("\t\tbyteBuffer.writeInt(length());\n")
     for key in data.keys():
-        java_file.writelines("\t\tbyteBuffer.writeInt(%s);\n" % key)
+        if data[key]=='int':
+            java_file.writelines("\t\tbyteBuffer.writeInt(%s);\n" % key)
+        if data[key]=='float':
+            java_file.writelines("\t\tbyteBuffer.writeFloat(%s);\n" % key)
 
     java_file.writelines("\t\tbyteBuffer.writeByte(64);\n")
     java_file.writelines("\t\tbyteBuffer.writeByte(64);\n")
@@ -70,7 +75,10 @@ def gen_protocol_java( file, id):
     java_file.writelines("\t@Override\n")
     java_file.writelines("\tpublic void parse_data(ByteBuf byteBuffer){\n")
     for key in data.keys():
-        java_file.writelines("\t\t%s = byteBuffer.readInt();\n" % key)
+        if data[key]=='int':
+            java_file.writelines("\t\t%s = byteBuffer.readInt();\n" % key)
+        if data[key]=='float':
+            java_file.writelines("\t\t%s = byteBuffer.readFloat();\n" % key)
     
     java_file.writelines("\t}\n")
 
@@ -111,6 +119,8 @@ def gen_protocol_godot(file, id):
     for key in data.keys():
         if data[key]=='int':
             length += 4
+        if data[key]=='float':
+            length += 4
 
     gd_file.writelines("\n")
     gd_file.writelines("func length():\n")
@@ -123,7 +133,10 @@ def gen_protocol_godot(file, id):
     gd_file.writelines("\tbuf.write_i32(int(id()))\n")
     gd_file.writelines("\tbuf.write_i32(int(length()))\n")
     for key in data.keys():
-        gd_file.writelines("\tbuf.write_i32(%s)\n" % key)
+        if data[key]=='int':
+            gd_file.writelines("\tbuf.write_i32(%s)\n" % key)
+        if data[key]=='float':
+            gd_file.writelines("\tbuf.write_float(%s)\n" % key)
 
     gd_file.writelines("\tbuf.write_byte(64)\n")
     gd_file.writelines("\tbuf.write_byte(64)\n")
@@ -133,15 +146,11 @@ def gen_protocol_godot(file, id):
     # parse data
     gd_file.writelines("\n")
     gd_file.writelines("func parse_data( byteBuffer):\n")
-    #gd_file.writelines("\tvar msg_id = byteBuffer.read_i32();\n")
-    #gd_file.writelines("\tvar msg_length = byteBuffer.read_i32();\n")
-    #gd_file.writelines("\tif msg_id==id() and msg_length==length():\n")
     for key in data.keys():
-        gd_file.writelines("\t%s = byteBuffer.read_i32();\n" % key)
-    
-    #gd_file.writelines("\t\treturn true;\n")
-    #gd_file.writelines("\telse:\n")
-    #gd_file.writelines("\t\treturn false;\n")
+        if data[key]=='int':
+            gd_file.writelines("\t%s = byteBuffer.read_i32();\n" % key)
+        if data[key]=='float':
+            gd_file.writelines("\t%s = byteBuffer.read_float();\n" % key)
 
     gd_file.close()
 

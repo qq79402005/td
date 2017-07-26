@@ -9,6 +9,7 @@ func set_slot_size( size):
 	var container = get_node("bg/GridContainer")
 	for i in range(5):
 		var slot = slotRs.instance()
+		slot.get_node("icon").set_cell_idx(i)
 		container.add_child(slot)
 		
 func set_slot_info(cell_idx, item_id, item_num):
@@ -16,9 +17,14 @@ func set_slot_info(cell_idx, item_id, item_num):
 	if cell_idx < container.get_child_count():
 		var tex = get_node("/root/items").get_item_icon(item_id)
 		var slot = container.get_child(cell_idx)
-		slot.get_node("icon").set_slot_info(item_id, item_num)
-		slot.get_node("icon").set_normal_texture(tex)
-		slot.get_node("icon/label").set_text(String(item_num))	
+		if item_num > 0:
+			slot.get_node("icon").set_slot_info(item_id, item_num)
+			slot.get_node("icon").set_normal_texture(tex)
+			slot.get_node("icon/label").set_text(String(item_num))
+		else:
+			slot.get_node("icon").set_slot_info(-1, item_num)
+			slot.get_node("icon").set_normal_texture(null)
+			slot.get_node("icon/label").set_text(String(""))
 	
 func clear():	
 	for child in get_node("bg/GridContainer").get_children():
