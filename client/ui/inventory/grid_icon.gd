@@ -40,4 +40,7 @@ func _on_icon_pressed():
 	if item_num > 0 :
 		var item = get_node("/root/items").get_item_by_id(item_id)
 		if item!=null and item.is_can_eat == true:
-			get_node("/root/network").eat_item(idx)
+			if Globals.get("main_character").max_blood > Globals.get("main_character").cur_blood:	
+				get_node("/root/network").eat_item(idx)
+			else:
+				print("blood is full, please don't eat anymore")
