@@ -53,4 +53,6 @@ percent_visible = 1.0
 lines_skipped = 0
 max_lines_visible = -1
 
+[connection signal="pressed" from="icon" to="icon" method="_on_icon_pressed"]
+
 

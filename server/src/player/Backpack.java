@@ -66,7 +66,7 @@ public class Backpack {
 		return cell;
 	}
 	
-	public Cell plantItem( int cellIdx, ChannelHandlerContext ctx) {
+	public Cell useItem( int cellIdx, ChannelHandlerContext ctx) {
 		Cell cell = getCellByItemIdx(cellIdx);
 		if( cell!=null && cell.item_num>0){
 			cell.item_num -= 1;

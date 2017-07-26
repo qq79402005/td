@@ -11,6 +11,10 @@ public class BaseInfo {
 		curBlood = Math.min(Math.max(curBlood - damage, 0), maxBlood);
 	}
 	
+	public void onCure(int cure) {
+		curBlood = Math.min(Math.max(curBlood + cure, 0), maxBlood);
+	}
+	
 	public void addGameTime(long delta) {
 		if(curBlood > 0) {
 			gameTime += delta;

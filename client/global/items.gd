@@ -9,6 +9,8 @@ class Item:
 	var icon = String("")
 	var res  = String("")
 	var res_load = null
+	var is_can_eat = false
+	var add_blood = 0
 	
 	func _init():
 		pass
@@ -32,6 +34,10 @@ func _ready():
 				elif att_name == "res":
 					item.res = parser.get_attribute_value(i)
 					item.res_load = load(item.res)
+				elif att_name == "is_can_eat":
+					item.is_can_eat = bool(parser.get_attribute_value(i).to_int())
+				elif att_name == "add_blood":
+					item.add_blood = parser.get_attribute_value(i).to_int()
 		
 			items.append(item)
 	
@@ -45,6 +51,8 @@ func get_item_by_id(id):
 	for item in items:
 		if item.id == id:
 			return item
+			
+	return null
 
 func get_item_icon( id):
 	for item in items:

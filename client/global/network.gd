@@ -89,6 +89,13 @@ func plant_item(slot_idx, posx, posy, posz):
 		msg.pos_z = posz
 		msg.send(streamPeerTCP)
 		
+func eat_item(slot_idx):
+	print("eat", slot_idx)
+	if streamPeerTCP.is_connected():	
+		var msg = preload("res://global/protocol/eat_item.pb.gd").new()
+		msg.slot_idx = slot_idx
+		msg.send(streamPeerTCP)
+		
 func on_attacked(damage):
 	if streamPeerTCP.is_connected():
 		var on_attacked_msg = preload("res://global/protocol/on_attacked.pb.gd").new()

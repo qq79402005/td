@@ -55,7 +55,6 @@ func add_item(id, pos):
 	var root_actor_node = get_node("/root/level/actor")
 	var item = items.get_item_by_id(id).res_load.instance()
 	var item_half_height = 0#item.get_region_rect().size.y / 2
-	print("------------------#######", pos)
 	item.set_translation(Vector3( pos.x, 0.0, pos.z))
 	root_actor_node.add_child(item)
 	tile_item_nodes.append(item)

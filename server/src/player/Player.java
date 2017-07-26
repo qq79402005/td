@@ -162,9 +162,17 @@ public class Player {
 	}
 	
 	public void plantItem( int slot_idx, float pos_x, float pos_y, float pos_z) {
-		Cell cell = mInfo.backpack.plantItem(slot_idx, mChannelCtx);
+		Cell cell = mInfo.backpack.useItem(slot_idx, mChannelCtx);
 		if(cell!=null) {
 			sendPlantItemReply( cell.item_id, pos_x, pos_y, pos_z);
+		}
+	}
+	
+	public void onEatItem(int slotIdx) {
+		Cell cell = mInfo.backpack.useItem(slotIdx, mChannelCtx);
+		if(cell!=null) {
+			mInfo.baseInfo.onCure( 25);
+			mInfo.baseInfo.sendBloodInfo(mChannelCtx);
 		}
 	}
 	

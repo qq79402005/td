@@ -11,7 +11,7 @@ func _ready():
 func name():
 	return 'plant_item_reply'
 func id():
-	return 10
+	return 11
 
 func length():
 	return 16

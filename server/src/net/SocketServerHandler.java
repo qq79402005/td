@@ -41,6 +41,8 @@ public class SocketServerHandler extends ChannelInboundHandlerAdapter {
 						protoInfo.protocol.parse_data(buff);
 						protoInfo.process.on_accept( protoInfo.protocol, ctx);
 					}
+				}else {
+					System.out.println(String.format("Unhandled proto id [%d]", id));
 				}
 			}
 		} finally{

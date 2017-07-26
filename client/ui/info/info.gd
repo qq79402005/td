@@ -12,9 +12,6 @@ func _process(delta):
 		get_node("time").set_text(String("Day:") + String(day))
 	
 		var process  = (int(gameTime) % 3600) / 3600.0
-		print("++++++++++++++++++++++++")
-		print(process)
-		print(gameTime)
 		process *= 100.0
 		get_node("process").set_value(int(process))
 		
